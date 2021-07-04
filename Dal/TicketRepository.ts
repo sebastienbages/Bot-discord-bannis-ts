@@ -4,7 +4,7 @@ export class TicketRepository {
 
     constructor() { }
 
-    async getAllData() {
+    public async getAllData() {
         try {
             const connection = await SingletonContext.getInstance().getConnection();
             return new Promise((resolve, rejects) => {

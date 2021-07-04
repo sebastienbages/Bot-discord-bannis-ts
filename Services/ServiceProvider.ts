@@ -1,11 +1,15 @@
+import { AdminService } from "./AdminService";
 import { TicketService } from "./TicketService";
 import { TopServerService } from "./TopServerService";
+import { VoteService } from "./VoteService";
 
 
 export class ServiceProvider {
 
     private static _ticketService: TicketService;
     private static _topServerService: TopServerService;
+    private static _voteService: VoteService;
+    private static _adminService: AdminService;
 
     constructor() { }
 
@@ -21,5 +25,19 @@ export class ServiceProvider {
             this._topServerService = new TopServerService();
         }
         return this._topServerService;
+    }
+
+    public static getVoteService(): VoteService {
+        if (!ServiceProvider._voteService) {
+            this._voteService = new VoteService();
+        }
+        return this._voteService;
+    }
+
+    public static getAdminService(): AdminService {
+        if (!ServiceProvider._adminService) {
+            this._adminService = new AdminService();
+        }
+        return this._adminService;
     }
 }

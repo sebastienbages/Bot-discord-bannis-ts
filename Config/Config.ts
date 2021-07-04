@@ -11,6 +11,7 @@ import { SurveyCommand } from '../Commands/moderation/Survey';
 import { HelpCommand } from '../Commands/utility/Help';
 import { RestartCommand } from '../Commands/utility/Restart';
 import { TopServerCommand } from '../Commands/utility/TopServer';
+import { VoteCommand } from '../Commands/utility/Vote';
 
 export class Config {
 
@@ -18,10 +19,9 @@ export class Config {
     public static readonly guildId = process.env.GUILD_ID;
     public static readonly surveyChannelId = process.env.CHA_SURVEY;
     public static readonly token = process.env.TOKEN;
-    public static readonly voteKeeperId = process.env.WH_VK_ID;
-    public static readonly serverKeeperId = process.env.WH_SK_ID;
-    public static readonly serverKeeperToken = process.env.WH_SK_TOKEN;
-    public static readonly commands = [ SayCommand, SaySimpleCommand, SurveyCommand, SayPrivCommand, AddRoleCommand, RemoveRoleCommand, ClearCommand, HelpCommand, RestartCommand, TopServerCommand ];
+    public static readonly tokenTopServer = process.env.TOKEN_TOP_SERVEUR;
+    public static readonly devBotId = process.env.DEV_BOT_ID;
+    public static readonly commands = [ SayCommand, SaySimpleCommand, SurveyCommand, SayPrivCommand, AddRoleCommand, RemoveRoleCommand, ClearCommand, HelpCommand, RestartCommand, TopServerCommand, VoteCommand ];
 
     constructor() { }
 
@@ -29,4 +29,14 @@ export class Config {
         const commandsInstances = Config.commands.map(commandClass => new commandClass());
         return commandsInstances;
     }
+}
+
+export class WebHookConfig {
+
+    public static readonly voteKeeperId = process.env.WH_VK_ID;
+    public static readonly voteKeeperToken = process.env.WH_VK_TOKEN;
+    public static readonly serverKeeperId = process.env.WH_SK_ID;
+    public static readonly serverKeeperToken = process.env.WH_SK_TOKEN;
+
+    constructor() { }
 }

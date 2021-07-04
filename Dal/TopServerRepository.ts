@@ -1,8 +1,9 @@
 import axios from "axios";
+import { Config } from "../Config/Config";
 
 export class TopServerRepository {
 
-    private readonly _token = process.env.TOKEN_TOP_SERVEUR;
+    private readonly _token = Config.tokenTopServer;
     private readonly _url = 'https://api.top-serveurs.net/v1/servers/' + this._token;
 
     constructor() { }
@@ -33,6 +34,16 @@ export class TopServerRepository {
         } 
         catch (error) {
             throw error;
+        }
+    }
+
+    public async getServerStats() {
+        try {
+            const { data } = await axios.get(this._url + '/stats');
+			return data.stats;
+        } 
+        catch (error) {
+            throw error
         }
     }
 }

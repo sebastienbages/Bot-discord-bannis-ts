@@ -38,6 +38,19 @@ export class TopServerService {
         }
     }
 
+    public async GetNumberOfVotes(): Promise<number> {
+        try {
+            const stats = await this._topServerRepository.getServerStats();
+            const date = new Date().getMonth();
+			const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december' ];
+			const currentMonth = months[date];
+			return stats.monthly[0][currentMonth + '_votes'];
+        } 
+        catch (error) {
+            throw error
+        }
+    }
+
     private MapTopServerModel(data) : TopServerModel {
 
         const model = new TopServerModel();

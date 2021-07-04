@@ -1,7 +1,8 @@
 import { Client, Collection, Message } from "discord.js";
 import { ICommand } from "../Commands/ICommand";
 import { CommandContext } from "../Commands/CommandContext";
-import { Config } from "../Config/Config";
+import { Config, WebHookConfig } from "../Config/Config";
+import { ServiceProvider } from "../Services/ServiceProvider";
 
 export class CommandHandler {
 
@@ -17,9 +18,15 @@ export class CommandHandler {
 
     async handleMessage(message: Message, client: Client): Promise<void> {
 
-        if (message.author.bot || !this.isCommand(message)) return undefined;
+        if (message.author.id === WebHookConfig.voteKeeperId) return ServiceProvider.getVoteService().saveMessage(message);
 
-        if (message.channel.type != 'dm') message.delete();
+        if (message.author.bot) return undefined;
+		
+        if (message.channel.type === "dm" && !message.content.startsWith(this._prefix)) return ServiceProvider.getAdminService().transfertPrivateMessage(message);
+        
+        if (!this.isCommand(message)) return undefined;
+
+        if (message.channel.type != "dm") message.delete();
 
         const commandContext = new CommandContext(message, this._prefix); 
         const matchedCommands = this._commands.find(command => command.aliases.includes(commandContext.command) || command.name.includes(commandContext.command));
@@ -34,19 +41,19 @@ export class CommandHandler {
         const authorPerms = guild.members.cache.find(user => user.id === message.author.id);
 
         if (!authorPerms || !authorPerms.hasPermission(matchedCommands.permission)) {
-            if (message.channel.type != 'dm') {
-                const response = await message.reply('Vous n\'avez pas la permission d\'utiliser cette commande');
+            if (message.channel.type != "dm") {
+                const response = await message.reply("Vous n\'avez pas la permission d\'utiliser cette commande");
                 response.delete({ timeout: 5000 });
                 return undefined;
             }
             else {
-                message.reply('Vous n\'avez pas la permission d\'utiliser cette commande');
+                message.reply("Vous n\'avez pas la permission d\'utiliser cette commande");
                 return undefined;
             }
         }
 
         if (matchedCommands.guildOnly && message.channel.type === "dm") {
-            message.reply('Je ne peux pas éxécuter cette commande dans un salon privé');
+            message.reply("Je ne peux pas éxécuter cette commande dans un salon privé");
             return undefined;
         }
 
@@ -96,7 +103,9 @@ export class CommandHandler {
         } 
         catch (error) {
             console.error(error);
-			message.reply('une erreur s\'est produite, veuillez contacter un administrateur');
+			message.reply("une erreur s\'est produite, veuillez contacter un administrateur");
+            const devBot = await message.client.users.fetch(Config.devBotId);
+            devBot.send("Une erreur s'est produite avec le bot");
         }
     }
 

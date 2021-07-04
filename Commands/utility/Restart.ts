@@ -1,7 +1,7 @@
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { WebhookClient } from "discord.js";
-import { Config } from "../../Config/Config";
+import { WebHookConfig } from "../../Config/Config";
 
 export class RestartCommand implements ICommand {
 
@@ -16,7 +16,7 @@ export class RestartCommand implements ICommand {
 
     async run(commandContext: CommandContext): Promise<void> {
         try {
-            const webhook = new WebhookClient(Config.serverKeeperId, Config.serverKeeperToken);
+            const webhook = new WebhookClient(WebHookConfig.serverKeeperId, WebHookConfig.serverKeeperToken);
             const msg = ':warning: @everyone Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:';
             webhook.send(msg)
         }

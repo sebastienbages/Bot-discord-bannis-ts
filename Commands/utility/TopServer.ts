@@ -20,6 +20,7 @@ export class TopServerCommand implements ICommand {
 
         const args = commandContext.args;
         const message = commandContext.message;
+        const TopServerService = ServiceProvider.getTopServerService();
 
         try {
             let title: string;
@@ -28,11 +29,11 @@ export class TopServerCommand implements ICommand {
             const option = args[0];
 
             if (option === 'last') {
-                players = await ServiceProvider.getTopServerService().getPlayersRanking(false);
+                players = await TopServerService.getPlayersRanking(false);
                 title = 'Classement Top Serveur du mois dernier';
             }
             else {
-                players = await ServiceProvider.getTopServerService().getPlayersRanking(true);
+                players = await TopServerService.getPlayersRanking(true);
                 title = 'Classement Top Serveur du mois en cours';
             }
 
