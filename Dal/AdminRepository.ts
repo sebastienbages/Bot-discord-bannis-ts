@@ -24,7 +24,7 @@ export class AdminRepository {
         try {
             const connection = await SingletonContext.getInstance().getConnection();
             return new Promise((resolve, rejects) => {
-                connection.query("SELECT discord_id FROM f1mtb0ah6rjbwawm.admins WHERE (discord_id = ?)", [ id ], (error, result) => {
+                connection.query("SELECT * FROM f1mtb0ah6rjbwawm.admins WHERE (discord_id = ?)", [ id ], (error, result) => {
                     if (error) return rejects(error);
                     connection.release();
                     return resolve(result);

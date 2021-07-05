@@ -1,4 +1,6 @@
 import * as dotenv from 'dotenv';
+import { AdminCommand } from '../Commands/admin/admin';
+import { TicketCommand } from '../Commands/admin/Ticket';
 dotenv.config();
 import { ICommand } from '../Commands/ICommand';
 import { AddRoleCommand } from '../Commands/moderation/AddRole';
@@ -21,7 +23,19 @@ export class Config {
     public static readonly token = process.env.TOKEN;
     public static readonly tokenTopServer = process.env.TOKEN_TOP_SERVEUR;
     public static readonly devBotId = process.env.DEV_BOT_ID;
-    public static readonly commands = [ SayCommand, SaySimpleCommand, SurveyCommand, SayPrivCommand, AddRoleCommand, RemoveRoleCommand, ClearCommand, HelpCommand, RestartCommand, TopServerCommand, VoteCommand ];
+    public static readonly commands = [ SayCommand, 
+                                        SaySimpleCommand, 
+                                        SurveyCommand, 
+                                        SayPrivCommand, 
+                                        AddRoleCommand, 
+                                        RemoveRoleCommand, 
+                                        ClearCommand, 
+                                        HelpCommand, 
+                                        RestartCommand, 
+                                        TopServerCommand, 
+                                        VoteCommand, 
+                                        AdminCommand, 
+                                        TicketCommand ];
 
     constructor() { }
 

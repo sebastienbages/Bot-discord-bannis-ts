@@ -1,4 +1,4 @@
-import { Client, Message, MessageEmbed } from "discord.js";
+import { Message, MessageEmbed } from "discord.js";
 import { Config } from "../Config/Config";
 import { AdminRepository } from "../Dal/AdminRepository";
 import { AdminModel } from "../Models/AdminModel";
@@ -48,11 +48,14 @@ export class AdminService {
 
     public async adminIsExist(id: string): Promise<Boolean> {
         try {
-            const adminsArray = await this.getAdminsData();
+            const results = await this._adminRepository.getAdmin(id);
+            const admin = this.MapAdminModel(results);
 
-            adminsArray.forEach(e => {
-                if (e.discordId === id) return true;
-            });
+            if (admin.length === 0) return false;
+
+            if (admin[0].discordId === id) {
+                return true;
+            }
 
             return false;
         } 
@@ -82,6 +85,24 @@ export class AdminService {
         } 
         catch (error) {
             throw error;    
+        }
+    }
+
+    public async creatAdmin(id: string, name: string): Promise<void> {
+        try {
+            await this._adminRepository.createAdmin(id, name);
+        } 
+        catch (error) {
+            throw error;
+        }
+    }
+
+    public async removeAdmin(id: string): Promise<void> {
+        try {
+            await this._adminRepository.removeAdmin(id);
+        } 
+        catch (error) {
+            throw error;
         }
     }
 

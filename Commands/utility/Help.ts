@@ -51,7 +51,13 @@ export class HelpCommand implements ICommand {
 
             data.push(`**Nom:** \`${command.name}\``);
 
-            if (command.aliases) data.push(`**Alias :** \`${command.aliases.join(', ')}\``);
+            if (command.aliases && command.aliases.length > 0) {
+                data.push(`**Alias :** \`${command.aliases.join(', ')}\``);
+            }
+            else {
+                data.push("**Alias :** `aucun`");
+            }
+
             if (command.description) data.push(`**Description :** ${command.description}`);
             if (command.usage) data.push(`**Usage :** \`${commandContext.commandPrefix}${command.name} ${command.usage}\``);
 
