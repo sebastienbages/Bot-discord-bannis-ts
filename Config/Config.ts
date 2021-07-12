@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
+dotenv.config();
 import { AdminCommand } from '../Commands/admin/admin';
 import { TicketCommand } from '../Commands/admin/Ticket';
-dotenv.config();
 import { ICommand } from '../Commands/ICommand';
 import { AddRoleCommand } from '../Commands/moderation/AddRole';
 import { ClearCommand } from '../Commands/moderation/Clear';
@@ -40,8 +40,7 @@ export class Config {
     constructor() { }
 
     public static getCommandsInstances(): ICommand[] {
-        const commandsInstances = Config.commands.map(commandClass => new commandClass());
-        return commandsInstances;
+        return Config.commands.map(commandClass => new commandClass());
     }
 }
 

@@ -1,4 +1,5 @@
 import { AdminService } from "./AdminService";
+import { RoleService } from "./RoleService";
 import { TicketService } from "./TicketService";
 import { TopServerService } from "./TopServerService";
 import { VoteService } from "./VoteService";
@@ -10,6 +11,7 @@ export class ServiceProvider {
     private static _topServerService: TopServerService;
     private static _voteService: VoteService;
     private static _adminService: AdminService;
+    private static _roleService: RoleService;
 
     constructor() { }
 
@@ -39,5 +41,12 @@ export class ServiceProvider {
             this._adminService = new AdminService();
         }
         return this._adminService;
+    }
+
+    public static getRoleService(): RoleService {
+        if (!ServiceProvider._roleService) {
+            this._roleService = new RoleService();
+        }
+        return this._roleService;
     }
 }

@@ -1,15 +1,22 @@
 import { ReadyEvent } from "../Events/ReadyEvent";
 import { Client } from "discord.js";
+import { MessageReactionAddEvent } from "../Events/MessageReactionAdd";
 
 export class Events {
 
-    private readyEvent: ReadyEvent;
+    private _readyEvent: ReadyEvent;
+    private _messageReactionAdd: MessageReactionAddEvent;
 
-    constructor(client: Client) {
-        this.readyEvent = new ReadyEvent();
+    constructor() {
+        this._readyEvent = new ReadyEvent();
+        this._messageReactionAdd = new MessageReactionAddEvent();
     }
 
-    ready() {
-        return this.readyEvent;
+    public ready() {
+        return this._readyEvent;
+    }
+
+    public messageReactionAdd() {
+        return this._messageReactionAdd;
     }
 }

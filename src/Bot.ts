@@ -10,7 +10,7 @@ export class Bot {
 
     constructor () {
         this.client = new Client();
-        this.events = new Events(this.client);
+        this.events = new Events();
         this.token = Config.token;
     }
 

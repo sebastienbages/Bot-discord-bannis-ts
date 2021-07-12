@@ -1,14 +1,15 @@
-import { Client, Guild, TextChannel } from "discord.js";
+import { CategoryChannel, Client, Guild, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
 import { TicketRepository } from "../Dal/TicketRepository";
 import { TicketModel } from "../Models/TicketModel";
-
 
 export class TicketService {
 
     private _ticketRepository: TicketRepository;
     public static createReaction = "🎫";
     public static closeReaction = "🔒";
+    public static reOpenTicketReaction = "🔓";
+    public static deleteTicketReaction = "❌";
 
     constructor() {
         this._ticketRepository = new TicketRepository();
@@ -17,7 +18,7 @@ export class TicketService {
     public async getAllData(): Promise<TicketModel> {
         try {
             const results = await this._ticketRepository.getAllData();
-            const ticketModel = this.MapTicketModel(results);
+            const ticketModel = this.mapTicketModel(results);
             return ticketModel;
         } 
         catch (error) {
@@ -25,16 +26,20 @@ export class TicketService {
         }
     }
 
-    public async fetchLastTicketMessage(client: Client): Promise<void> {
+    public async fetchTicketsMessages(client: Client): Promise<void> {
         try {
 
             const ticketModel = await this.getAllData();
 
             const guild = await client.guilds.fetch(Config.guildId) as Guild;
-            const textChannel = guild.channels.cache.get(ticketModel.ChannelId) as TextChannel;
+            const categoryChannel = guild.channels.cache.get(ticketModel.CategoryId) as CategoryChannel;
 
-            textChannel.messages.fetch(ticketModel.MessageId);
-            console.log("Message des tickets récupéré");
+            categoryChannel.children.each(c => {
+                const channel = guild.channels.cache.get(c.id) as TextChannel;
+                channel.messages.fetch();
+            })
+
+            console.log("Messages des tickets récupérés");
         } 
         catch (error) {
             throw error
@@ -59,7 +64,23 @@ export class TicketService {
         }
     }
 
-    private MapTicketModel(data): TicketModel {
+    public getChannelName(lastNumber: string): string {
+
+		const lastNumberTicket = parseInt(lastNumber);
+		const newTicketNumber = lastNumberTicket + 1;
+		let channelName = new Array<string>();
+		channelName.unshift(newTicketNumber.toString());
+
+		while (channelName.length < 4) {
+			channelName.unshift("0");
+		}
+
+		channelName.unshift(" ");
+		channelName.unshift("ticket");
+		return channelName.join("");
+	}
+
+    private mapTicketModel(data): TicketModel {
 
         const model = new TicketModel();
 

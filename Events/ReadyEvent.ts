@@ -8,7 +8,7 @@ export class ReadyEvent {
         client.once("ready", async () => {
 
             const TicketService = ServiceProvider.getTicketService() as TicketService;
-            await TicketService.fetchLastTicketMessage(client);
+            await TicketService.fetchTicketsMessages(client);
 
             console.log("Le bot est en ligne");
 		    client.user.setActivity("Conan Exiles");
