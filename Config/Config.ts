@@ -22,7 +22,7 @@ export class Config {
     public static readonly surveyChannelId = process.env.CHA_SURVEY;
     public static readonly token = process.env.TOKEN;
     public static readonly tokenTopServer = process.env.TOKEN_TOP_SERVEUR;
-    public static readonly devBotId = process.env.DEV_BOT_ID;
+    public static readonly devId = process.env.DEV_ID;
     public static readonly commands = [ SayCommand, 
                                         SaySimpleCommand, 
                                         SurveyCommand, 

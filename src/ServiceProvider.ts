@@ -1,8 +1,8 @@
-import { AdminService } from "./AdminService";
-import { RoleService } from "./RoleService";
-import { TicketService } from "./TicketService";
-import { TopServerService } from "./TopServerService";
-import { VoteService } from "./VoteService";
+import { AdminService } from "../Services/AdminService";
+import { RoleService } from "../Services/RoleService";
+import { TicketService } from "../Services/TicketService";
+import { TopServerService } from "../Services/TopServerService";
+import { VoteService } from "../Services/VoteService";
 
 
 export class ServiceProvider {

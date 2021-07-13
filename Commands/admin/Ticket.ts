@@ -1,6 +1,6 @@
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
-import { ServiceProvider } from "../../Services/ServiceProvider";
+import { ServiceProvider } from "../../src/ServiceProvider";
 import { MessageEmbed, TextChannel } from "discord.js";
 import { Config } from "../../Config/Config";
 import { TicketService } from "../../Services/TicketService";
@@ -21,10 +21,10 @@ export class TicketCommand implements ICommand {
         const option = commandContext.args[0].toLowerCase();
         const message = commandContext.message;
         const ticketService = ServiceProvider.getTicketService();
-		const ticketMessage = await ticketService.getAllData();
+		const ticketConfig = ticketService.getTicketConfig();
 
-		const category = message.guild.channels.cache.find(c => c.id === ticketMessage.CategoryId);
-		const channel = message.guild.channels.cache.find(c => c.id === ticketMessage.ChannelId) as TextChannel;
+		const category = message.guild.channels.cache.find(c => c.id === ticketConfig.CategoryId);
+		const channel = message.guild.channels.cache.find(c => c.id === ticketConfig.ChannelId) as TextChannel;
 
 		if (option === 'config') {
 
@@ -41,13 +41,13 @@ export class TicketCommand implements ICommand {
 			}
 
 			if (channel) {
-				messageEmbed.addField('CHANNEL DES TICKET', `<#${channel.id}>`);
+				messageEmbed.addField('CHANNEL CREATION DES TICKETS', `<#${channel.id}>`);
 			}
 			else {
-				messageEmbed.addField('SALON CREATION DES TICKET', 'Salon non enregistré');
+				messageEmbed.addField('CHANNEL CREATION DES TICKETS', 'Salon non enregistré');
 			}
 
-			messageEmbed.addField('NOMBRE DE TICKET(S)', ticketMessage.LastNumber);
+			messageEmbed.addField('NOMBRE DE TICKET(S)', ticketConfig.LastNumber);
 
 			message.reply(messageEmbed)
 		}
@@ -61,7 +61,8 @@ export class TicketCommand implements ICommand {
 			if (channel) {
 				const messageSend = await channel.send(messageEmbed)
                 messageSend.react(TicketService.createReaction);
-                ticketService.saveTicketMessageId(messageSend.id);
+                await ticketService.saveTicketMessageId(messageSend.id);
+				await ticketService.updateTicketConfig();
 			}
 			else {
 				const response = await message.reply('Salon des tickets introuvable')

@@ -1,7 +1,7 @@
 import { MessageEmbed } from "discord.js";
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
-import { ServiceProvider } from "../../Services/ServiceProvider";
+import { ServiceProvider } from "../../src/ServiceProvider";
 import { Player } from "../../Models/TopServerModel";
 import { Config } from "../../Config/Config";
 

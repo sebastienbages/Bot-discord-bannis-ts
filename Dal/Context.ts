@@ -1,6 +1,4 @@
-import { rejects } from 'assert/strict';
 import Mysql, { Pool, PoolConnection } from 'mysql';
-import { resolve } from 'path/posix';
 
 class Context {
 

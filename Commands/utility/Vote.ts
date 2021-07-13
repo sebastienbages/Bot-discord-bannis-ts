@@ -1,9 +1,8 @@
 import { MessageEmbed, WebhookClient } from "discord.js";
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
-import { ServiceProvider } from "../../Services/ServiceProvider";
+import { ServiceProvider } from "../../src/ServiceProvider";
 import { Config, WebHookConfig } from "../../Config/Config";
-import { TopServerModel } from "../../Models/TopServerModel";
 
 export class VoteCommand implements ICommand {
 
@@ -18,24 +17,7 @@ export class VoteCommand implements ICommand {
 
     async run(commandContext: CommandContext): Promise<void> {        
         try {
-            const TopServerService = ServiceProvider.getTopServerService();
-            const webhook = new WebhookClient(WebHookConfig.voteKeeperId, WebHookConfig.voteKeeperToken);
-
-            const topServerModel = await TopServerService.getSlugTopServer();
-			const numberOfVotes = await TopServerService.GetNumberOfVotes();
-			const topServeurUrl = "https://top-serveurs.net/conan-exiles/vote/" + topServerModel.slug;
-
-            const messageEmbed = new MessageEmbed()
-				.setColor(Config.color)
-				.setTitle('VOTEZ POUR LE SERVEUR')
-				.setURL(topServeurUrl)
-				.attachFiles(['./images/topServeur.png'])
-				.setThumbnail('attachment://topServeur.png')
-				.setDescription('N\'hésitez pas à donner un coup de pouce au serveur en votant. Merci pour votre participation :thumbsup:')
-				.addField('LIEN TOP SERVEUR', topServeurUrl)
-				.setFooter(`Pour l'instant, nous avons ${numberOfVotes.toString()} votes ce mois-ci`);
-
-			webhook.send(messageEmbed);
+            await ServiceProvider.getVoteService().sendMessage();
         } 
         catch (error) {
             throw error;

@@ -1,11 +1,16 @@
 import { CategoryChannel, Client, Guild, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
 import { TicketRepository } from "../Dal/TicketRepository";
-import { TicketModel } from "../Models/TicketModel";
+import { RoleModel } from "../Models/RoleModel";
+import { TicketConfigModel } from "../Models/TicketConfigModel";
+import { ServiceProvider } from "../src/ServiceProvider";
 
 export class TicketService {
 
     private _ticketRepository: TicketRepository;
+    private _ticketConfig: TicketConfigModel;
+    private _ticketRoles: Array<RoleModel>;
+
     public static createReaction = "🎫";
     public static closeReaction = "🔒";
     public static reOpenTicketReaction = "🔓";
@@ -13,9 +18,11 @@ export class TicketService {
 
     constructor() {
         this._ticketRepository = new TicketRepository();
+        this.updateTicketConfig();
+        this.updateTicketRoles();
     }
 
-    public async getAllData(): Promise<TicketModel> {
+    private async getAllData(): Promise<TicketConfigModel> {
         try {
             const results = await this._ticketRepository.getAllData();
             const ticketModel = this.mapTicketModel(results);
@@ -80,9 +87,35 @@ export class TicketService {
 		return channelName.join("");
 	}
 
-    private mapTicketModel(data): TicketModel {
+    public async updateTicketConfig(): Promise<void> {
+        try {
+            this._ticketConfig = await this.getAllData();
+        } 
+        catch (error) {
+            throw error;    
+        }
+    }
 
-        const model = new TicketModel();
+    public async updateTicketRoles(): Promise<void> {
+        try {
+            this._ticketRoles = await ServiceProvider.getRoleService().getTicketRoles();
+        } 
+        catch (error) {
+            throw error;    
+        }
+    }
+
+    public getTicketConfig(): TicketConfigModel {
+        return this._ticketConfig;
+    }
+
+    public getTicketRoles(): Array<RoleModel> {
+        return this._ticketRoles;
+    }
+
+    private mapTicketModel(data): TicketConfigModel {
+
+        const model = new TicketConfigModel();
 
         data.map(e => {
             if (e.last_number) model.LastNumber = e.last_number;

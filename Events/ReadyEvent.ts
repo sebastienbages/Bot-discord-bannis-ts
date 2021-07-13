@@ -1,5 +1,5 @@
 import { Client } from "discord.js"
-import { ServiceProvider } from "../Services/ServiceProvider";
+import { ServiceProvider } from "../src/ServiceProvider";
 import { TicketService } from "../Services/TicketService";
 
 export class ReadyEvent {
@@ -12,6 +12,8 @@ export class ReadyEvent {
 
             console.log("Le bot est en ligne");
 		    client.user.setActivity("Conan Exiles");
+
+            setInterval(async () => ServiceProvider.getVoteService().sendMessage(), 4 * 60 * 60 * 1000);
         });
     }
 }

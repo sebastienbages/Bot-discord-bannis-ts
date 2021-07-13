@@ -88,7 +88,7 @@ export class AdminService {
         }
     }
 
-    public async creatAdmin(id: string, name: string): Promise<void> {
+    public async createAdmin(id: string, name: string): Promise<void> {
         try {
             await this._adminRepository.createAdmin(id, name);
         } 

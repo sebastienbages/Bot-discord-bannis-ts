@@ -1,6 +1,6 @@
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
-import { ServiceProvider } from "../../Services/ServiceProvider";
+import { ServiceProvider } from "../../src/ServiceProvider";
 
 export class AdminCommand implements ICommand {
 
@@ -51,7 +51,7 @@ export class AdminCommand implements ICommand {
                 return undefined;
 			}
 			else {
-				await adminService.creatAdmin(discordId, userName);
+				await adminService.createAdmin(discordId, userName);
 
 				const response = await message.reply('enregistrement effectué avec succès');
                 response.delete({ timeout: 5000 });
