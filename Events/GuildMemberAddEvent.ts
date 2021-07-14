@@ -1,5 +1,6 @@
 import { GuildMember, MessageEmbed, Role, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
+import { AdminModel } from "../Models/AdminModel";
 import { RoleModel } from "../Models/RoleModel";
 import { ServiceProvider } from "../src/ServiceProvider";
 
@@ -16,11 +17,11 @@ export class GuildMemberAddEvent {
 		}
 		else {
 			console.log("Echec de l'attribution du role");
-			const adminsId: string[] = await ServiceProvider.getAdminService().getAdminsId();
-			adminsId.map(id => {
-				const admin: GuildMember = member.guild.members.cache.find(user => user.id === id);
+			const admins: AdminModel[] = ServiceProvider.getAdminService().getAdmins();
+			admins.map(admin => {
+				const user: GuildMember = member.guild.members.cache.find(u => u.id === admin.discordId);
 				if (admin) {
-					admin.send(`Je n'ai pas réussi à attribuer le role d'entrée à \`${member.user.username}\``);
+					user.send(`Je n'ai pas réussi à attribuer le role d'entrée à \`${member.user.username}\``);
 				}
 			});
 		}

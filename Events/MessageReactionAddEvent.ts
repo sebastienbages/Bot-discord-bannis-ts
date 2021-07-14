@@ -23,7 +23,7 @@ export class MessageReactionAddEvent {
 
 		await messageReaction.users.remove(user);
 
-		const ticketService: TicketService = ServiceProvider.getTicketService();
+		const ticketService: TicketService = await ServiceProvider.getTicketService();
 		const ticketConfig: TicketConfigModel = ticketService.getTicketConfig();
 		const targetChannel = messageReaction.message.channel as TextChannel;
 		let userTicket: TicketModel;

@@ -6,7 +6,7 @@ export class ReadyEvent {
 
 	run(client: Client): void {
 		client.once("ready", async () => {
-			const ticketService: TicketService = ServiceProvider.getTicketService();
+			const ticketService: TicketService = await ServiceProvider.getTicketService();
 			await ticketService.fetchTicketsMessages(client);
 
 			console.log("Le bot est en ligne");

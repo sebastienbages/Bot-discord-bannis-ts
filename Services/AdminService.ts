@@ -6,46 +6,31 @@ import { AdminModel } from "../Models/AdminModel";
 export class AdminService {
 
 	private _adminRepository: AdminRepository;
+	private _admins: AdminModel[];
 
 	constructor() {
 		this._adminRepository = new AdminRepository();
 	}
 
-	public async getAdminsData(): Promise<AdminModel[]> {
+	private async getAdminsData(): Promise<AdminModel[]> {
 		const results: unknown = await this._adminRepository.getAdminsData();
 		const adminsArray: AdminModel[] = this.MapAdminModel(results);
 		return adminsArray;
 	}
 
-	public async getAdminsId(): Promise<string[]> {
-		const adminsArray: AdminModel[] = await this.getAdminsData();
-		const adminsId: string[] = new Array<string>();
-		adminsArray.forEach(e => adminsId.push(e.discordId));
-		return adminsId;
-	}
-
-	public async getAdminsNames(): Promise<string[]> {
-		const adminsArray: AdminModel[] = await this.getAdminsData();
-		const adminsNames: string[] = new Array<string>();
-		adminsArray.forEach(e => adminsNames.push(e.name));
-		return adminsNames;
+	public getAdmins(): AdminModel[] {
+		return this._admins;
 	}
 
 	public async adminIsExist(id: string): Promise<boolean> {
-		const results: unknown = await this._adminRepository.getAdmin(id);
-		const admin: AdminModel[] = this.MapAdminModel(results);
-
-		if (admin.length === 0) return false;
-
-		if (admin[0].discordId === id) {
-			return true;
-		}
-
-		return false;
+		let result = false;
+		this._admins.forEach(admin => {
+			if (admin.discordId === id) result = true;
+		});
+		return result;
 	}
 
 	public async transfertPrivateMessage(message: Message): Promise<void> {
-		const admins: string[] = await this.getAdminsId();
 
 		const messageEmbed = new MessageEmbed()
 			.setColor(Config.color)
@@ -55,23 +40,30 @@ export class AdminService {
 			.addField("MESSAGE", message.content)
 			.setTimestamp();
 
-		admins.map(id => {
-			const admin = message.client.users.cache.find(user => user.id === id);
-			if (admin) {
-				admin.send(messageEmbed);
+		this._admins.map(admin => {
+			const user = message.client.users.cache.find(a => a.id === admin.discordId);
+			if (user) {
+				user.send(messageEmbed);
 			}
 		});
 	}
 
 	public async createAdmin(id: string, name: string): Promise<void> {
 		await this._adminRepository.createAdmin(id, name);
+		await this.updateAdmins();
 	}
 
 	public async removeAdmin(id: string): Promise<void> {
 		await this._adminRepository.removeAdmin(id);
+		await this.updateAdmins();
 	}
 
-	public MapAdminModel(data: any): Array<AdminModel> {
+	public async updateAdmins(): Promise<void> {
+		this._admins = await this.getAdminsData();
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	private MapAdminModel(data: any): Array<AdminModel> {
 		const adminArray: AdminModel[] = new Array<AdminModel>();
 
 		data.forEach(e => {

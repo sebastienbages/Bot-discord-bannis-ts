@@ -22,8 +22,6 @@ export class TicketService {
 	constructor() {
 		this._ticketConfigRepository = new TicketConfigRepository();
 		this._ticketRepository = new TicketRepository();
-		this.updateTicketConfig();
-		this.updateTicketRoles();
 	}
 
 	private async getConfig(): Promise<TicketConfigModel> {

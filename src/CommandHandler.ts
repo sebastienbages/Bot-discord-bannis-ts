@@ -21,7 +21,11 @@ export class CommandHandler {
 
 		if (message.author.bot) return undefined;
 
-		if (message.channel.type === "dm" && !message.content.startsWith(this._prefix)) return ServiceProvider.getAdminService().transfertPrivateMessage(message);
+		if (message.channel.type === "dm" && !message.content.startsWith(this._prefix)) {
+			const adminService = await ServiceProvider.getAdminService();
+			adminService.transfertPrivateMessage(message);
+			return undefined;
+		}
 
 		if (!this.isCommand(message)) return undefined;
 
@@ -102,7 +106,8 @@ export class CommandHandler {
 		}
 		catch (error) {
 			const devBot = await message.client.users.fetch(Config.devId);
-			devBot.send("Une erreur s'est produite sur une commande");
+			await devBot.send("Une erreur s'est produite sur une commande");
+			await devBot.send(error);
 			message.reply("une erreur s'est produite, veuillez contacter un administrateur");
 			console.error(error);
 		}
