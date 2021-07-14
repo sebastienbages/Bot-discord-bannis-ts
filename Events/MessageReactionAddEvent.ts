@@ -3,6 +3,7 @@ import { Config } from "../Config/Config";
 import { TicketConfigModel } from "../Models/TicketConfigModel";
 import { ServiceProvider } from "../src/ServiceProvider";
 import { TicketService } from "../Services/TicketService";
+import { TicketModel } from "../Models/TicketModel";
 
 export class MessageReactionAddEvent {
 
@@ -26,21 +27,43 @@ export class MessageReactionAddEvent {
             const ticketService = ServiceProvider.getTicketService();
 			const ticketConfig = ticketService.getTicketConfig();
 			const targetChannel = messageReaction.message.channel as TextChannel;
+			let userTicket;
+
+			if (targetChannel.id === ticketConfig.ChannelId) {
+				userTicket = await ticketService.getTicketByUserId(user);
+			}
+			else {
+				userTicket = await ticketService.getTicketByNumber(targetChannel);
+			}
 			
 			if (messageReaction.message.id === ticketConfig.MessageId) {
+
+				if (userTicket.userId === user.id && userTicket) {
+					const response = await messageReaction.message.channel.send(`<@${user.id}>, tu possèdes déjà un ticket ouvert : numéro ${userTicket.number.toString()}`);
+					response.delete({ timeout: 10 * 1000 });
+					return undefined;
+				}
+
 				return await this.createTicket(messageReaction, ticketConfig, ticketService, user);
 			}
 
 			if (messageReaction.emoji.name === TicketService.closeReaction && targetChannel.parentID === ticketConfig.CategoryId) {
-				return await this.closeTicket(user, messageReaction, targetChannel);
+
+				if (userTicket.isClosed) {
+					const response = await messageReaction.message.channel.send(`<@${user.id}>, le ticket est déjà fermé :face_with_raised_eyebrow:`);
+					response.delete({ timeout: 10 * 1000 });
+					return undefined;
+				}
+
+				return await this.closeTicket(user, messageReaction, targetChannel, ticketService, userTicket);
 			}
 
 			if (messageReaction.emoji.name === TicketService.reOpenTicketReaction && messageReaction.message.author.bot) {
-				return await this.reOpenTicket(messageReaction, targetChannel);
+				return await this.reOpenTicket(messageReaction, targetChannel, ticketService, userTicket);
 			}
 
 			if (messageReaction.emoji.name === TicketService.deleteTicketReaction && messageReaction.message.author.bot) {
-				return await this.deleteTicket(targetChannel, messageReaction);
+				return await this.deleteTicket(targetChannel, ticketService);
 			}
 		}
 		catch (error) {
@@ -50,6 +73,7 @@ export class MessageReactionAddEvent {
 
 	private async createTicket(messageReaction: MessageReaction, ticketConfig: TicketConfigModel, ticketService: TicketService, user: User): Promise<void> {
 		try {
+
 			const category = messageReaction.message.guild.channels.cache.find(c => c.id === ticketConfig.CategoryId) as CategoryChannel;
 			const everyoneRole = messageReaction.message.guild.roles.cache.find(r => r.name === '@everyone');
 
@@ -108,18 +132,19 @@ export class MessageReactionAddEvent {
 			rolesMentions.push(`<@${user.id}>`);
 			await ticketChannel.send(rolesMentions.join(' '));
 
-			const newTicketNumber = parseInt(ticketConfig.LastNumber) + 1;
-			await ticketService.saveTicketNumber(newTicketNumber.toString());
+			const newTicketNumber = ticketConfig.LastNumber + 1;
+			await ticketService.saveTicketConfigNumber(newTicketNumber.toString());
 			ticketService.updateTicketConfig();
 
 			const messageWelcomeTicket = new MessageEmbed()
 				.setColor(Config.color)
 				.setDescription(`Bienvenue sur ton ticket <@${user.id}> \n 
-									Ecris-nous le(s) motif(s) de ton ticket et un membre du staff reviendra vers toi dès que possible :wink: \n 
-									Tu peux fermer le ticket avec le ${TicketService.closeReaction}`);
+								Ecris-nous le(s) motif(s) de ton ticket et un membre du staff reviendra vers toi dès que possible :wink: \n 
+								Une fois résolu, tu peux fermer le ticket avec le ${TicketService.closeReaction}`);
 
 			const ticket = await ticketChannel.send(messageWelcomeTicket);
 			ticket.react(TicketService.closeReaction);
+			ticketService.saveTicket(user, newTicketNumber);
 			return undefined;
 		} 
 		catch (error) {
@@ -127,13 +152,18 @@ export class MessageReactionAddEvent {
 		}
 	}
 
-	private async closeTicket(user: User, messageReaction: MessageReaction, targetChannel: TextChannel): Promise<void> {
+	private async closeTicket(user: User, messageReaction: MessageReaction, targetChannel: TextChannel, ticketService: TicketService, userTicket: TicketModel): Promise<void> {
 		try {
+			await targetChannel.updateOverwrite(userTicket.userId, {
+				VIEW_CHANNEL: false,
+				SEND_MESSAGES: false
+			});
+
 			const closeMessage = new MessageEmbed()
 				.setColor(Config.color)
 				.setDescription(`Ticket fermé par <@${user.id}> \n
-								${TicketService.reOpenTicketReaction} Ré-ouvrir le ticket
-								${TicketService.deleteTicketReaction} Supprimer le ticket`);
+								Ré-ouvrir le ticket : ${TicketService.reOpenTicketReaction} \n
+								Supprimer le ticket : ${TicketService.deleteTicketReaction}`);
 	
 			const messageBeforeClose = await messageReaction.message.channel.send(closeMessage);
 			await messageBeforeClose.react(TicketService.reOpenTicketReaction);
@@ -141,13 +171,14 @@ export class MessageReactionAddEvent {
 
 			if (!this._delayIsActive) {
 				this.addRequest()
-				// const newName = targetChannel.name.replace("ticket", "fermé");
-				// await targetChannel.setName(newName);
+				const newName = targetChannel.name.replace("ticket", "fermé");
+				await targetChannel.setName(newName);
 			}
 			else {
 				this.sendCooldownMessage(targetChannel);
 			}
-	
+
+			ticketService.closeTicket(userTicket);
 			return undefined;
 		} 
 		catch (error) {
@@ -155,19 +186,26 @@ export class MessageReactionAddEvent {
 		}
 	}
 
-	private async reOpenTicket(messageReaction: MessageReaction, targetChannel: TextChannel): Promise<void> {
+	private async reOpenTicket(messageReaction: MessageReaction, targetChannel: TextChannel, ticketService: TicketService, userTicket: TicketModel): Promise<void> {
 		try {
 			await messageReaction.message.delete();
 
+			await targetChannel.updateOverwrite(userTicket.userId, {
+				VIEW_CHANNEL: true,
+				SEND_MESSAGES: true
+			});
+
 			if (!this._delayIsActive) {
 				this.addRequest();
-				// const newName = targetChannel.name.replace("fermé", "ticket");
-				// await targetChannel.setName(newName);
+				const newName = targetChannel.name.replace("fermé", "ticket");
+				await targetChannel.setName(newName);
 			}
 			else {
 				this.sendCooldownMessage(targetChannel);
 			}
-			
+
+			messageReaction.message.channel.send(`Hey <@${userTicket.userId}>, ton ticket a été ré-ouvert :face_with_monocle:`);
+			ticketService.openTicket(userTicket);
 			return undefined;
 		} 
 		catch (error) {
@@ -175,7 +213,7 @@ export class MessageReactionAddEvent {
 		}
 	}
 
-	private async deleteTicket(targetChannel: TextChannel, messageReaction: MessageReaction): Promise<void> {
+	private async deleteTicket(targetChannel: TextChannel, ticketService: TicketService): Promise<void> {
 		try {
 			const deleteMessage = new MessageEmbed()
 				.setColor("#FF0000")
@@ -184,6 +222,7 @@ export class MessageReactionAddEvent {
 			await targetChannel.send(deleteMessage);
 			const deleteChannel = async () => await targetChannel.delete();
 			setTimeout(async () => deleteChannel(), 5000);
+			ticketService.deleteTicket(targetChannel);
 			return undefined;
 		} 
 		catch (error) {

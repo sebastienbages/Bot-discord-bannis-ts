@@ -4,6 +4,8 @@ import { TicketService } from "../Services/TicketService";
 
 export class ReadyEvent {
     
+    constructor() { }
+    
     run(client: Client) {
         client.once("ready", async () => {
 
@@ -11,7 +13,7 @@ export class ReadyEvent {
             await TicketService.fetchTicketsMessages(client);
 
             console.log("Le bot est en ligne");
-		    client.user.setActivity("Conan Exiles");
+		    client.user.setActivity("le discord | !help", { type: "WATCHING" });
 
             setInterval(async () => ServiceProvider.getVoteService().sendMessage(), 4 * 60 * 60 * 1000);
         });

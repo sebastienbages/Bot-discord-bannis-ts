@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
-import { AdminCommand } from '../Commands/admin/admin';
+import { AdminCommand } from '../Commands/admin/Admin';
 import { TicketCommand } from '../Commands/admin/Ticket';
 import { ICommand } from '../Commands/ICommand';
 import { AddRoleCommand } from '../Commands/moderation/AddRole';

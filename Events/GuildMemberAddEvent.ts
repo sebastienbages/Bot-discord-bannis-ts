@@ -4,6 +4,8 @@ import { ServiceProvider } from "../src/ServiceProvider";
 
 export class GuildMemberAddEvent {
 
+	constructor() { }
+
     public async run(member: GuildMember) {
         try {
             console.log(`Détection de l'arrivée du joueur "${member.displayName}"`);

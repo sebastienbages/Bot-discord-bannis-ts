@@ -26,7 +26,7 @@ export class HelpCommand implements ICommand {
             if (!args.length) {
                 data.push('Liste des commandes :');
                 data.push(commands.map(command => `\`${command.name}\``).join(', '));
-                data.push(`\nTu peux envoyer \`${commandContext.commandPrefix}help <nom de la commande>\` pour obtenir plus d'informations sur une commande :wink:`);
+                data.push(`\nTu peux m'envoyer en privé \`${commandContext.commandPrefix}help [nom de la commande]\` pour obtenir plus d'informations sur une commande :wink:`);
 
                 await message.author.send(data, { split: true })
                 if (message.channel.type === 'dm') return undefined;

@@ -3,6 +3,8 @@ import { Config } from "../Config/Config";
 
 export class GuildMemberRemoveEvent {
 
+    constructor() { }
+    
     public async run(member: GuildMember) {
         try {
             console.log(`Détection du départ du joueur "${member.displayName}"`);

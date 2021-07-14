@@ -101,10 +101,10 @@ export class CommandHandler {
             await matchedCommands.run(commandContext);
         } 
         catch (error) {
-            console.error(error);
-			message.reply("une erreur s\'est produite, veuillez contacter un administrateur");
             const devBot = await message.client.users.fetch(Config.devId);
             devBot.send("Une erreur s'est produite avec le bot");
+			message.reply("une erreur s\'est produite, veuillez contacter un administrateur");
+            console.error(error);
         }
     }
 

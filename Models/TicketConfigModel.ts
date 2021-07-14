@@ -1,6 +1,6 @@
 export class TicketConfigModel {
 
-    public LastNumber: string;
+    public LastNumber: number;
     public MessageId: string;
     public CategoryId: string;
     public ChannelId: string;

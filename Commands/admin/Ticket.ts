@@ -53,15 +53,21 @@ export class TicketCommand implements ICommand {
 		}
 		else if (option === 'msg') {
 
+			const oldMessage = channel.messages.cache.get(ticketConfig.MessageId);
+			if (oldMessage) await oldMessage.delete();
+
 			const messageEmbed = new MessageEmbed()
 				.setColor(Config.color)
-				.setTitle('Creation d\'un ticket')
-				.setDescription('Bienvenue dans le gestionnaire de ticket des Bannis. \n Pour créer un ticket, clique sur la réaction :ticket:');
+				.attachFiles(["./Images/logo-les-bannis-discord.png"])
+                .setThumbnail("attachment://logo-les-bannis-discord.png")
+				.setTitle("BESOIN D'AIDE ?")
+				.setDescription("Rien de plus simple, clique sur la réaction :ticket: pour créer ton ticket. \n \n Un salon sera créé rien que pour toi afin de discuter avec l'équipe des Bannis :wink: \n")
+				.setFooter("Un seul ticket autorisé par utilisateur");
 
 			if (channel) {
 				const messageSend = await channel.send(messageEmbed)
                 messageSend.react(TicketService.createReaction);
-                await ticketService.saveTicketMessageId(messageSend.id);
+                await ticketService.saveTicketConfigMessageId(messageSend.id);
 				await ticketService.updateTicketConfig();
 			}
 			else {

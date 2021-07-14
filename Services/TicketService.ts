@@ -1,12 +1,15 @@
-import { CategoryChannel, Client, Guild, TextChannel } from "discord.js";
+import { CategoryChannel, Client, Guild, TextChannel, User } from "discord.js";
 import { Config } from "../Config/Config";
+import { TicketConfigRepository } from "../Dal/TicketConfigRepository";
 import { TicketRepository } from "../Dal/TicketRepository";
 import { RoleModel } from "../Models/RoleModel";
 import { TicketConfigModel } from "../Models/TicketConfigModel";
+import { TicketModel } from "../Models/TicketModel";
 import { ServiceProvider } from "../src/ServiceProvider";
 
 export class TicketService {
 
+    private _ticketConfigRepository: TicketConfigRepository;
     private _ticketRepository: TicketRepository;
     private _ticketConfig: TicketConfigModel;
     private _ticketRoles: Array<RoleModel>;
@@ -14,18 +17,19 @@ export class TicketService {
     public static createReaction = "🎫";
     public static closeReaction = "🔒";
     public static reOpenTicketReaction = "🔓";
-    public static deleteTicketReaction = "❌";
+    public static deleteTicketReaction = "🗑";
 
     constructor() {
+        this._ticketConfigRepository = new TicketConfigRepository();
         this._ticketRepository = new TicketRepository();
         this.updateTicketConfig();
         this.updateTicketRoles();
     }
 
-    private async getAllData(): Promise<TicketConfigModel> {
+    private async getConfig(): Promise<TicketConfigModel> {
         try {
-            const results = await this._ticketRepository.getAllData();
-            const ticketModel = this.mapTicketModel(results);
+            const results = await this._ticketConfigRepository.getConfigData();
+            const ticketModel = this.mapTicketConfigModel(results);
             return ticketModel;
         } 
         catch (error) {
@@ -36,45 +40,50 @@ export class TicketService {
     public async fetchTicketsMessages(client: Client): Promise<void> {
         try {
 
-            const ticketModel = await this.getAllData();
+            const ticketModel = await this.getConfig();
 
             const guild = await client.guilds.fetch(Config.guildId) as Guild;
             const categoryChannel = guild.channels.cache.get(ticketModel.CategoryId) as CategoryChannel;
 
-            categoryChannel.children.each(c => {
-                const channel = guild.channels.cache.get(c.id) as TextChannel;
-                channel.messages.fetch();
-            })
+            if (categoryChannel) {
+                categoryChannel.children.each(c => {
+                    const targetChannel = guild.channels.cache.get(c.id) as TextChannel;
+                    targetChannel.messages.fetch();
+                })
+    
+                console.log("Tickets récupérés avec succès");
+            }
+            else {
+                console.log("Echec récupération des tickets");
+            }
 
-            console.log("Messages des tickets récupérés");
         } 
         catch (error) {
             throw error
         }
     }
 
-    public async saveTicketMessageId(id: string): Promise<void> {
+    public async saveTicketConfigMessageId(id: string): Promise<void> {
         try {
-            await this._ticketRepository.saveTicketMessageId(id);
+            await this._ticketConfigRepository.saveTicketConfigMessageId(id);
         } 
         catch (error) {
             throw error;    
         }
     }
 
-    public async saveTicketNumber(number: string): Promise<void> {
+    public async saveTicketConfigNumber(number: string): Promise<void> {
         try {
-            await this._ticketRepository.saveTicketNumber(number);
+            await this._ticketConfigRepository.saveTicketConfigNumber(number);
         } 
         catch (error) {
             throw error;    
         }
     }
 
-    public getChannelName(lastNumber: string): string {
+    public getChannelName(lastNumber: number): string {
 
-		const lastNumberTicket = parseInt(lastNumber);
-		const newTicketNumber = lastNumberTicket + 1;
+		const newTicketNumber = lastNumber + 1;
 		let channelName = new Array<string>();
 		channelName.unshift(newTicketNumber.toString());
 
@@ -89,7 +98,7 @@ export class TicketService {
 
     public async updateTicketConfig(): Promise<void> {
         try {
-            this._ticketConfig = await this.getAllData();
+            this._ticketConfig = await this.getConfig();
         } 
         catch (error) {
             throw error;    
@@ -113,15 +122,93 @@ export class TicketService {
         return this._ticketRoles;
     }
 
-    private mapTicketModel(data): TicketConfigModel {
+    public async saveTicket(user: User, number: number): Promise<void> {
+        try {
+            await this._ticketRepository.saveTicket(user.id, number);
+        } 
+        catch (error) {
+            throw error;    
+        }
+    }
+
+    public async getTicketByNumber(targetChannel: TextChannel): Promise<TicketModel> {
+        try {
+            const channelName = targetChannel.name;
+            const nameArray = channelName.split('-');
+            const number = parseInt(nameArray[1]);
+            const result = await this._ticketRepository.getTicketByNumber(number);
+            const ticketModel = this.mapTicketModel(result);
+            return ticketModel;
+        } 
+        catch (error) {
+            throw error;    
+        }
+    }
+
+    public async getTicketByUserId(user: User): Promise<TicketModel> {
+        try {
+            const result = await this._ticketRepository.getTicketByUserId(user.id);
+            const ticketModel = this.mapTicketModel(result);
+            return ticketModel;
+        } 
+        catch (error) {
+            throw error;    
+        }
+    }
+
+    public async closeTicket(user: TicketModel): Promise<void> {
+        try {
+            await this._ticketRepository.closeTicket(user.userId);
+        } 
+        catch (error) {
+            throw error;    
+        }
+    }
+
+    public async openTicket(user: TicketModel): Promise<void> {
+        try {
+            await this._ticketRepository.openTicket(user.userId);
+        } 
+        catch (error) {
+            throw error;    
+        }
+    }
+
+    public async deleteTicket(targetChannel: TextChannel): Promise<void> {
+        try {
+            const channelName = targetChannel.name;
+            const nameArray = channelName.split('-');
+            const number = parseInt(nameArray[1]);
+            await this._ticketRepository.deleteTicket(number);
+        } 
+        catch (error) {
+            throw error;    
+        }
+    }
+
+    private mapTicketConfigModel(data): TicketConfigModel {
 
         const model = new TicketConfigModel();
 
         data.map(e => {
-            if (e.last_number) model.LastNumber = e.last_number;
+            model.LastNumber = e.last_number;
             if (e.category_id) model.CategoryId = e.category_id;
             if (e.channel_id) model.ChannelId = e.channel_id;
             if (e.message_id) model.MessageId = e.message_id;
+        });
+
+        return model;
+    }
+
+    private mapTicketModel(data): TicketModel {
+        
+        const model = new TicketModel();
+
+        data.map(e => {
+            if (e.userid) model.userId = e.userid;
+            model.number = e.number;
+            if (e.isclosed === 0) model.isClosed = false;
+            if (e.isclosed === 1) model.isClosed = true;
         });
 
         return model;
