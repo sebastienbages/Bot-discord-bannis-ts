@@ -1,24 +1,19 @@
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
+import { PermissionResolvable } from "discord.js";
 
 export class SaySimpleCommand implements ICommand {
+	public readonly name: string = "saysimple";
+	public readonly aliases: string[] = [];
+	public readonly argumentIsNecessary: boolean = true;
+	public readonly description: string = "Envoi un message avec le bot dans le salon utilisé";
+	public readonly usage: string = "<text>";
+	public readonly guildOnly: boolean = true;
+	public readonly cooldown: number = 0;
+	public readonly permission: PermissionResolvable = "MANAGE_MESSAGES";
 
-    public readonly name = "saysimple";
-    public readonly aliases = [];
-    public readonly argumentIsNecessary = true;
-    public readonly description = "Envoi un message avec le bot dans le salon utilisé";
-    public readonly usage = "<text>";
-    public readonly guildOnly = true;
-    public readonly cooldown = 0;
-    public readonly permission = 'MANAGE_MESSAGES';
-
-    async run(commandContext: CommandContext): Promise<void> {
-        try {
-            const messageToSend = commandContext.args.join(' ');
-            commandContext.message.channel.send(messageToSend);
-        } 
-        catch (error) {
-            throw error;
-        }
-    }
+	async run(commandContext: CommandContext): Promise<void> {
+		const messageToSend: string = commandContext.args.join(" ");
+		commandContext.message.channel.send(messageToSend);
+	}
 }

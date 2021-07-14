@@ -5,124 +5,84 @@ import { AdminModel } from "../Models/AdminModel";
 
 export class AdminService {
 
-    private _adminRepository: AdminRepository;
+	private _adminRepository: AdminRepository;
 
-    constructor() {
-        this._adminRepository = new AdminRepository();
-    }
+	constructor() {
+		this._adminRepository = new AdminRepository();
+	}
 
-    public async getAdminsData(): Promise<Array<AdminModel>> {
-        try {
-            const results = await this._adminRepository.getAdminsData();
-            const adminsArray = this.MapAdminModel(results);
-            return adminsArray;
-        } 
-        catch (error) {
-            throw error;    
-        }
-    }
+	public async getAdminsData(): Promise<AdminModel[]> {
+		const results: unknown = await this._adminRepository.getAdminsData();
+		const adminsArray: AdminModel[] = this.MapAdminModel(results);
+		return adminsArray;
+	}
 
-    public async getAdminsId(): Promise<Array<string>> {
-        try {
-            const adminsArray = await this.getAdminsData();
-            const adminsId = new Array<string>();
-            adminsArray.forEach(e => adminsId.push(e.discordId));
-            return adminsId;
-        } 
-        catch (error) {
-            throw error;    
-        }
-    }
+	public async getAdminsId(): Promise<string[]> {
+		const adminsArray: AdminModel[] = await this.getAdminsData();
+		const adminsId: string[] = new Array<string>();
+		adminsArray.forEach(e => adminsId.push(e.discordId));
+		return adminsId;
+	}
 
-    public async getAdminsNames(): Promise<Array<string>> {
-        try {
-            const adminsArray = await this.getAdminsData();
-            const adminsNames = new Array<string>();
-            adminsArray.forEach(e => adminsNames.push(e.name));
-            return adminsNames;
-        } 
-        catch (error) {
-            throw error;    
-        }
-    }
+	public async getAdminsNames(): Promise<string[]> {
+		const adminsArray: AdminModel[] = await this.getAdminsData();
+		const adminsNames: string[] = new Array<string>();
+		adminsArray.forEach(e => adminsNames.push(e.name));
+		return adminsNames;
+	}
 
-    public async adminIsExist(id: string): Promise<Boolean> {
-        try {
-            const results = await this._adminRepository.getAdmin(id);
-            const admin = this.MapAdminModel(results);
+	public async adminIsExist(id: string): Promise<boolean> {
+		const results: unknown = await this._adminRepository.getAdmin(id);
+		const admin: AdminModel[] = this.MapAdminModel(results);
 
-            if (admin.length === 0) return false;
+		if (admin.length === 0) return false;
 
-            if (admin[0].discordId === id) {
-                return true;
-            }
+		if (admin[0].discordId === id) {
+			return true;
+		}
 
-            return false;
-        } 
-        catch (error) {
-            throw error;    
-        }
-    }
+		return false;
+	}
 
-    public async transfertPrivateMessage(message: Message): Promise<void> {
-        try {
-            const admins = await this.getAdminsId();
+	public async transfertPrivateMessage(message: Message): Promise<void> {
+		const admins: string[] = await this.getAdminsId();
 
-			const messageEmbed = new MessageEmbed()
-				.setColor(Config.color)
-				.setTitle('MESSAGE PRIVE RECU')
-				.setThumbnail(message.author.displayAvatarURL())
-				.addField('AUTEUR', message.author.username)
-				.addField('MESSAGE', message.content)
-				.setTimestamp();
+		const messageEmbed = new MessageEmbed()
+			.setColor(Config.color)
+			.setTitle("MESSAGE PRIVE RECU")
+			.setThumbnail(message.author.displayAvatarURL())
+			.addField("AUTEUR", message.author.username)
+			.addField("MESSAGE", message.content)
+			.setTimestamp();
 
-			admins.map(id => {
-				const admin = message.client.users.cache.find(user => user.id === id);
-				if (admin) {
-					admin.send(messageEmbed);
-				}
-			});
-        } 
-        catch (error) {
-            throw error;    
-        }
-    }
+		admins.map(id => {
+			const admin = message.client.users.cache.find(user => user.id === id);
+			if (admin) {
+				admin.send(messageEmbed);
+			}
+		});
+	}
 
-    public async createAdmin(id: string, name: string): Promise<void> {
-        try {
-            await this._adminRepository.createAdmin(id, name);
-        } 
-        catch (error) {
-            throw error;
-        }
-    }
+	public async createAdmin(id: string, name: string): Promise<void> {
+		await this._adminRepository.createAdmin(id, name);
+	}
 
-    public async removeAdmin(id: string): Promise<void> {
-        try {
-            await this._adminRepository.removeAdmin(id);
-        } 
-        catch (error) {
-            throw error;
-        }
-    }
+	public async removeAdmin(id: string): Promise<void> {
+		await this._adminRepository.removeAdmin(id);
+	}
 
-    public MapAdminModel(data): Array<AdminModel> {
-        try {
-                const adminArray = new Array<AdminModel>();
+	public MapAdminModel(data: any): Array<AdminModel> {
+		const adminArray: AdminModel[] = new Array<AdminModel>();
 
-                data.forEach(e => {
-                    const model = new AdminModel();
-    
-                    if (e.name) model.name = e.name;
-                    if (e.discord_id) model.discordId = e.discord_id;
+		data.forEach(e => {
+			const model: AdminModel = new AdminModel();
 
-                    adminArray.push(model);
-                });
+			if (e.name) model.name = e.name;
+			if (e.discord_id) model.discordId = e.discord_id;
 
-                return adminArray;
-        } 
-        catch (error) {
-            throw error;    
-        }
-    }
+			adminArray.push(model);
+		});
+
+		return adminArray;
+	}
 }

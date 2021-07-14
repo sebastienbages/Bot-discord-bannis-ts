@@ -1,26 +1,20 @@
-import { MessageEmbed, WebhookClient } from "discord.js";
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { ServiceProvider } from "../../src/ServiceProvider";
-import { Config, WebHookConfig } from "../../Config/Config";
+import { PermissionResolvable } from "discord.js";
 
 export class VoteCommand implements ICommand {
+	public readonly name: string = "vote";
+	public readonly aliases: string[] = [];
+	public readonly argumentIsNecessary: boolean = false;
+	public readonly description: string = "Envoi un message d'appel aux votes en utilisant le WebHook Gardien des votes";
+	public readonly usage: string = "[nom de la commande]";
+	public readonly guildOnly: boolean = true;
+	public readonly cooldown: number = 0;
+	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
 
-    public readonly name = "vote";
-    public readonly aliases = [];
-    public readonly argumentIsNecessary = false;
-    public readonly description = "Envoi un message d\'appel aux votes en utilisant le WebHook Gardien des votes";
-    public readonly usage = "[nom de la commande]";
-    public readonly guildOnly = true;
-    public readonly cooldown = 0;
-    public readonly permission = 'ADMINISTRATOR';
-
-    async run(commandContext: CommandContext): Promise<void> {        
-        try {
-            await ServiceProvider.getVoteService().sendMessage();
-        } 
-        catch (error) {
-            throw error;
-        }
-    }
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async run(commandContext: CommandContext): Promise<void> {
+		await ServiceProvider.getVoteService().sendMessage();
+	}
 }

@@ -1,10 +1,8 @@
 export class TopServerModel {
-
-    public slug: string;
+	public slug: string;
 }
 
 export class Player {
-    
-    public name: string;
-    public votes: string;
+	public name: string;
+	public votes: string;
 }

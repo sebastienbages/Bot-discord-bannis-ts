@@ -1,49 +1,41 @@
-import { MessageEmbed, TextChannel } from "discord.js";
+import { Message, MessageEmbed, PermissionResolvable, TextChannel } from "discord.js";
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { Config } from "../../Config/Config";
 
 export class SurveyCommand implements ICommand {
+	public readonly name: string = "survey";
+	public readonly aliases: string[] = [ "question", "sondage" ];
+	public readonly argumentIsNecessary: boolean = true;
+	public readonly description: string = "Créé un sondage dans le salon des sondages";
+	public readonly usage: string = "<question>";
+	public readonly guildOnly: boolean = true;
+	public readonly cooldown: number = 0;
+	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
 
-    public readonly name = "survey";
-    public readonly aliases = [ "question", "sondage" ];
-    public readonly argumentIsNecessary = true;
-    public readonly description = "Créé un sondage dans le salon des sondages";
-    public readonly usage = "<question>";
-    public readonly guildOnly = true;
-    public readonly cooldown = 0;
-    public readonly permission = 'ADMINISTRATOR';
+	async run(commandContext: CommandContext): Promise<void> {
+		const message: Message = commandContext.message;
+		const args: string[] = commandContext.args;
+		const sondageChannel = message.guild.channels.cache.find(channel => channel.id === Config.surveyChannelId) as TextChannel;
 
-    async run(commandContext: CommandContext): Promise<void> {
+		if (!sondageChannel) {
+			const response: Message = await message.reply("le channel des sondages est introuvable");
+			response.delete({ timeout: 5000 });
+			return undefined;
+		}
 
-        const message = commandContext.message;
-        const args = commandContext.args;
+		const messageToSend: string = args.join(" ");
 
-        try {
-            const sondageChannel = message.guild.channels.cache.find(channel => channel.id === Config.surveyChannelId) as TextChannel;
+		const messageEmbed = new MessageEmbed()
+			.setTitle("SONDAGE")
+			.attachFiles(["./Images/point-d-interrogation.jpg"])
+			.setThumbnail("attachment://point-d-interrogation.jpg")
+			.setDescription(messageToSend)
+			.setColor(Config.color)
+			.setFooter("Répondez en cliquant sur les réactions ci-dessous :");
 
-            if (!sondageChannel) {
-                const response = await message.reply('le channel des sondages est introuvable');
-                response.delete({ timeout: 5000 });
-                return undefined;
-            }
-
-            const messageToSend = args.join(' ');
-
-            const messageEmbed = new MessageEmbed()
-                .setTitle('SONDAGE')
-                .attachFiles(['./Images/point-d-interrogation.jpg'])
-                .setThumbnail('attachment://point-d-interrogation.jpg')
-                .setDescription(messageToSend)
-                .setColor(Config.color)
-                .setFooter('Répondez en cliquant sur les réactions ci-dessous :');
-
-            const survey = await sondageChannel.send(messageEmbed)
-            await survey.react('✅');
-            await survey.react('❌');
-        }
-        catch (error) {
-            throw error;
-        }
-    }
+		const survey = await sondageChannel.send(messageEmbed);
+		await survey.react("✅");
+		await survey.react("❌");
+	}
 }
