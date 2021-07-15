@@ -4,8 +4,8 @@
   "description": "Bot discord du serveur \"Les Bannis\"",
   "main": "app.js",
   "scripts": {
-    "test": "tsc && nodemon bin/app.js",
-    "start": "tsc && node bin/app.js",
+    "test": "tsc && nodemon bin/src/app.js",
+    "start": "tsc && node bin/src/app.js",
     "build": "tsc",
     "lint": "eslint . --ext .ts"
   },
