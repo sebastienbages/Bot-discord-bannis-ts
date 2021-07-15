@@ -1,12 +1,16 @@
 {
   "name": "bot-discord-bannis-ts",
   "version": "1.0.0",
+  "engines": {
+    "node": "16.x"
+  },
   "description": "Bot discord du serveur \"Les Bannis\"",
   "main": "app.js",
   "scripts": {
-    "test": "tsc && nodemon bin/src/app.js",
-    "start": "tsc && node bin/src/app.js",
+    "test": "bin/src/app.js",
+    "start": "node bin/src/app.js",
     "build": "tsc",
+    "heroku-postbuild": "tsc",
     "lint": "eslint . --ext .ts"
   },
   "repository": {
