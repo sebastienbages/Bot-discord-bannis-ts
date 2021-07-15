@@ -1,20 +1,19 @@
 import { Client } from "discord.js";
-import { Config } from "../Config/Config";
 import { Events } from "./Events";
 
 export class Bot {
 	public client: Client;
-	private token: string;
+	private readonly token: string;
 	private events: Events;
 
-	constructor() {
+	constructor(token: string) {
 		this.client = new Client();
 		this.events = new Events();
-		this.token = Config.token;
+		this.token = token;
 	}
 
 	start(): void {
 		this.events.ready().run(this.client);
-		this.client.login(this.token);
+		this.client.login(this.token).then(() => console.log("Le bot est en ligne"));
 	}
 }

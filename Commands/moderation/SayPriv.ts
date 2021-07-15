@@ -21,7 +21,7 @@ export class SayPrivCommand implements ICommand {
 
 			if (!user) {
 				const response: Message = await message.reply("ce membre n'existe pas");
-				response.delete({ timeout: 5000 });
+				await response.delete({ timeout: 5000 });
 				return undefined;
 			}
 
@@ -29,14 +29,14 @@ export class SayPrivCommand implements ICommand {
 
 			if (!privateMessage || privateMessage.length < 1) {
 				const response: Message = await message.reply("ton message est vide");
-				response.delete({ timeout: 5000 });
+				await response.delete({ timeout: 5000 });
 				return undefined;
 			}
 
-			user.send(privateMessage);
+			await user.send(privateMessage);
 		}
 		catch (error) {
-			message.reply("je n'arrive pas à lui envoyer un message privé !");
+			await message.reply("je n'arrive pas à lui envoyer un message privé !");
 		}
 	}
 }

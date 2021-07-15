@@ -4,10 +4,10 @@ import { GuildMemberAddEvent } from "../Events/GuildMemberAddEvent";
 import { GuildMemberRemoveEvent } from "../Events/GuildMemberRemoveEvent";
 
 export class Events {
-	private _readyEvent: ReadyEvent;
-	private _messageReactionAdd: MessageReactionAddEvent;
-	private _guildMemberAdd: GuildMemberAddEvent;
-	private _guildMemberRemove: GuildMemberRemoveEvent;
+	private readonly _readyEvent: ReadyEvent;
+	private readonly _messageReactionAdd: MessageReactionAddEvent;
+	private readonly _guildMemberAdd: GuildMemberAddEvent;
+	private readonly _guildMemberRemove: GuildMemberRemoveEvent;
 
 	constructor() {
 		this._readyEvent = new ReadyEvent();

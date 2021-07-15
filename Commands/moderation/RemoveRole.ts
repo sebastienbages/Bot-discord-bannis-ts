@@ -19,7 +19,7 @@ export class RemoveRoleCommand implements ICommand {
 
 		if (!user) {
 			const response: Message = await message.reply("le membre n'existe pas");
-			response.delete({ timeout: 5000 });
+			await response.delete({ timeout: 5000 });
 			return undefined;
 		}
 
@@ -28,20 +28,18 @@ export class RemoveRoleCommand implements ICommand {
 
 		if (!role) {
 			const response: Message = await message.reply("ce rôle n'existe pas !");
-			response.delete({ timeout: 5000 });
+			await response.delete({ timeout: 5000 });
 			return undefined;
 		}
 
 		if (user.roles.cache.has(role.id)) {
-
 			await user.roles.remove(role.id);
-
 			const response: Message = await message.reply("rôle supprimé avec succès !");
-			response.delete({ timeout: 5000 });
+			await response.delete({ timeout: 5000 });
 		}
 		else {
 			const response: Message = await message.reply("cet utilisateur ne possède pas ce rôle");
-			response.delete({ timeout: 5000 });
+			await response.delete({ timeout: 5000 });
 		}
 	}
 }

@@ -1,5 +1,4 @@
 import * as dotenv from "dotenv";
-dotenv.config();
 import { AdminCommand } from "../Commands/admin/Admin";
 import { TicketCommand } from "../Commands/admin/Ticket";
 import { ICommand } from "../Commands/ICommand";
@@ -15,8 +14,9 @@ import { RestartCommand } from "../Commands/utility/Restart";
 import { TopServerCommand } from "../Commands/utility/TopServer";
 import { VoteCommand } from "../Commands/utility/Vote";
 
-export class Config {
+dotenv.config();
 
+export class Config {
 	public static readonly color = process.env.COLOR;
 	public static readonly guildId = process.env.GUILD_ID;
 	public static readonly surveyChannelId = process.env.CHA_SURVEY;
@@ -42,11 +42,4 @@ export class Config {
 	public static getCommandsInstances(): ICommand[] {
 		return Config.commands.map(commandClass => new commandClass());
 	}
-}
-
-export class WebHookConfig {
-	public static readonly voteKeeperId = process.env.WH_VK_ID;
-	public static readonly voteKeeperToken = process.env.WH_VK_TOKEN;
-	public static readonly serverKeeperId = process.env.WH_SK_ID;
-	public static readonly serverKeeperToken = process.env.WH_SK_TOKEN;
 }

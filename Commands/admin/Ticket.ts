@@ -19,7 +19,7 @@ export class TicketCommand implements ICommand {
 	async run(commandContext: CommandContext): Promise<void> {
 		const option: string = commandContext.args[0].toLowerCase();
 		const message: Message = commandContext.message;
-		const ticketService: TicketService = await ServiceProvider.getTicketService();
+		const ticketService: TicketService = ServiceProvider.getTicketService();
 		const ticketConfig: TicketConfigModel = ticketService.getTicketConfig();
 
 		const category: GuildChannel = message.guild.channels.cache.find(c => c.id === ticketConfig.CategoryId);

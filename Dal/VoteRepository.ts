@@ -1,8 +1,8 @@
 import { MysqlError } from "mysql";
 import { SingletonContext } from "./Context";
 
+// noinspection SpellCheckingInspection
 export class VoteRepository {
-
 	private readonly table = "messages";
 
 	public async getMessageVote(): Promise<unknown> {

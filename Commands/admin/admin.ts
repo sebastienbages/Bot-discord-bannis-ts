@@ -17,7 +17,7 @@ export class AdminCommand implements ICommand {
 
 	async run(commandContext: CommandContext): Promise<void> {
 		const command: string = commandContext.args[0].toLowerCase();
-		const adminService: AdminService = await ServiceProvider.getAdminService();
+		const adminService: AdminService = ServiceProvider.getAdminService();
 		const message: Message = commandContext.message;
 		const args: string[] = commandContext.args;
 
@@ -28,7 +28,7 @@ export class AdminCommand implements ICommand {
 			const data: string[] = new Array<string>();
 			data.push("__LISTE DES ADMINISTRATEURS :__");
 			data.push(`\`${adminsNames.join(", ")}\``);
-			message.channel.send(data);
+			await message.channel.send(data);
 			return undefined;
 		}
 
@@ -37,7 +37,7 @@ export class AdminCommand implements ICommand {
 
 		if (!user) {
 			const response: Message = await message.reply("ce membre n'existe pas");
-			response.delete({ timeout: 5000 });
+			await response.delete({ timeout: 5000 });
 			return undefined;
 		}
 
@@ -46,12 +46,12 @@ export class AdminCommand implements ICommand {
 
 			if (await adminService.adminIsExist(discordId)) {
 				const response: Message = await message.reply("ce membre est déjà enregistré");
-				response.delete({ timeout: 5000 });
+				await response.delete({ timeout: 5000 });
 			}
 			else {
 				await adminService.createAdmin(discordId, userName);
 				const response: Message = await message.reply("enregistrement effectué avec succès");
-				response.delete({ timeout: 5000 });
+				await response.delete({ timeout: 5000 });
 			}
 
 			return undefined;
@@ -61,12 +61,12 @@ export class AdminCommand implements ICommand {
 
 			if (!await adminService.adminIsExist(discordId)) {
 				const response: Message = await message.reply("ce membre n'est pas enregistré");
-				response.delete({ timeout: 5000 });
+				await response.delete({ timeout: 5000 });
 			}
 			else {
 				await adminService.removeAdmin(discordId);
 				const response: Message = await message.reply("administrateur supprimé avec succès");
-				response.delete({ timeout: 5000 });
+				await response.delete({ timeout: 5000 });
 			}
 
 			return undefined;

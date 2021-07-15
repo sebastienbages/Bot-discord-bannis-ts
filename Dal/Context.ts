@@ -1,7 +1,6 @@
 import Mysql, { Pool, PoolConnection } from "mysql";
 
 class Context {
-
 	private _pool: Pool;
 
 	constructor() {
@@ -25,7 +24,6 @@ class Context {
 }
 
 export class SingletonContext {
-
 	private static _instance: Context;
 
 	public static getInstance(): Context {

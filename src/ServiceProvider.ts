@@ -11,35 +11,31 @@ export class ServiceProvider {
 	private static _adminService: AdminService;
 	private static _roleService: RoleService;
 
-	public static async getTicketService(): Promise<TicketService> {
-		if (!this._ticketService) {
-			this._ticketService = new TicketService();
-			await this._ticketService.updateTicketConfig();
-			await this._ticketService.updateTicketRoles();
-		}
+	public static initializeServices(): void {
+		this._ticketService = new TicketService();
+		this._topServerService = new TopServerService();
+		this._voteService = new VoteService();
+		this._adminService = new AdminService();
+		this._roleService = new RoleService();
+	}
+
+	public static getTicketService(): TicketService {
 		return this._ticketService;
 	}
 
 	public static getTopServerService(): TopServerService {
-		if (!this._topServerService) this._topServerService = new TopServerService();
 		return this._topServerService;
 	}
 
 	public static getVoteService(): VoteService {
-		if (!this._voteService) this._voteService = new VoteService();
 		return this._voteService;
 	}
 
-	public static async getAdminService(): Promise<AdminService> {
-		if (!this._adminService) {
-			this._adminService = new AdminService();
-			await this._adminService.updateAdmins();
-		}
+	public static getAdminService(): AdminService {
 		return this._adminService;
 	}
 
 	public static getRoleService(): RoleService {
-		if (!this._roleService) this._roleService = new RoleService();
 		return this._roleService;
 	}
 }

@@ -24,11 +24,11 @@ export class HelpCommand implements ICommand {
 			data.push(commands.map(command => `\`${command.name}\``).join(", "));
 			data.push(`\nTu peux m'envoyer en privé \`${commandContext.commandPrefix}help [nom de la commande]\` pour obtenir plus d'informations sur une commande :wink:`);
 
-			message.author.send(data, { split: true });
+			await message.author.send(data, { split: true });
 
 			if (message.channel.type != "dm") {
 				const response: Message = await message.reply("Je t'ai envoyé la liste des commandes en message privé :wink:");
-				response.delete({ timeout: 5000 });
+				await response.delete({ timeout: 5000 });
 			}
 
 			return undefined;
@@ -39,11 +39,11 @@ export class HelpCommand implements ICommand {
 
 		if (!command) {
 			if (message.channel.type === "dm") {
-				message.reply("Cette commande n'existe pas");
+				await message.reply("Cette commande n'existe pas");
 			}
 			else {
 				const response: Message = await message.reply("Cette commande n'existe pas");
-				response.delete({ timeout: 10000 });
+				await response.delete({ timeout: 10000 });
 				return undefined;
 			}
 		}
@@ -61,7 +61,6 @@ export class HelpCommand implements ICommand {
 		if (command.usage) data.push(`**Usage :** \`${commandContext.commandPrefix}${command.name} ${command.usage}\``);
 
 		data.push(`**Cooldown :** ${command.cooldown} seconde(s)`);
-
-		message.author.send(data, { split: true });
+		await message.author.send(data, { split: true });
 	}
 }

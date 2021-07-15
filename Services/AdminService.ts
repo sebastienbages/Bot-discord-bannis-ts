@@ -2,6 +2,7 @@ import { Message, MessageEmbed } from "discord.js";
 import { Config } from "../Config/Config";
 import { AdminRepository } from "../Dal/AdminRepository";
 import { AdminModel } from "../Models/AdminModel";
+import { AutoMapper } from "./AutoMapper";
 
 export class AdminService {
 
@@ -10,12 +11,12 @@ export class AdminService {
 
 	constructor() {
 		this._adminRepository = new AdminRepository();
+		this.updateAdmins();
 	}
 
 	private async getAdminsData(): Promise<AdminModel[]> {
 		const results: unknown = await this._adminRepository.getAdminsData();
-		const adminsArray: AdminModel[] = this.MapAdminModel(results);
-		return adminsArray;
+		return AutoMapper.mapArrayAdminModel(results);
 	}
 
 	public getAdmins(): AdminModel[] {
@@ -31,7 +32,6 @@ export class AdminService {
 	}
 
 	public async transfertPrivateMessage(message: Message): Promise<void> {
-
 		const messageEmbed = new MessageEmbed()
 			.setColor(Config.color)
 			.setTitle("MESSAGE PRIVE RECU")
@@ -58,23 +58,7 @@ export class AdminService {
 		await this.updateAdmins();
 	}
 
-	public async updateAdmins(): Promise<void> {
+	private async updateAdmins(): Promise<void> {
 		this._admins = await this.getAdminsData();
-	}
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private MapAdminModel(data: any): Array<AdminModel> {
-		const adminArray: AdminModel[] = new Array<AdminModel>();
-
-		data.forEach(e => {
-			const model: AdminModel = new AdminModel();
-
-			if (e.name) model.name = e.name;
-			if (e.discord_id) model.discordId = e.discord_id;
-
-			adminArray.push(model);
-		});
-
-		return adminArray;
 	}
 }

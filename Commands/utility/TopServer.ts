@@ -52,10 +52,10 @@ export class TopServerCommand implements ICommand {
 		});
 
 		if (messageEmbed.length > 6000) {
-			message.author.send("Le résulat est trop volumineux pour être affiché");
+			await message.author.send("Le résulat est trop volumineux pour être affiché");
 		}
 		else {
-			message.author.send(messageEmbed);
+			await message.author.send(messageEmbed);
 		}
 	}
 }

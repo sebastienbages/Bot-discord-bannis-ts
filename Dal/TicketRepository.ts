@@ -1,8 +1,8 @@
 import { MysqlError } from "mysql";
 import { SingletonContext } from "./Context";
 
+// noinspection SpellCheckingInspection
 export class TicketRepository {
-
 	private readonly table = "tickets";
 
 	public async saveTicket(userId: string, number: number): Promise<unknown> {

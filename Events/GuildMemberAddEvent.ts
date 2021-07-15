@@ -18,7 +18,7 @@ export class GuildMemberAddEvent {
 		}
 		else {
 			console.log("Echec de l'attribution du role");
-			const adminService: AdminService = await ServiceProvider.getAdminService();
+			const adminService: AdminService = ServiceProvider.getAdminService();
 			const admins: AdminModel[] = adminService.getAdmins();
 			admins.map(admin => {
 				const user: GuildMember = member.guild.members.cache.find(u => u.id === admin.discordId);

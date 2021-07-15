@@ -3,7 +3,6 @@ import axios from "axios";
 import { Config } from "../Config/Config";
 
 export class TopServerRepository {
-
 	private readonly _token: string = Config.tokenTopServer;
 	private readonly _url: string = "https://api.top-serveurs.net/v1/servers/" + this._token;
 

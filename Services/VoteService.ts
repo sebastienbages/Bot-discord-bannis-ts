@@ -1,9 +1,11 @@
 import { Message, MessageEmbed, TextChannel, WebhookClient } from "discord.js";
-import { Config, WebHookConfig } from "../Config/Config";
+import { Config } from "../Config/Config";
 import { VoteRepository } from "../Dal/VoteRepository";
 import { TopServerModel } from "../Models/TopServerModel";
 import { VoteModel } from "../Models/VoteModel";
 import { TopServerService } from "./TopServerService";
+import { AutoMapper } from "./AutoMapper";
+import { WebhookProvider } from "../src/WebhookProvider";
 
 
 export class VoteService {
@@ -18,14 +20,13 @@ export class VoteService {
 
 	private async getMessage(): Promise<VoteModel> {
 		const result: unknown = await this._voteRepository.getMessageVote();
-		const voteModel: VoteModel = this.MapVoteModel(result);
-		return voteModel;
+		return AutoMapper.mapVoteModel(result);
 	}
 
 	public async saveMessage(message: Message): Promise<void> {
 		const voteModel: VoteModel = await this.getMessage();
-		this.deleteLastMessage(voteModel, message);
-		this._voteRepository.saveMessage(message.id);
+		await this.deleteLastMessage(voteModel, message);
+		await this._voteRepository.saveMessage(message.id);
 	}
 
 	private async deleteLastMessage(voteModel: VoteModel, message: Message) {
@@ -33,13 +34,11 @@ export class VoteService {
 
 		if (channel) {
 			const targetMessage: Message = await channel.messages.fetch(voteModel.messageId);
-			targetMessage.delete();
+			await targetMessage.delete();
 		}
 	}
 
 	public async sendMessage(): Promise<void> {
-		const webhook: WebhookClient = new WebhookClient(WebHookConfig.voteKeeperId, WebHookConfig.voteKeeperToken);
-
 		const topServerModel: TopServerModel = await this._topServerService.getSlugTopServer();
 		const numberOfVotes: number = await this._topServerService.GetNumberOfVotes();
 		const topServeurUrl: string = "https://top-serveurs.net/conan-exiles/vote/" + topServerModel.slug;
@@ -54,18 +53,6 @@ export class VoteService {
 			.addField("LIEN TOP SERVEUR", topServeurUrl)
 			.setFooter(`Pour l'instant, nous avons ${numberOfVotes.toString()} votes ce mois-ci`);
 
-		await webhook.send(messageEmbed);
-	}
-
-	public MapVoteModel(data: any): VoteModel {
-		const model: VoteModel = new VoteModel();
-
-		data.map(e => {
-			if (e.name) model.name = e.name;
-			if (e.message_id) model.messageId = e.message_id;
-			if (e.channel_id) model.channelId = e.channel_id;
-		});
-
-		return model;
+		await WebhookProvider.getVoteKeeper().send(messageEmbed);
 	}
 }

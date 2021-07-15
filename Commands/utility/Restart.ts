@@ -1,7 +1,7 @@
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
-import { PermissionResolvable, WebhookClient } from "discord.js";
-import { WebHookConfig } from "../../Config/Config";
+import { PermissionResolvable } from "discord.js";
+import { WebhookProvider } from "../../src/WebhookProvider";
 
 export class RestartCommand implements ICommand {
 	public readonly name: string = "restart";
@@ -15,8 +15,6 @@ export class RestartCommand implements ICommand {
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async run(commandContext: CommandContext): Promise<void> {
-		const webhook = new WebhookClient(WebHookConfig.serverKeeperId, WebHookConfig.serverKeeperToken);
-		const msg = ":warning: @everyone Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:";
-		webhook.send(msg);
+		await WebhookProvider.getServerKeeper().send(":warning: @everyone Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:");
 	}
 }

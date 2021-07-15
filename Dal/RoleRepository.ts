@@ -1,8 +1,8 @@
 import { MysqlError } from "mysql";
 import { SingletonContext } from "./Context";
 
+// noinspection SpellCheckingInspection
 export class RoleRepository {
-
 	private readonly table = "roles";
 
 	public async getStartRole(): Promise<unknown> {

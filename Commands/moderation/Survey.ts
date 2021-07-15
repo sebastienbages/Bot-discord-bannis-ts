@@ -20,7 +20,7 @@ export class SurveyCommand implements ICommand {
 
 		if (!sondageChannel) {
 			const response: Message = await message.reply("le channel des sondages est introuvable");
-			response.delete({ timeout: 5000 });
+			await response.delete({ timeout: 5000 });
 			return undefined;
 		}
 

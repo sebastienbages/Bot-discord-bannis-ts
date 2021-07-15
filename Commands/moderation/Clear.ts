@@ -26,10 +26,10 @@ export class ClearCommand implements ICommand {
 				.setDescription(`J'ai supprimé ***${args[0]} message(s)***`);
 
 			const response: Message = await message.channel.send(messageEmbed);
-			response.delete({ timeout: 10000 });
+			await response.delete({ timeout: 10000 });
 		}
 		catch (error) {
-			message.reply("je ne peux pas effacer ce nombre de messages");
+			await message.reply("je ne peux pas effacer ce nombre de messages");
 		}
 	}
 }

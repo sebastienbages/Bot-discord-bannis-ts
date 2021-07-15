@@ -20,7 +20,7 @@ export class AddRoleCommand implements ICommand {
 
 		if (!user) {
 			const response: Message = await message.reply("ce membre n'existe pas");
-			response.delete({ timeout: 5000 });
+			await response.delete({ timeout: 5000 });
 			return undefined;
 		}
 
@@ -29,13 +29,13 @@ export class AddRoleCommand implements ICommand {
 
 		if (!role) {
 			const response: Message = await message.reply("ce rôle n'existe pas !");
-			response.delete({ timeout: 5000 });
+			await response.delete({ timeout: 5000 });
 			return undefined;
 		}
 
 		if (user.roles.cache.has(role.id)) {
 			const response: Message = await message.reply("ce membre possède déjà ce role !");
-			response.delete({ timeout: 5000 });
+			await response.delete({ timeout: 5000 });
 			return undefined;
 		}
 
@@ -45,9 +45,8 @@ export class AddRoleCommand implements ICommand {
 			.setColor(Config.color)
 			.setDescription(`Bravo ! Tu as reçu le rôle de **${role.name}** !`);
 
-		user.send(dmMessageToUser);
-
+		await user.send(dmMessageToUser);
 		const response: Message = await message.reply("rôle attribué avec succès !");
-		response.delete({ timeout: 5000 });
+		await response.delete({ timeout: 5000 });
 	}
 }

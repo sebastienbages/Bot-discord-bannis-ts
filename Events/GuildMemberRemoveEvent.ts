@@ -5,7 +5,7 @@ export class GuildMemberRemoveEvent {
 
 	public async run(member: GuildMember): Promise<void> {
 		console.log(`Détection du départ du joueur "${member.displayName}"`);
-		const welcomechannel = member.guild.channels.cache.find(channel => channel.id === process.env.CHA_WELCOME) as TextChannel;
+		const welcomeChannel = member.guild.channels.cache.find(channel => channel.id === process.env.CHA_WELCOME) as TextChannel;
 
 		const goodByeEmbed = new MessageEmbed()
 			.setColor(Config.color)
@@ -14,7 +14,7 @@ export class GuildMemberRemoveEvent {
 			.setDescription("Au-revoir et à bientôt !")
 			.setFooter(`Désormais, nous sommes ${member.guild.memberCount} membres`);
 
-		await welcomechannel.send(goodByeEmbed);
+		await welcomeChannel.send(goodByeEmbed);
 		console.log("Traitement du départ effectué");
 	}
 }
