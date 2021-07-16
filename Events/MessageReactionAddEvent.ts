@@ -8,7 +8,7 @@ import { RoleModel } from "../Models/RoleModel";
 
 export class MessageReactionAddEvent {
 	private _delayIsActive: boolean;
-	private readonly _cooldown: number = 10 * 60 * 1000;
+	private readonly _cooldown: number = 10 * 60 * 1000; //minutes
 	private dateCooldown: number;
 	private _requests: number;
 	private readonly _warningColor: string = "#FF0000";
@@ -198,7 +198,7 @@ export class MessageReactionAddEvent {
 	private async deleteTicket(targetChannel: TextChannel, ticketService: TicketService): Promise<void> {
 		const deleteMessage: MessageEmbed = new MessageEmbed()
 			.setColor(this._warningColor)
-			.setDescription("Supression du ticket dans quelques secondes");
+			.setDescription("Suppression du ticket dans quelques secondes");
 
 		await targetChannel.send(deleteMessage);
 		const deleteChannel = async (): Promise<Channel> => await targetChannel.delete();
@@ -209,13 +209,11 @@ export class MessageReactionAddEvent {
 
 	private startDelay(): void {
 		this._delayIsActive = true;
-		this.dateCooldown = Date.now() + this._cooldown;
-		setTimeout(() => this.resetCooldown(), this._cooldown);
 	}
 
-	private resetCooldown(): void {
-		this._delayIsActive = false;
-		this._requests = 0;
+	private subtractRequest(): void {
+		this._requests--;
+		if (this._requests === 0) this._delayIsActive = false;
 	}
 
 	private getTimeLeft(): number {
@@ -234,7 +232,10 @@ export class MessageReactionAddEvent {
 	}
 
 	private addRequest(): void {
-		this._requests++;
-		if (this._requests === 2) this.startDelay();
+		if (this._requests < 2) {
+			this._requests++;
+			setTimeout(() => this.subtractRequest(), this._cooldown);
+			if (this._requests === 2) this.startDelay();
+		}
 	}
 }
