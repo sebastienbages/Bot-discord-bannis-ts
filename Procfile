@@ -1,1 +1,1 @@
-web: tsc && node bin/src/app.js
+web: node bin/src/app.js
