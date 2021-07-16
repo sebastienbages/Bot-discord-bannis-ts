@@ -5,6 +5,11 @@ import { SingletonContext } from "./Context";
 export class TicketRepository {
 	private readonly table = "tickets";
 
+	/**
+	 * Sauvegarde un ticket
+	 * @param userId {string} - Identifiant discord de l'utilisateur
+	 * @param number {number} - Numéro du ticket
+	 */
 	public async saveTicket(userId: string, number: number): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
@@ -16,6 +21,10 @@ export class TicketRepository {
 		});
 	}
 
+	/**
+	 * Récupère un ticket selon son numéro
+	 * @param number {number} - Numéro du ticket
+	 */
 	public async getTicketByNumber(number: number): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
@@ -27,6 +36,10 @@ export class TicketRepository {
 		});
 	}
 
+	/**
+	 * Récupère un ticket selon l'utilisateur
+	 * @param userId {string} - Identifiant discord de l'utilisateur
+	 */
 	public async getTicketByUserId(userId: string): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
@@ -38,6 +51,10 @@ export class TicketRepository {
 		});
 	}
 
+	/**
+	 * Clotûre un ticket
+	 * @param userId {string} - Identifiant discord de l'utilisateur
+	 */
 	public async closeTicket(userId: string): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
@@ -49,6 +66,10 @@ export class TicketRepository {
 		});
 	}
 
+	/**
+	 * Ouvre un ticket
+	 * @param userId {string} - Identifiant discord de l'utilisateur
+	 */
 	public async openTicket(userId: string): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
@@ -60,6 +81,10 @@ export class TicketRepository {
 		});
 	}
 
+	/**
+	 * Supprime un ticket
+	 * @param number {number} - Numéro du ticket
+	 */
 	public async deleteTicket(number: number): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {

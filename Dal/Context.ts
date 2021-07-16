@@ -13,6 +13,9 @@ class Context {
 		});
 	}
 
+	/**
+	 * Retourne une connexion du Pool
+	 */
 	public getConnection(): Promise<PoolConnection> {
 		return new Promise((resolve, rejects) => {
 			this._pool.getConnection((err, connection) => {

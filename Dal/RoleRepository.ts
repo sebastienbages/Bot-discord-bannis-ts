@@ -5,6 +5,9 @@ import { SingletonContext } from "./Context";
 export class RoleRepository {
 	private readonly table = "roles";
 
+	/**
+	 * Retourne le role à attribuer aux nouveaux arrivants
+	 */
 	public async getStartRole(): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
@@ -16,6 +19,9 @@ export class RoleRepository {
 		});
 	}
 
+	/**
+	 * Retourne les roles autorisé pour l'administration des tickets
+	 */
 	public async getTicketRoles(): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {

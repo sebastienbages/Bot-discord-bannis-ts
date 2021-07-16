@@ -5,6 +5,9 @@ import { SingletonContext } from "./Context";
 export class VoteRepository {
 	private readonly table = "messages";
 
+	/**
+	 * Récupère le message d'appel aux votes
+	 */
 	public async getMessageVote(): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
@@ -16,6 +19,10 @@ export class VoteRepository {
 		});
 	}
 
+	/**
+	 * Sauvegarde le message d'appel aux votes
+	 * @param messageId
+	 */
 	public async saveMessage(messageId: string): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {

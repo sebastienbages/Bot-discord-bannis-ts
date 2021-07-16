@@ -5,6 +5,9 @@ import { SingletonContext } from "./Context";
 export class AdminRepository {
 	private readonly table = "admins";
 
+	/**
+	 * Recupère les administrateurs du serveur
+	 */
 	public async getAdminsData(): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
@@ -16,6 +19,11 @@ export class AdminRepository {
 		});
 	}
 
+	/**
+	 * Création d'un nouvel administrateur
+	 * @param id {string} - Identifiant discord
+	 * @param name {string} - Nom utilisateur
+	 */
 	public async createAdmin(id: string, name: string): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
@@ -27,6 +35,10 @@ export class AdminRepository {
 		});
 	}
 
+	/**
+	 * Supprime un administrateur
+	 * @param id {string} - Identifiant discord
+	 */
 	public async removeAdmin(id: string): Promise<unknown> {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {

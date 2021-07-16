@@ -39,6 +39,9 @@ export class Config {
 		TicketCommand,
 	];
 
+	/**
+	 * Retourne la liste des commandes du bot
+	 */
 	public static getCommandsInstances(): ICommand[] {
 		return Config.commands.map(commandClass => new commandClass());
 	}
