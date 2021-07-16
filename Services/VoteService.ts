@@ -18,17 +18,31 @@ export class VoteService {
 		this._topServerService = new TopServerService();
 	}
 
+	/**
+	 * Retourne la configuration du message d'appel aux votes
+	 * @private
+	 */
 	private async getMessage(): Promise<VoteModel> {
 		const result: unknown = await this._voteRepository.getMessageVote();
 		return AutoMapper.mapVoteModel(result);
 	}
 
+	/**
+	 * Sauvegarde le message
+	 * @param message {Message} - Message discord
+	 */
 	public async saveMessage(message: Message): Promise<void> {
 		const voteModel: VoteModel = await this.getMessage();
 		await this.deleteLastMessage(voteModel, message);
 		await this._voteRepository.saveMessage(message.id);
 	}
 
+	/**
+	 * Supprime le dernier message
+	 * @param voteModel {VoteModel} - Configuration du message des votes
+	 * @param message {Message} - Message à supprimer
+	 * @private
+	 */
 	private async deleteLastMessage(voteModel: VoteModel, message: Message) {
 		const channel = message.guild.channels.cache.find(c => c.id === voteModel.channelId) as TextChannel;
 
@@ -38,6 +52,9 @@ export class VoteService {
 		}
 	}
 
+	/**
+	 * Envoi le message d'appel aux votes
+	 */
 	public async sendMessage(): Promise<void> {
 		const topServerModel: TopServerModel = await this._topServerService.getSlugTopServer();
 		const numberOfVotes: number = await this._topServerService.GetNumberOfVotes();

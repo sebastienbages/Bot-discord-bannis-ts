@@ -19,6 +19,10 @@ export class AutoMapper {
 		return model;
 	}
 
+	/**
+	 * Retourne la configuration du gestionnaire de tickets
+	 * @param data
+	 */
 	public static mapTicketConfigModel(data: any): TicketConfigModel {
 		const model: TicketConfigModel = new TicketConfigModel();
 
@@ -32,6 +36,10 @@ export class AutoMapper {
 		return model;
 	}
 
+	/**
+	 * Retourne un tableau de Roles
+	 * @param data
+	 */
 	public static mapArrayRoleModel(data: any): RoleModel[] {
 		const rolesArray: RoleModel[] = new Array<RoleModel>();
 
@@ -49,6 +57,10 @@ export class AutoMapper {
 		return rolesArray;
 	}
 
+	/**
+	 * Retourne un Role
+	 * @param data
+	 */
 	public static mapRoleModel(data: any): RoleModel {
 		const roleModel: RoleModel = new RoleModel();
 		const element: any = data[0];
@@ -59,6 +71,10 @@ export class AutoMapper {
 		return roleModel;
 	}
 
+	/**
+	 * Retourne un tableau d'administrateurs
+	 * @param data
+	 */
 	public static mapArrayAdminModel(data: any): AdminModel[] {
 		const adminArray: AdminModel[] = new Array<AdminModel>();
 
@@ -74,12 +90,20 @@ export class AutoMapper {
 		return adminArray;
 	}
 
+	/**
+	 * Retourne un objet Top Serveur
+	 * @param data
+	 */
 	public static mapTopServerModel(data: any) : TopServerModel {
 		const model: TopServerModel = new TopServerModel();
 		if (data.server.slug) model.slug = data.server.slug;
 		return model;
 	}
 
+	/**
+	 * Retourne un tableau de joueurs Top Serveur
+	 * @param data
+	 */
 	public static mapArrayPlayer(data: any): Player[] {
 		const playersModel: Player[] = new Array<Player>();
 		data.players.map(e => {
@@ -91,6 +115,10 @@ export class AutoMapper {
 		return playersModel;
 	}
 
+	/**
+	 * Retourne un objet Vote
+	 * @param data
+	 */
 	public static mapVoteModel(data: any): VoteModel {
 		const model: VoteModel = new VoteModel();
 
