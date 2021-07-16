@@ -8,14 +8,15 @@ import { RoleModel } from "../Models/RoleModel";
 
 export class MessageReactionAddEvent {
 	private _delayIsActive: boolean;
-	private readonly _cooldown: number = 10 * 60 * 1000; //minutes
-	private dateCooldown: number;
+	private readonly _cooldown: number = 10 * 60 * 1000; //10 minutes
+	private readonly _datesCooldown: number[];
 	private _requests: number;
 	private readonly _warningColor: string = "#FF0000";
 
 	constructor() {
 		this._delayIsActive = false;
 		this._requests = 0;
+		this._datesCooldown = new Array<number>();
 	}
 
 	public async run(messageReaction: MessageReaction, user: User): Promise<void> {
@@ -123,7 +124,9 @@ export class MessageReactionAddEvent {
 		const rolesMentions: string[] = new Array<string>();
 
 		ticketRoles.map(role => {
-			rolesMentions.push(`<@&${role.discordId}>`);
+			if (messageReaction.message.guild.roles.cache.has(role.discordId)) {
+				rolesMentions.push(`<@&${role.discordId}>`);
+			}
 		});
 
 		rolesMentions.push(`<@${user.id}>`);
@@ -213,19 +216,23 @@ export class MessageReactionAddEvent {
 
 	private subtractRequest(): void {
 		this._requests--;
-		if (this._requests === 0) this._delayIsActive = false;
+		this._datesCooldown.shift();
+		if (this._requests < 2) this._delayIsActive = false;
 	}
 
-	private getTimeLeft(): number {
+	private getTimeLeft(): any {
 		const now: number = Date.now();
-		return ((this.dateCooldown - now) / 60) / 1000;
+		const cooldown: number = this._datesCooldown[0];
+		const minutes: number = ((now - cooldown) / 60) / 1000;
+		const seconds: number = (now - cooldown) / 1000;
+		return { minutes: minutes.toFixed(0), seconds: seconds.toFixed(0) }
 	}
 
 	private async sendCooldownMessage(targetChannel: TextChannel): Promise<void> {
-		const timeLeft: number = this.getTimeLeft();
+		const timeLeft: any = this.getTimeLeft();
 		const message: MessageEmbed = new MessageEmbed()
 			.setDescription(":exclamation: Le ticket ne peut pas changer de nom trop souvent")
-			.setFooter(`Cela sera à nouveau possible dans ${timeLeft.toFixed(0)} minute(s)`)
+			.setFooter(`Cela sera à nouveau possible dans ${timeLeft.minutes} minute(s) et ${timeLeft.seconds} seconde(s)`)
 			.setColor(this._warningColor);
 
 		await targetChannel.send(message);
@@ -233,8 +240,9 @@ export class MessageReactionAddEvent {
 
 	private addRequest(): void {
 		if (this._requests < 2) {
-			this._requests++;
+			this._datesCooldown.push(Date.now());
 			setTimeout(() => this.subtractRequest(), this._cooldown);
+			this._requests++;
 			if (this._requests === 2) this.startDelay();
 		}
 	}
