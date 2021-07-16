@@ -18,7 +18,7 @@ export class TicketService {
 	public static createReaction = "🎫";
 	public static closeReaction = "🔒";
 	public static reOpenTicketReaction = "🔓";
-	public static deleteTicketReaction = "🗑";
+	public static deleteTicketReaction = "❌";
 
 	constructor() {
 		this._ticketConfigRepository = new TicketConfigRepository();
