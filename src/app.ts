@@ -15,11 +15,19 @@ const bot: Bot = new Bot(Config.token);
 bot.start();
 
 ServiceProvider.initializeServices();
+console.log("Services initialisés");
 WebhookProvider.initializeWebHook();
+console.log("Webhook initialisés");
 
 const commandHandler = new CommandHandler(process.env.PREFIX);
+console.log("Gestion des commandes initialisée");
 const events = new Events();
+console.log("Évènements initialisés");
 
+/**
+ * Envoi de l'erreur au développeur du bot et la retourne
+ * @param err - Erreur
+ */
 const sendError = async (err) => {
 	const dev = await bot.client.users.fetch(Config.devId);
 	await dev.send("Une erreur s'est produite sur le bot");

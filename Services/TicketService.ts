@@ -29,11 +29,19 @@ export class TicketService {
 		this.updateTicketConfig();
 	}
 
+	/**
+	 * Retourne la configuration du système des tickets
+	 * @private
+	 */
 	private async getConfig(): Promise<TicketConfigModel> {
 		const results: unknown = await this._ticketConfigRepository.getConfigData();
 		return AutoMapper.mapTicketConfigModel(results);
 	}
 
+	/**
+	 * Ajoute au cache de la Guild les tickets
+	 * @param client {Client} - Client discord
+	 */
 	public async fetchTicketsMessages(client: Client): Promise<void> {
 		const ticketConfigModel: TicketConfigModel = await this.getConfig();
 		const guild = await client.guilds.fetch(Config.guildId) as Guild;
@@ -51,14 +59,26 @@ export class TicketService {
 		}
 	}
 
+	/**
+	 * Sauvegarde le message de création des tickets
+	 * @param id {string} - Identifiant du message
+	 */
 	public async saveTicketConfigMessageId(id: string): Promise<void> {
 		await this._ticketConfigRepository.saveTicketConfigMessageId(id);
 	}
 
+	/**
+	 * Sauvegarde le numéro du ticket
+	 * @param number {number} - Numéro du ticket
+	 */
 	public async saveTicketConfigNumber(number: string): Promise<void> {
 		await this._ticketConfigRepository.saveTicketConfigNumber(number);
 	}
 
+	/**
+	 * Retourne le nom du prochain salon textuel à créer pour un ticket
+	 * @param lastNumber {number} - Dernier numéro de ticket ouvert
+	 */
 	public getChannelName(lastNumber: number): string {
 		const newTicketNumber: number = lastNumber + 1;
 		const channelName: string[] = new Array<string>();
@@ -73,27 +93,48 @@ export class TicketService {
 		return channelName.join("");
 	}
 
+	/**
+	 * Mise à jour de configuration des tickets en cache
+	 */
 	public async updateTicketConfig(): Promise<void> {
 		this._ticketConfig = await this.getConfig();
 	}
 
+	/**
+	 * Mise à jour des Roles autorisé pour l'administration des tickets en cache
+	 */
 	public async updateTicketRoles(): Promise<void> {
 		const results = await this._roleRepository.getTicketRoles();
 		this._ticketRoles = AutoMapper.mapArrayRoleModel(results);
 	}
 
+	/**
+	 * Retourne la configuration du gestionnaire des tickets
+	 */
 	public getTicketConfig(): TicketConfigModel {
 		return this._ticketConfig;
 	}
 
+	/**
+	 * Retourne les roles autorisés pour l'administration des tickets
+	 */
 	public getTicketRoles(): Array<RoleModel> {
 		return this._ticketRoles;
 	}
 
+	/**
+	 * Sauvegarde un ticket
+	 * @param user {User} - Utilisateur discord
+	 * @param number {number} - Numéro du ticket
+	 */
 	public async saveTicket(user: User, number: number): Promise<void> {
 		await this._ticketRepository.saveTicket(user.id, number);
 	}
 
+	/**
+	 * Retourne un ticket selon son numéro
+	 * @param targetChannel {TextChannel} - Salon textuel discord du ticket
+	 */
 	public async getTicketByNumber(targetChannel: TextChannel): Promise<TicketModel> {
 		const channelName: string = targetChannel.name;
 		const nameArray: string[] = channelName.split("-");
@@ -102,19 +143,35 @@ export class TicketService {
 		return AutoMapper.mapTicketModel(result);
 	}
 
+	/**
+	 * Retourne un ticket selon l'utilisateur
+	 * @param user {User} - Utilisateur discord
+	 */
 	public async getTicketByUserId(user: User): Promise<TicketModel> {
 		const result: unknown = await this._ticketRepository.getTicketByUserId(user.id);
 		return AutoMapper.mapTicketModel(result);
 	}
 
+	/**
+	 * Ferme le ticket
+	 * @param user {User} - Utilisateur discord
+	 */
 	public async closeTicket(user: TicketModel): Promise<void> {
 		await this._ticketRepository.closeTicket(user.userId);
 	}
 
+	/**
+	 * Ouvre le ticket
+	 * @param user {User} - Utilisateur discord
+	 */
 	public async openTicket(user: TicketModel): Promise<void> {
 		await this._ticketRepository.openTicket(user.userId);
 	}
 
+	/**
+	 * Supprime le ticket
+	 * @param targetChannel {TextChannel} - Salon textuel discord du ticket
+	 */
 	public async deleteTicket(targetChannel: TextChannel): Promise<void> {
 		const channelName: string = targetChannel.name;
 		const nameArray: string[] = channelName.split("-");

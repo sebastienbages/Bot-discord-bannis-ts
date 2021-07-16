@@ -8,7 +8,7 @@ import { RoleModel } from "../Models/RoleModel";
 
 export class MessageReactionAddEvent {
 	private _delayIsActive: boolean;
-	private readonly _cooldown: number = 10 * 60 * 1000; //10 minutes
+	private readonly _cooldown: number = 10 * 60 * 1000;
 	private readonly _datesCooldown: number[];
 	private _requests: number;
 	private readonly _warningColor: string = "#FF0000";
@@ -72,6 +72,14 @@ export class MessageReactionAddEvent {
 		}
 	}
 
+	/**
+	 * Création d'un nouveau ticket
+	 * @param messageReaction {MessageReaction} - MessageReaction discord
+	 * @param ticketConfig {TicketConfigModel} - Configuration des tickets
+	 * @param ticketService {TicketService} - Service des tickets
+	 * @param user {User} - Utilisateur discord concerné
+	 * @private
+	 */
 	private async createTicket(messageReaction: MessageReaction, ticketConfig: TicketConfigModel, ticketService: TicketService, user: User): Promise<void> {
 		const category = messageReaction.message.guild.channels.cache.find(c => c.id === ticketConfig.CategoryId) as CategoryChannel;
 		const everyoneRole: Role = messageReaction.message.guild.roles.cache.find(r => r.name === "@everyone");
@@ -148,6 +156,15 @@ export class MessageReactionAddEvent {
 		return undefined;
 	}
 
+	/**
+	 * Fermeture d'un ticket
+	 * @param user {User} - Utilisateur discord concerné
+	 * @param messageReaction {MessageReaction} - MessageReaction discord
+	 * @param targetChannel {TextChannel} - Salon textuel discord concerné
+	 * @param ticketService {TicketService} - Service des tickets
+	 * @param userTicket {TicketModel} - Ticket de l'utilisateur
+	 * @private
+	 */
 	private async closeTicket(user: User, messageReaction: MessageReaction, targetChannel: TextChannel, ticketService: TicketService, userTicket: TicketModel): Promise<void> {
 		await targetChannel.updateOverwrite(userTicket.userId, {
 			VIEW_CHANNEL: false,
@@ -177,6 +194,14 @@ export class MessageReactionAddEvent {
 		return undefined;
 	}
 
+	/**
+	 * Ré-ouverture d'un ticket
+	 * @param messageReaction {MessageReaction} - MessageReaction discord
+	 * @param targetChannel {TextChannel} - Salon textuel discord concerné
+	 * @param ticketService {TicketService} - Service des tickets
+	 * @param userTicket {TicketModel} - Ticket de l'utilisateur
+	 * @private
+	 */
 	private async reOpenTicket(messageReaction: MessageReaction, targetChannel: TextChannel, ticketService: TicketService, userTicket: TicketModel): Promise<void> {
 		await messageReaction.message.delete();
 		await targetChannel.updateOverwrite(userTicket.userId, {
@@ -198,6 +223,12 @@ export class MessageReactionAddEvent {
 		return undefined;
 	}
 
+	/**
+	 * Supprimer un ticket
+	 * @param targetChannel {TextChannel} - Salon textuel discord concerné
+	 * @param ticketService {TicketService} - Service des tickets
+	 * @private
+	 */
 	private async deleteTicket(targetChannel: TextChannel, ticketService: TicketService): Promise<void> {
 		const deleteMessage: MessageEmbed = new MessageEmbed()
 			.setColor(this._warningColor)
@@ -210,24 +241,41 @@ export class MessageReactionAddEvent {
 		return undefined;
 	}
 
+	/**
+	 * Bloquage des requêtes des tickets
+	 * @private
+	 */
 	private startDelay(): void {
 		this._delayIsActive = true;
 	}
 
+	/**
+	 * Supprime une requête et son minuteur de recharge
+	 * @private
+	 */
 	private subtractRequest(): void {
 		this._requests--;
 		this._datesCooldown.shift();
 		if (this._requests < 2) this._delayIsActive = false;
 	}
 
+	/**
+	 * Retourne le temps restant de la requête la plus ancienne
+	 * @private
+	 */
 	private getTimeLeft(): any {
 		const now: number = Date.now();
 		const cooldown: number = this._datesCooldown[0];
 		const minutes: number = ((now - cooldown) / 60) / 1000;
 		const seconds: number = (now - cooldown) / 1000;
-		return { minutes: minutes.toFixed(0), seconds: seconds.toFixed(0) }
+		return { minutes: minutes.toFixed(0), seconds: seconds.toFixed(0) };
 	}
 
+	/**
+	 * Envoi le message d'information de bloquage des requêtes de tickets
+	 * @param targetChannel
+	 * @private
+	 */
 	private async sendCooldownMessage(targetChannel: TextChannel): Promise<void> {
 		const timeLeft: any = this.getTimeLeft();
 		const message: MessageEmbed = new MessageEmbed()
@@ -238,6 +286,10 @@ export class MessageReactionAddEvent {
 		await targetChannel.send(message);
 	}
 
+	/**
+	 * Ajoute un requête ticket au compteur, initialise et démarre son minuteur de recharge
+	 * @private
+	 */
 	private addRequest(): void {
 		if (this._requests < 2) {
 			this._datesCooldown.push(Date.now());
