@@ -1,1 +1,1 @@
-worker: tsc && node bin/src/app.js
+web: tsc && node bin/src/app.js
