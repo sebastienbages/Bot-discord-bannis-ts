@@ -8,6 +8,7 @@ import { TicketModel } from "../Models/TicketModel";
 import { RoleRepository } from "../Dal/RoleRepository";
 import { AutoMapper } from "./AutoMapper";
 
+// noinspection JSIgnoredPromiseFromCall
 export class TicketService {
 	private _ticketConfigRepository: TicketConfigRepository;
 	private _roleRepository: RoleRepository;
