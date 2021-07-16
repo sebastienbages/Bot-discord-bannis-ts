@@ -4,6 +4,7 @@ import { AdminRepository } from "../Dal/AdminRepository";
 import { AdminModel } from "../Models/AdminModel";
 import { AutoMapper } from "./AutoMapper";
 
+// noinspection JSIgnoredPromiseFromCall
 export class AdminService {
 
 	private _adminRepository: AdminRepository;
@@ -14,15 +15,25 @@ export class AdminService {
 		this.updateAdmins();
 	}
 
+	/**
+	 * Récupère la liste des administrateurs du serveur en BDD
+	 */
 	private async getAdminsData(): Promise<AdminModel[]> {
 		const results: unknown = await this._adminRepository.getAdminsData();
 		return AutoMapper.mapArrayAdminModel(results);
 	}
 
+	/**
+	 * Retourne la liste des administrateurs du serveur
+	 */
 	public getAdmins(): AdminModel[] {
 		return this._admins;
 	}
 
+	/**
+	 * Vérifie l'existence d'un administrateur
+	 * @param id {string} - Identifiant discord de l'utilisateur
+	 */
 	public async adminIsExist(id: string): Promise<boolean> {
 		let result = false;
 		this._admins.forEach(admin => {
@@ -31,6 +42,10 @@ export class AdminService {
 		return result;
 	}
 
+	/**
+	 * Transfert les messages privé reçu par le bot à l'ensemble des administrateurs
+	 * @param message {Message} - Message discord
+	 */
 	public async transfertPrivateMessage(message: Message): Promise<void> {
 		const messageEmbed = new MessageEmbed()
 			.setColor(Config.color)
@@ -48,16 +63,29 @@ export class AdminService {
 		});
 	}
 
+	/**
+	 * Création d'un administrateur
+	 * @param id {string} - Identifiant discord de l'utilisateur
+	 * @param name {string} - Nom de l'utilisateur
+	 */
 	public async createAdmin(id: string, name: string): Promise<void> {
 		await this._adminRepository.createAdmin(id, name);
 		await this.updateAdmins();
 	}
 
+	/**
+	 * Suppression d'un administrateur
+	 * @param id {string} - Identifiant discord de l'utilisateur
+	 */
 	public async removeAdmin(id: string): Promise<void> {
 		await this._adminRepository.removeAdmin(id);
 		await this.updateAdmins();
 	}
 
+	/**
+	 * Mise à jour de la liste des administrateurs en cache
+	 * @private
+	 */
 	private async updateAdmins(): Promise<void> {
 		this._admins = await this.getAdminsData();
 	}
