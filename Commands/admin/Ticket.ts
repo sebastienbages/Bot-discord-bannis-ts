@@ -46,7 +46,7 @@ export class TicketCommand implements ICommand {
 			}
 
 			messageEmbed.addField("NOMBRE DE TICKET(S)", ticketConfig.LastNumber);
-			message.reply(messageEmbed);
+			await message.reply(messageEmbed);
 			return undefined;
 		}
 
@@ -56,7 +56,7 @@ export class TicketCommand implements ICommand {
 
 			const messageEmbed = new MessageEmbed()
 				.setColor(Config.color)
-				.attachFiles(["./Images/logo-les-bannis-discord.png"])
+				.attachFiles(["Images/logo-les-bannis-discord.png"])
 				.setThumbnail("attachment://logo-les-bannis-discord.png")
 				.setTitle("BESOIN D'AIDE ?")
 				.setDescription("Rien de plus simple, clique sur la réaction :ticket: pour créer ton ticket. \n \n Un salon sera créé rien que pour toi afin de discuter avec l'équipe des Bannis :wink: \n")
@@ -64,13 +64,13 @@ export class TicketCommand implements ICommand {
 
 			if (channel) {
 				const messageSend: Message = await channel.send(messageEmbed);
-				messageSend.react(TicketService.createReaction);
+				await messageSend.react(TicketService.createReaction);
 				await ticketService.saveTicketConfigMessageId(messageSend.id);
 				await ticketService.updateTicketConfig();
 			}
 			else {
 				const response: Message = await message.reply("Salon des tickets introuvable");
-				response.delete({ timeout: 5000 });
+				await response.delete({ timeout: 5000 });
 			}
 
 			return undefined;
