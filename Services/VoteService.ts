@@ -67,7 +67,7 @@ export class VoteService {
 			.setColor(Config.color)
 			.setTitle("VOTEZ POUR LE SERVEUR")
 			.setURL(topServeurUrl)
-			.attachFiles(["./images/topServeur.png"])
+			.attachFiles(["./images/topServeur.png" || "/app/images/topServeur.png"])
 			.setThumbnail("attachment://topServeur.png")
 			.setDescription("N'hésitez pas à donner un coup de pouce au serveur en votant. Merci pour votre participation :thumbsup:")
 			.addField("LIEN TOP SERVEUR", topServeurUrl)
