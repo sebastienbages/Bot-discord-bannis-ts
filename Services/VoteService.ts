@@ -8,14 +8,17 @@ import { AutoMapper } from "./AutoMapper";
 import { WebhookProvider } from "../src/WebhookProvider";
 
 
+// noinspection JSIgnoredPromiseFromCall
 export class VoteService {
 
 	private _voteRepository: VoteRepository;
 	private _topServerService: TopServerService;
+	private _voteModel: VoteModel;
 
 	constructor() {
 		this._voteRepository = new VoteRepository();
 		this._topServerService = new TopServerService();
+		this.updateMessageId();
 	}
 
 	/**
@@ -32,9 +35,9 @@ export class VoteService {
 	 * @param message {Message} - Message discord
 	 */
 	public async saveMessage(message: Message): Promise<void> {
-		const voteModel: VoteModel = await this.getMessage();
-		await this.deleteLastMessage(voteModel, message);
+		await this.deleteLastMessage(this._voteModel, message);
 		await this._voteRepository.saveMessage(message.id);
+		await this.updateMessageId();
 	}
 
 	/**
@@ -47,7 +50,7 @@ export class VoteService {
 		const channel = message.guild.channels.cache.find(c => c.id === voteModel.channelId) as TextChannel;
 
 		if (channel) {
-			const targetMessage: Message = await channel.messages.fetch(voteModel.messageId);
+			const targetMessage: Message = await channel.messages.fetch(this._voteModel.messageId);
 			await targetMessage.delete();
 		}
 	}
@@ -71,5 +74,9 @@ export class VoteService {
 			.setFooter(`Pour l'instant, nous avons ${numberOfVotes.toString()} votes ce mois-ci`);
 
 		await WebhookProvider.getVoteKeeper().send(messageEmbed);
+	}
+
+	private async updateMessageId(): Promise<void> {
+		this._voteModel = await this.getMessage();
 	}
 }

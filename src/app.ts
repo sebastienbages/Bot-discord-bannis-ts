@@ -24,17 +24,6 @@ console.log("Gestion des commandes initialisée");
 const events = new Events();
 console.log("Évènements initialisés");
 
-/**
- * Envoi de l'erreur au développeur du bot et la retourne
- * @param err - Erreur
- */
-const sendError = async (err) => {
-	const dev = await bot.client.users.fetch(Config.devId);
-	await dev.send("Une erreur s'est produite sur le bot");
-	await dev.send(err);
-	return err;
-};
-
 try {
 	bot.client.on("message", (message: Message) => commandHandler.handleMessage(message, bot.client));
 	bot.client.on("messageReactionAdd", (messageReaction: MessageReaction, user: User) => events.messageReactionAdd().run(messageReaction, user));
@@ -42,5 +31,5 @@ try {
 	bot.client.on("guildMemberRemove", (member: GuildMember) => events.guildMemberRemove().run(member));
 }
 catch (error) {
-	console.error(sendError(error));
+	console.error(error);
 }
