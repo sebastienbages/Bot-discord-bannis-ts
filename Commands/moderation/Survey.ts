@@ -28,7 +28,7 @@ export class SurveyCommand implements ICommand {
 
 		const messageEmbed = new MessageEmbed()
 			.setTitle("SONDAGE")
-			.attachFiles(["./Images/point-d-interrogation.jpg"])
+			.attachFiles(["Images/point-d-interrogation.jpg"])
 			.setThumbnail("attachment://point-d-interrogation.jpg")
 			.setDescription(messageToSend)
 			.setColor(Config.color)
