@@ -110,9 +110,6 @@ export class CommandHandler {
 			await matchedCommands.run(commandContext);
 		}
 		catch (error) {
-			const devBot = await message.client.users.fetch(Config.devId);
-			await devBot.send("Une erreur s'est produite sur une commande");
-			await devBot.send(error);
 			await message.reply("une erreur s'est produite, veuillez contacter un administrateur");
 			console.error(error);
 		}
