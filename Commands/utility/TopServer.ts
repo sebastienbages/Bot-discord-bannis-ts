@@ -1,10 +1,10 @@
-import { Message, MessageEmbed, PermissionResolvable } from "discord.js";
+import { Message, PermissionResolvable } from "discord.js";
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { ServiceProvider } from "../../src/ServiceProvider";
 import { Player } from "../../Models/TopServerModel";
-import { Config } from "../../Config/Config";
 import { TopServerService } from "../../Services/TopServerService";
+import * as fs from "fs";
 
 export class TopServerCommand implements ICommand {
 	public readonly name: string = "topserveur";
@@ -35,27 +35,11 @@ export class TopServerCommand implements ICommand {
 			title = "Classement Top Serveur du mois en cours";
 		}
 
-		const messageEmbed = new MessageEmbed()
-			.attachFiles(["./Images/topServeur.png"])
-			.setThumbnail("attachment://topServeur.png")
-			.setTitle(title)
-			.setColor(Config.color)
-			.setTimestamp();
-
-		players.map(p => {
-			if (p.name === "") {
-				messageEmbed.addField("Sans pseudo", `${p.votes.toString()}`, false);
-			}
-			else {
-				messageEmbed.addField(`${p.name}`, `${p.votes.toString()}`, false);
-			}
+		const fileName: string = topServerService.fileName;
+		await topServerService.createRankingFile(players);
+		await message.author.send(title, { files: [fileName] });
+		fs.rm(fileName, err => {
+			if (err) console.error(err);
 		});
-
-		if (messageEmbed.length > 6000) {
-			await message.author.send("Le résulat est trop volumineux pour être affiché");
-		}
-		else {
-			await message.author.send(messageEmbed);
-		}
 	}
 }

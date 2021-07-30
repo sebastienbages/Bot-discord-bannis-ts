@@ -1,4 +1,4 @@
-import { Message, MessageEmbed, TextChannel, WebhookClient } from "discord.js";
+import { Message, MessageEmbed, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
 import { VoteRepository } from "../Dal/VoteRepository";
 import { TopServerModel } from "../Models/TopServerModel";
@@ -60,7 +60,7 @@ export class VoteService {
 	 */
 	public async sendMessage(): Promise<void> {
 		const topServerModel: TopServerModel = await this._topServerService.getSlugTopServer();
-		const numberOfVotes: number = await this._topServerService.GetNumberOfVotes();
+		const numberOfVotes: number = await this._topServerService.getNumberOfVotes();
 		const topServeurUrl: string = "https://top-serveurs.net/conan-exiles/vote/" + topServerModel.slug;
 
 		const messageEmbed = new MessageEmbed()
