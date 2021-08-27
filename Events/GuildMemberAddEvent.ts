@@ -33,7 +33,7 @@ export class GuildMemberAddEvent {
 		const welcomeEmbed = new MessageEmbed()
 			.setColor(Config.color)
 			.setThumbnail(member.user.displayAvatarURL())
-			.setTitle(`:inbox_tray: ${member.user.username} a rejoins notre communauté`)
+			.setTitle(`:inbox_tray: ${member.user.username} a rejoint notre communauté`)
 			.setDescription("Nous te souhaitons la bienvenue !")
 			.setFooter(`Désormais, nous sommes ${member.guild.memberCount} membres`);
 
