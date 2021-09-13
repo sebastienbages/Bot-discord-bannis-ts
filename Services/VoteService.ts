@@ -6,7 +6,7 @@ import { VoteModel } from "../Models/VoteModel";
 import { TopServerService } from "./TopServerService";
 import { AutoMapper } from "./AutoMapper";
 import { WebhookProvider } from "../src/WebhookProvider";
-
+import { LogService } from "./LogService";
 
 // noinspection JSIgnoredPromiseFromCall
 export class VoteService {
@@ -14,10 +14,12 @@ export class VoteService {
 	private _voteRepository: VoteRepository;
 	private _topServerService: TopServerService;
 	private _voteModel: VoteModel;
+	private _logService: LogService;
 
 	constructor() {
 		this._voteRepository = new VoteRepository();
 		this._topServerService = new TopServerService();
+		this._logService = new LogService();
 		this.updateMessageId();
 	}
 
@@ -74,6 +76,7 @@ export class VoteService {
 			.setFooter(`Pour l'instant, nous avons ${numberOfVotes.toString()} votes ce mois-ci`);
 
 		await WebhookProvider.getVoteKeeper().send(messageEmbed);
+		this._logService.log("Message des votes envoyé");
 	}
 
 	private async updateMessageId(): Promise<void> {
