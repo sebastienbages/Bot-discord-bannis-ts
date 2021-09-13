@@ -4,16 +4,19 @@ import { CommandContext } from "../Commands/CommandContext";
 import { Config } from "../Config/Config";
 import { ServiceProvider } from "./ServiceProvider";
 import { WebhookProvider } from "./WebhookProvider";
+import { LogService } from "../Services/LogService";
 
 export class CommandHandler {
 	private _commands: ICommand[];
 	private readonly _prefix: string;
 	private _cooldowns: Collection<string, Collection<string, number>>;
+	private _logService: LogService;
 
 	constructor(prefix: string) {
 		this._commands = Config.getCommandsInstances();
 		this._prefix = prefix;
 		this._cooldowns = new Collection();
+		this._logService = new LogService();
 	}
 
 	async handleMessage(message: Message, client: Client): Promise<void> {
@@ -45,6 +48,8 @@ export class CommandHandler {
 			return undefined;
 		}
 
+		this._logService.log(`${message.author.username} a utilisé une commande : ${commandContext.message}`);
+
 		const guild = client.guilds.cache.find(g => g.id === Config.guildId);
 		const authorPerms = guild.members.cache.find(user => user.id === message.author.id);
 
@@ -52,6 +57,7 @@ export class CommandHandler {
 			if (message.channel.type != "dm") {
 				const response = await message.reply("Vous n'avez pas la permission d'utiliser cette commande");
 				await response.delete({ timeout: 5000 });
+				this._logService.log(`Commande ${commandContext.command} non autorisé pour ${message.author.username}`);
 				return undefined;
 			}
 			else {
@@ -111,7 +117,7 @@ export class CommandHandler {
 		}
 		catch (error) {
 			await message.reply("une erreur s'est produite, veuillez contacter un administrateur");
-			console.error(error);
+			this._logService.error(error.stack);
 		}
 	}
 

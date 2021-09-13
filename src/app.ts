@@ -1,5 +1,4 @@
 // noinspection JSIgnoredPromiseFromCall
-
 import { GuildMember, Message, MessageReaction, User } from "discord.js";
 import * as dotenv from "dotenv";
 import { Config } from "../Config/Config";
@@ -8,21 +7,25 @@ import { CommandHandler } from "./CommandHandler";
 import { Events } from "./Events";
 import { ServiceProvider } from "./ServiceProvider";
 import { WebhookProvider } from "./WebhookProvider";
+import { LogService } from "../Services/LogService";
 
 dotenv.config();
+const logService = new LogService();
+
+ServiceProvider.initializeServices();
+logService.log("Services initialisés");
+
+WebhookProvider.initializeWebHook();
+logService.log("Webhooks initialisés");
+
+const commandHandler = new CommandHandler(process.env.PREFIX);
+logService.log("Gestion des commandes initialisée");
+
+const events = new Events();
+logService.log("Évènements initialisés");
 
 const bot: Bot = new Bot(Config.token);
 bot.start();
-
-ServiceProvider.initializeServices();
-console.log("Services initialisés");
-WebhookProvider.initializeWebHook();
-console.log("Webhook initialisés");
-
-const commandHandler = new CommandHandler(process.env.PREFIX);
-console.log("Gestion des commandes initialisée");
-const events = new Events();
-console.log("Évènements initialisés");
 
 try {
 	bot.client.on("message", (message: Message) => commandHandler.handleMessage(message, bot.client));
@@ -31,5 +34,5 @@ try {
 	bot.client.on("guildMemberRemove", (member: GuildMember) => events.guildMemberRemove().run(member));
 }
 catch (error) {
-	console.error(error);
+	logService.error(error.stack);
 }
