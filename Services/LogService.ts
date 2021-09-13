@@ -7,7 +7,7 @@ export class LogService {
 	private readonly _fileName = "Bot-log-" + this.now() + ".txt";
 
 	public log(message: string): void {
-		message = this.now() + " - " + message + "\n";
+		message = this.now() + " - " + message;
 		console.log(message);
 		this.writeLog(message);
 	}
@@ -22,7 +22,7 @@ export class LogService {
 	}
 
 	private writeLog(message: string): void {
-		fs.appendFile(this._logPath + this._fileName, message)
+		fs.appendFile(this._logPath + this._fileName, message + "\n")
 			.catch(err => this.error(err));
 	}
 }
