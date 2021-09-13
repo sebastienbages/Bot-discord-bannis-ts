@@ -5,6 +5,7 @@ import { ServiceProvider } from "../src/ServiceProvider";
 import { TicketService } from "../Services/TicketService";
 import { TicketModel } from "../Models/TicketModel";
 import { RoleModel } from "../Models/RoleModel";
+import { LogService } from "../Services/LogService";
 
 export class MessageReactionAddEvent {
 	private _delayIsActive: boolean;
@@ -12,11 +13,13 @@ export class MessageReactionAddEvent {
 	private readonly _datesCooldown: number[];
 	private _requests: number;
 	private readonly _warningColor: string = "#FF0000";
+	private _logService: LogService;
 
 	constructor() {
 		this._delayIsActive = false;
 		this._requests = 0;
 		this._datesCooldown = new Array<number>();
+		this._logService = new LogService();
 	}
 
 	public async run(messageReaction: MessageReaction, user: User): Promise<void> {
@@ -191,6 +194,7 @@ export class MessageReactionAddEvent {
 		}
 
 		await ticketService.closeTicket(userTicket);
+		this._logService.log(`Fermeture d'un ticket : N°${userTicket.number} par le membre ${user.username} (${user.id})`);
 		return undefined;
 	}
 
@@ -220,6 +224,7 @@ export class MessageReactionAddEvent {
 
 		await messageReaction.message.channel.send(`Hey <@${userTicket.userId}>, ton ticket a été ré-ouvert :face_with_monocle:`);
 		await ticketService.openTicket(userTicket);
+		this._logService.log(`Ré-ouverture d'un ticket : N°${userTicket.number}`);
 		return undefined;
 	}
 
@@ -238,6 +243,7 @@ export class MessageReactionAddEvent {
 		const deleteChannel = async (): Promise<Channel> => await targetChannel.delete();
 		setTimeout(async () => deleteChannel(), 5000);
 		await ticketService.deleteTicket(targetChannel);
+		this._logService.log(`Suppression d'un ticket : ${targetChannel.name}`);
 		return undefined;
 	}
 
@@ -253,7 +259,7 @@ export class MessageReactionAddEvent {
 	 * Supprime une requête et son minuteur de recharge
 	 * @private
 	 */
-	private subtractRequest(): void {
+	private substractRequest(): void {
 		this._requests--;
 		this._datesCooldown.shift();
 		if (this._requests < 2) this._delayIsActive = false;
@@ -293,7 +299,7 @@ export class MessageReactionAddEvent {
 	private addRequest(): void {
 		if (this._requests < 2) {
 			this._datesCooldown.push(Date.now());
-			setTimeout(() => this.subtractRequest(), this._cooldown);
+			setTimeout(() => this.substractRequest(), this._cooldown);
 			this._requests++;
 			if (this._requests === 2) this.startDelay();
 		}
