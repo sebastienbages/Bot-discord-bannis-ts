@@ -1,10 +1,18 @@
 import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
+import { LogService } from "../Services/LogService";
 
 export class GuildMemberRemoveEvent {
 
+	private _logService: LogService;
+
+	constructor() {
+		this._logService = new LogService();
+	}
+
 	public async run(member: GuildMember): Promise<void> {
-		console.log(`Détection du départ du joueur "${member.displayName}"`);
+		this._logService.log(`Départ d'un membre : "${member.displayName}"`);
+
 		const welcomeChannel = member.guild.channels.cache.find(channel => channel.id === process.env.CHA_WELCOME) as TextChannel;
 
 		const goodByeEmbed = new MessageEmbed()
@@ -15,6 +23,5 @@ export class GuildMemberRemoveEvent {
 			.setFooter(`Désormais, nous sommes ${member.guild.memberCount} membres`);
 
 		await welcomeChannel.send(goodByeEmbed);
-		console.log("Traitement du départ effectué");
 	}
 }
