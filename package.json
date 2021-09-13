@@ -8,6 +8,7 @@
   "main": "bin/src/app.js",
   "scripts": {
     "start": "node bin/src/app.js",
+    "local_bot": "tsc && copyfiles Images/* bin && node bin/src/app.js",
     "postinstall": "tsc && copyfiles Images/* bin",
     "lint": "eslint . --ext .ts"
   },
