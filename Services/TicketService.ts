@@ -7,6 +7,7 @@ import { TicketConfigModel } from "../Models/TicketConfigModel";
 import { TicketModel } from "../Models/TicketModel";
 import { RoleRepository } from "../Dal/RoleRepository";
 import { AutoMapper } from "./AutoMapper";
+import { LogService } from "./LogService";
 
 // noinspection JSIgnoredPromiseFromCall
 export class TicketService {
@@ -15,6 +16,7 @@ export class TicketService {
 	private _ticketRepository: TicketRepository;
 	private _ticketConfig: TicketConfigModel;
 	private _ticketRoles: Array<RoleModel>;
+	private _logService: LogService;
 
 	public static createReaction = "🎫";
 	public static closeReaction = "🔒";
@@ -25,6 +27,7 @@ export class TicketService {
 		this._ticketConfigRepository = new TicketConfigRepository();
 		this._ticketRepository = new TicketRepository();
 		this._roleRepository = new RoleRepository();
+		this._logService = new LogService();
 		this.updateTicketRoles();
 		this.updateTicketConfig();
 	}
@@ -52,10 +55,10 @@ export class TicketService {
 				const targetChannel = guild.channels.cache.get(c.id) as TextChannel;
 				targetChannel.messages.fetch();
 			});
-			console.log("Tickets récupérés avec succès");
+			this._logService.log("Tickets récupérés avec succès");
 		}
 		else {
-			console.log("Echec récupération des tickets");
+			this._logService.log("Echec récupération des tickets");
 		}
 	}
 
