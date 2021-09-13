@@ -2,7 +2,6 @@ import { TopServerRepository } from "../Dal/TopServerRepository";
 import { Player, TopServerModel } from "../Models/TopServerModel";
 import { AutoMapper } from "./AutoMapper";
 import * as fs from "fs";
-import { appendFileSync, WriteStream } from "fs";
 
 export class TopServerService {
 	private _topServerRepository: TopServerRepository;
@@ -45,12 +44,12 @@ export class TopServerService {
 	 * Créer un fichier avec le classement des votes
 	 * @param players {Player[]}
 	 */
-	public async createRankingFile(players: Player[]) {
-		let number: number = 1;
+	public async createRankingFile(players: Player[]): Promise<void> {
+		let number = 1;
 		players.map(async player => {
 			if (player.name === "") player.name = "Sans pseudo";
 			fs.appendFileSync(this.fileName, `${number.toString()} - ${player.name} - ${player.votes} votes \n`);
 			number++;
-		})
+		});
 	}
 }
