@@ -5,12 +5,24 @@ import { AutoMapper } from "./AutoMapper";
 export class RoleService {
 
 	private _roleRepository: RoleRepository;
+	private _serveurRoles: RoleModel[];
 
 	public static serveurOneReaction = "1️⃣";
 	public static serveurTwoReaction = "2️⃣";
 
 	constructor() {
 		this._roleRepository = new RoleRepository();
+		(async () => {
+			await this.updateServeurRoles();
+		})();
+	}
+
+	/**
+	 * Mise à jour des rôles correspondants aux différents serveurs
+	 * @private
+	 */
+	private async updateServeurRoles(): Promise<void> {
+		this._serveurRoles = await this.getServeurRolesData();
 	}
 
 	/**
@@ -30,9 +42,17 @@ export class RoleService {
 	}
 
 	/**
-	 * Retourne les rôles correspondant aux différents serveurs
+	 * Retourne les rôles correspondants aux différents serveurs stocké en cache
 	 */
-	public async getServerRoles(): Promise<RoleModel[]> {
+	public getServerRoles(): RoleModel[] {
+		return this._serveurRoles;
+	}
+
+	/**
+	 * Retourne les rôles correspondants aux différents serveurs
+	 * @private
+	 */
+	private async getServeurRolesData(): Promise<RoleModel[]> {
 		const results: unknown = await this._roleRepository.getServerRoles();
 		return AutoMapper.mapArrayRoleModel(results);
 	}

@@ -13,7 +13,7 @@ import { HelpCommand } from "../Commands/utility/Help";
 import { RestartCommand } from "../Commands/utility/Restart";
 import { TopServerCommand } from "../Commands/utility/TopServer";
 import { VoteCommand } from "../Commands/utility/Vote";
-import { ServerCommand } from "../Commands/moderation/Server";
+import { RulesCommand } from "../Commands/moderation/Server";
 
 dotenv.config();
 
@@ -39,7 +39,7 @@ export class Config {
 		VoteCommand,
 		AdminCommand,
 		TicketCommand,
-		ServerCommand,
+		RulesCommand,
 	];
 
 	/**

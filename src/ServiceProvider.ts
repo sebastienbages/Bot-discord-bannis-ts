@@ -3,6 +3,7 @@ import { RoleService } from "../Services/RoleService";
 import { TicketService } from "../Services/TicketService";
 import { TopServerService } from "../Services/TopServerService";
 import { VoteService } from "../Services/VoteService";
+import { RuleService } from "../Services/RuleService";
 
 export class ServiceProvider {
 	private static _ticketService: TicketService;
@@ -10,6 +11,7 @@ export class ServiceProvider {
 	private static _voteService: VoteService;
 	private static _adminService: AdminService;
 	private static _roleService: RoleService;
+	private static _ruleService: RuleService;
 
 	public static initializeServices(): void {
 		this._ticketService = new TicketService();
@@ -17,6 +19,7 @@ export class ServiceProvider {
 		this._voteService = new VoteService();
 		this._adminService = new AdminService();
 		this._roleService = new RoleService();
+		this._ruleService = new RuleService();
 	}
 
 	public static getTicketService(): TicketService {
@@ -37,5 +40,9 @@ export class ServiceProvider {
 
 	public static getRoleService(): RoleService {
 		return this._roleService;
+	}
+
+	public static getRuleService(): RuleService {
+		return this._ruleService;
 	}
 }

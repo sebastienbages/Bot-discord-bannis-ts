@@ -6,6 +6,7 @@ import { TicketService } from "../Services/TicketService";
 import { TicketModel } from "../Models/TicketModel";
 import { RoleModel } from "../Models/RoleModel";
 import { LogService } from "../Services/LogService";
+import { RoleService } from "../Services/RoleService";
 
 export class MessageReactionAddEvent {
 	private _delayIsActive: boolean;
@@ -24,7 +25,15 @@ export class MessageReactionAddEvent {
 
 	public async run(messageReaction: MessageReaction, user: User): Promise<void> {
 		if (user.bot) return undefined;
-		if (messageReaction.emoji.name != TicketService.createReaction && messageReaction.emoji.name != TicketService.closeReaction && messageReaction.emoji.name != TicketService.reOpenTicketReaction && messageReaction.emoji.name != TicketService.deleteTicketReaction) return undefined;
+
+		if (messageReaction.emoji.name != TicketService.createReaction
+			&& messageReaction.emoji.name != TicketService.closeReaction
+			&& messageReaction.emoji.name != TicketService.reOpenTicketReaction
+			&& messageReaction.emoji.name != TicketService.deleteTicketReaction
+			&& messageReaction.emoji.name != RoleService.serveurOneReaction
+			&& messageReaction.emoji.name != RoleService.serveurTwoReaction) {
+			return undefined;
+		}
 
 		await messageReaction.users.remove(user);
 
