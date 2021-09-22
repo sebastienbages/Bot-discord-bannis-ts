@@ -1,10 +1,10 @@
 import { RoleService } from "./RoleService";
-import { RoleModel } from "../Models/RoleModel";
-import { Collection, Guild, Message, RoleManager, TextChannel } from "discord.js";
+import { Client, Collection, Guild, Message, MessageReaction, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
 import { RulesRepository } from "../Dal/RulesRepository";
 import { MessageModel } from "../Models/MessageModel";
 import { AutoMapper } from "./AutoMapper";
+import { LogService } from "./LogService";
 
 // noinspection JSIgnoredPromiseFromCall
 export class RuleService {
@@ -12,10 +12,14 @@ export class RuleService {
 	private _roleService: RoleService;
 	private _rulesRepository: RulesRepository;
 	private _serverChoiceMessageId: string;
+	private _logService: LogService;
+
+	public static serveurReactions: string[] = [ "1️⃣", "2️⃣"];
 
 	constructor() {
 		this._roleService = new RoleService();
 		this._rulesRepository = new RulesRepository();
+		this._logService = new LogService();
 		this.updateServerChoiceMessageId();
 	}
 
@@ -39,36 +43,18 @@ export class RuleService {
 
 	/**
 	 * Ajoute les réactions correspondantes au choix des serveurs sur le dernier message du channel règlements
-	 * @param roleManager
-	 * @param guild
 	 * @param message
 	 */
-	public async addReactForServeurChoice(roleManager: RoleManager, guild: Guild, message: Message): Promise<void> {
-		if (!this.serveurRolesExist(roleManager)) {
-			throw new Error("Il manque un ou plusieurs rôles correspondants aux différents serveurs");
-		}
+	public async addReactForServeurChoice(message: Message): Promise<void> {
+		const lastMessage = await this.getLastMessageInChannel(message);
 
-		const rulesChannel = await message.client.channels.fetch(Config.rulesChannelId) as TextChannel;
-
-		if (!rulesChannel) {
-			throw new Error("Le channel du règlement est introuvable");
-		}
-
-		const channelMessages: Collection<string, Message> = await rulesChannel.messages.fetch();
-		const lastMessage: Message = channelMessages.last();
-
-		if (!lastMessage) {
-			throw new Error("Il n'y a pas de messages dans le channel");
-		}
-
-		if (lastMessage.reactions.cache.has(RoleService.serveurOneReaction) || lastMessage.reactions.cache.has(RoleService.serveurTwoReaction)) {
+		if (this.reactServeurChoiceExist(lastMessage)) {
 			const response = await message.reply("une ou plusieurs réactions sont déjà présentes");
 			await response.delete({ timeout: 5000 });
 			return undefined;
 		}
 
-		await lastMessage.react(RoleService.serveurOneReaction);
-		await lastMessage.react(RoleService.serveurTwoReaction);
+		RuleService.serveurReactions.map(async react => await lastMessage.react(react));
 
 		if (this._serverChoiceMessageId != lastMessage.id) {
 			this._serverChoiceMessageId = lastMessage.id;
@@ -77,19 +63,63 @@ export class RuleService {
 	}
 
 	/**
-	 * Vérifie la présence des rôles correspondants aux serveurs
-	 * @param roleManager
+	 * Vérifie la présence des réactions concernant le choix des serveurs sur le message
+	 * @param message
 	 * @private
 	 */
-	private serveurRolesExist(roleManager: RoleManager): boolean {
-		const roleModels: RoleModel[] = this._roleService.getServerRoles();
-
-		roleModels.map(r => {
-			if (!roleManager.cache.has(r.discordId)) {
-				return false;
+	private reactServeurChoiceExist(message: Message): boolean {
+		RuleService.serveurReactions.map(react => {
+			if (message.reactions.cache.has(react)) {
+				return true;
 			}
 		});
 
-		return true;
+		return false;
+	}
+
+	/**
+	 * Supprime les réactions liées aux choix du serveur sur le message
+	 * @param message
+	 */
+	public async removeReactForServeurChoice(message: Message): Promise<void> {
+		const lastMessage: Message = await message.channel.messages.fetch(this._serverChoiceMessageId);
+		RuleService.serveurReactions.map(async react => {
+			if (lastMessage.reactions.cache.has(react)) {
+				const messageReaction: MessageReaction = lastMessage.reactions.cache.find(r => r.emoji.name === react);
+				await messageReaction.remove();
+			}
+		});
+	}
+
+	/**
+	 * Récupère le dernier message dans le channel dédié au règlement
+	 * @param message
+	 * @private
+	 */
+	private async getLastMessageInChannel(message: Message): Promise<Message> {
+		const rulesChannel = await message.client.channels.fetch(Config.rulesChannelId) as TextChannel;
+
+		if (!rulesChannel) {
+			throw new Error("Le channel du règlement est introuvable");
+		}
+
+		const channelMessages: Collection<string, Message> = await rulesChannel.messages.fetch();
+		const lastMessage: Message = channelMessages.first();
+
+		if (!lastMessage) {
+			throw new Error("Il n'y a pas de messages dans le channel");
+		}
+
+		return lastMessage;
+	}
+
+	public async fetchServerChoiceMessage(client: Client): Promise<void> {
+		const guild = await client.guilds.fetch(Config.guildId) as Guild;
+		const channel = guild.channels.cache.get(Config.rulesChannelId) as TextChannel;
+		await channel.messages.fetch(this._serverChoiceMessageId);
+		if (channel.messages.cache.has(this._serverChoiceMessageId)) {
+			await channel.messages.fetch(this._serverChoiceMessageId);
+			this._logService.log("Message de choix des serveurs récupéré");
+		}
 	}
 }

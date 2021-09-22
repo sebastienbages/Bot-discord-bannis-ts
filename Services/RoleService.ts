@@ -1,14 +1,13 @@
 import { RoleRepository } from "../Dal/RoleRepository";
 import { RoleModel } from "../Models/RoleModel";
 import { AutoMapper } from "./AutoMapper";
+import { GuildMember, MessageReaction } from "discord.js";
+import { RuleService } from "./RuleService";
 
 export class RoleService {
 
 	private _roleRepository: RoleRepository;
 	private _serveurRoles: RoleModel[];
-
-	public static serveurOneReaction = "1️⃣";
-	public static serveurTwoReaction = "2️⃣";
 
 	constructor() {
 		this._roleRepository = new RoleRepository();
@@ -41,11 +40,12 @@ export class RoleService {
 		return AutoMapper.mapArrayRoleModel(results);
 	}
 
-	/**
-	 * Retourne les rôles correspondants aux différents serveurs stocké en cache
-	 */
-	public getServerRoles(): RoleModel[] {
-		return this._serveurRoles;
+	public async assignServerRole(messageReaction: MessageReaction, user: GuildMember): Promise<void> {
+		const indexReaction: number = RuleService.serveurReactions.indexOf(messageReaction.emoji.name);
+		const roleId: string = this._serveurRoles[indexReaction].discordId;
+		if (!this.userHasRole(user, roleId)) {
+			await user.roles.add(roleId);
+		}
 	}
 
 	/**
@@ -55,5 +55,13 @@ export class RoleService {
 	private async getServeurRolesData(): Promise<RoleModel[]> {
 		const results: unknown = await this._roleRepository.getServerRoles();
 		return AutoMapper.mapArrayRoleModel(results);
+	}
+
+	public userHasRole(user: GuildMember, roleId: string): boolean {
+		if (!user.roles.cache.has(roleId)) {
+			return true;
+		}
+
+		return false;
 	}
 }

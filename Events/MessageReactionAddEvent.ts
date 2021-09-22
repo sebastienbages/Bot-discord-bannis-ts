@@ -1,4 +1,14 @@
-import { CategoryChannel, Channel, Message, MessageEmbed, MessageReaction, Role, TextChannel, User } from "discord.js";
+import {
+	CategoryChannel,
+	Channel,
+	GuildMember,
+	Message,
+	MessageEmbed,
+	MessageReaction,
+	Role,
+	TextChannel,
+	User,
+} from "discord.js";
 import { Config } from "../Config/Config";
 import { TicketConfigModel } from "../Models/TicketConfigModel";
 import { ServiceProvider } from "../src/ServiceProvider";
@@ -7,6 +17,7 @@ import { TicketModel } from "../Models/TicketModel";
 import { RoleModel } from "../Models/RoleModel";
 import { LogService } from "../Services/LogService";
 import { RoleService } from "../Services/RoleService";
+import { RuleService } from "../Services/RuleService";
 
 export class MessageReactionAddEvent {
 	private _delayIsActive: boolean;
@@ -15,23 +26,28 @@ export class MessageReactionAddEvent {
 	private _requests: number;
 	private readonly _warningColor: string = "#FF0000";
 	private _logService: LogService;
+	private _roleService: RoleService;
 
 	constructor() {
 		this._delayIsActive = false;
 		this._requests = 0;
 		this._datesCooldown = new Array<number>();
 		this._logService = new LogService();
+		this._roleService = ServiceProvider.getRoleService();
 	}
 
 	public async run(messageReaction: MessageReaction, user: User): Promise<void> {
 		if (user.bot) return undefined;
 
+		if (RuleService.serveurReactions.includes(messageReaction.emoji.name)) {
+			const guildMember: GuildMember = await messageReaction.message.guild.members.fetch(user);
+			await this._roleService.assignServerRole(messageReaction, guildMember);
+		}
+
 		if (messageReaction.emoji.name != TicketService.createReaction
 			&& messageReaction.emoji.name != TicketService.closeReaction
 			&& messageReaction.emoji.name != TicketService.reOpenTicketReaction
-			&& messageReaction.emoji.name != TicketService.deleteTicketReaction
-			&& messageReaction.emoji.name != RoleService.serveurOneReaction
-			&& messageReaction.emoji.name != RoleService.serveurTwoReaction) {
+			&& messageReaction.emoji.name != TicketService.deleteTicketReaction) {
 			return undefined;
 		}
 
