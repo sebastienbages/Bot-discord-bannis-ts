@@ -11,7 +11,7 @@ export class RuleService {
 
 	private _roleService: RoleService;
 	private _rulesRepository: RulesRepository;
-	private _serverChoiceMessageId: string;
+	private _serverChoiceMessageId?: string;
 	private _logService: LogService;
 
 	public static serveurReactions: string[] = [ "1️⃣", "2️⃣"];
@@ -87,6 +87,7 @@ export class RuleService {
 			if (lastMessage.reactions.cache.has(react)) {
 				const messageReaction: MessageReaction = lastMessage.reactions.cache.find(r => r.emoji.name === react);
 				await messageReaction.remove();
+				await this.removeMessageServerChoice();
 			}
 		});
 	}
@@ -113,13 +114,28 @@ export class RuleService {
 		return lastMessage;
 	}
 
+	/**
+	 * Récupère l'enregistrement du message qui possède les réactions correspondantes au choix du serveur
+	 * @param client
+	 */
 	public async fetchServerChoiceMessage(client: Client): Promise<void> {
 		const guild = await client.guilds.fetch(Config.guildId) as Guild;
 		const channel = guild.channels.cache.get(Config.rulesChannelId) as TextChannel;
-		await channel.messages.fetch(this._serverChoiceMessageId);
-		if (channel.messages.cache.has(this._serverChoiceMessageId)) {
-			await channel.messages.fetch(this._serverChoiceMessageId);
-			this._logService.log("Message de choix des serveurs récupéré");
+		const messages: Collection<string, Message> = await channel.messages.fetch();
+
+		if (!messages.has(this._serverChoiceMessageId)) {
+			await this.removeMessageServerChoice();
 		}
+
+		this._logService.log("Message de choix des serveurs récupéré");
+	}
+
+	/**
+	 * Supprime l'enregistrement du message qui possède les réactions correspondantes au choix du serveur
+	 * @private
+	 */
+	private async removeMessageServerChoice(): Promise<void> {
+		await this._rulesRepository.removeMessageServerChoice();
+		this._serverChoiceMessageId = null;
 	}
 }

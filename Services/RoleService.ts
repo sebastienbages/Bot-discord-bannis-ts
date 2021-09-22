@@ -32,20 +32,21 @@ export class RoleService {
 		return AutoMapper.mapRoleModel(result);
 	}
 
-	/**
-	 * Retourne les Roles autorisés pour l'administration des tickets
-	 */
-	public async getTicketRoles(): Promise<RoleModel[]> {
-		const results: unknown = await this._roleRepository.getTicketRoles();
-		return AutoMapper.mapArrayRoleModel(results);
-	}
-
 	public async assignServerRole(messageReaction: MessageReaction, user: GuildMember): Promise<void> {
 		const indexReaction: number = RuleService.serveurReactions.indexOf(messageReaction.emoji.name);
 		const roleId: string = this._serveurRoles[indexReaction].discordId;
-		if (!this.userHasRole(user, roleId)) {
-			await user.roles.add(roleId);
+
+		for (const r of this._serveurRoles) {
+			const index = this._serveurRoles.indexOf(r);
+			if (this.userHasRole(user, r.discordId)) {
+				await messageReaction.users.remove(user);
+				await user.send(`Désolé, tu appartiens déjà au serveur ${RuleService.serveurReactions[index]} !`);
+				return undefined;
+			}
 		}
+
+		await user.roles.add(roleId);
+		await user.send(`Tu appartiens désormais au serveur ${messageReaction.emoji.name}, amuses toi bien :wink:`);
 	}
 
 	/**
@@ -58,10 +59,6 @@ export class RoleService {
 	}
 
 	public userHasRole(user: GuildMember, roleId: string): boolean {
-		if (!user.roles.cache.has(roleId)) {
-			return true;
-		}
-
-		return false;
+		return user.roles.cache.has(roleId);
 	}
 }
