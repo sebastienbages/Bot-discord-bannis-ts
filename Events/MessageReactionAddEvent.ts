@@ -27,6 +27,7 @@ export class MessageReactionAddEvent {
 	private readonly _warningColor: string = "#FF0000";
 	private _logService: LogService;
 	private _roleService: RoleService;
+	private _ruleService: RuleService;
 
 	constructor() {
 		this._delayIsActive = false;
@@ -34,12 +35,15 @@ export class MessageReactionAddEvent {
 		this._datesCooldown = new Array<number>();
 		this._logService = new LogService();
 		this._roleService = ServiceProvider.getRoleService();
+		this._ruleService = ServiceProvider.getRuleService();
 	}
 
 	public async run(messageReaction: MessageReaction, user: User): Promise<void> {
 		if (user.bot) return undefined;
 
-		if (RuleService.serveurReactions.includes(messageReaction.emoji.name)) {
+		const messageServerChoiceId: string = this._ruleService.getServerChoiceMessageId();
+
+		if (RuleService.serveurReactions.includes(messageReaction.emoji.name) && messageReaction.message.id === messageServerChoiceId) {
 			const guildMember: GuildMember = await messageReaction.message.guild.members.fetch(user);
 			await this._roleService.assignServerRole(messageReaction, guildMember);
 		}

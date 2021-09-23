@@ -20,7 +20,9 @@ export class RuleService {
 		this._roleService = new RoleService();
 		this._rulesRepository = new RulesRepository();
 		this._logService = new LogService();
-		this.updateServerChoiceMessageId();
+		(async () => {
+			await this.updateServerChoiceMessageId();
+		})();
 	}
 
 	/**
@@ -137,5 +139,12 @@ export class RuleService {
 	private async removeMessageServerChoice(): Promise<void> {
 		await this._rulesRepository.removeMessageServerChoice();
 		this._serverChoiceMessageId = null;
+	}
+
+	/**
+	 * Retourne la valeur de l'ID du message de choix du serveur
+	 */
+	public getServerChoiceMessageId(): string {
+		return this._serverChoiceMessageId;
 	}
 }
