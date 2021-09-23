@@ -32,6 +32,11 @@ export class RoleService {
 		return AutoMapper.mapRoleModel(result);
 	}
 
+	/**
+	 * Assigne le role correspondant au numéro du serveur selon la réaction
+	 * @param messageReaction
+	 * @param user
+	 */
 	public async assignServerRole(messageReaction: MessageReaction, user: GuildMember): Promise<void> {
 		const indexReaction: number = RuleService.serveurReactions.indexOf(messageReaction.emoji.name);
 		const roleId: string = this._serveurRoles[indexReaction].discordId;
@@ -58,7 +63,7 @@ export class RoleService {
 		return AutoMapper.mapArrayRoleModel(results);
 	}
 
-	public userHasRole(user: GuildMember, roleId: string): boolean {
+	private userHasRole(user: GuildMember, roleId: string): boolean {
 		return user.roles.cache.has(roleId);
 	}
 }
