@@ -6,8 +6,8 @@ import { RuleService } from "../../Services/RuleService";
 
 export class RulesCommand implements ICommand {
 	public readonly name: string = "rules";
-	public readonly aliases: string[] = [ "règles", "règle", "rule" ];
-	public readonly argumentIsNecessary: boolean = false;
+	public readonly aliases: string[] = [ "règles", "règle", "rule", "regles", "regle" ];
+	public readonly argumentIsNecessary: boolean = true;
 	public readonly description: string = "Gestion des règles du serveur";
 	public readonly usage: string = "[addsrv] / [rmsrv]";
 	public readonly guildOnly: boolean = true;
