@@ -122,7 +122,16 @@ export class TicketService {
 	 * Mise à jour de configuration des tickets en cache
 	 */
 	private async updateTicketConfig(): Promise<void> {
-		this._ticketConfig = await this.getConfig();
+		if (process.env.NODE_ENV == "dev") {
+			this._ticketConfig = new TicketConfigModel();
+			this._ticketConfig.ChannelId = process.env.CHA_TICKET;
+			this._ticketConfig.CategoryId = process.env.CATEGORY_TICKET;
+			this._ticketConfig.LastNumber = 100;
+			this._ticketConfig.MessageId = process.env.MSG_TICKET;
+		}
+		else {
+			this._ticketConfig = await this.getConfig();
+		}
 	}
 
 	/**
