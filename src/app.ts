@@ -12,6 +12,15 @@ import { LogService } from "../Services/LogService";
 dotenv.config();
 const logService = new LogService();
 
+try {
+	(async () => {
+		await logService.createLogFolder();
+	})();
+}
+catch (error) {
+	logService.error(error.stack);
+}
+
 ServiceProvider.initializeServices();
 logService.log("Services initialisés");
 
