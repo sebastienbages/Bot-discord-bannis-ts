@@ -2,7 +2,7 @@ import { Message, MessageEmbed, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
 import { VoteRepository } from "../Dal/VoteRepository";
 import { TopServerModel } from "../Models/TopServerModel";
-import { VoteModel } from "../Models/VoteModel";
+import { MessageModel } from "../Models/MessageModel";
 import { TopServerService } from "./TopServerService";
 import { AutoMapper } from "./AutoMapper";
 import { WebhookProvider } from "../src/WebhookProvider";
@@ -13,7 +13,7 @@ export class VoteService {
 
 	private _voteRepository: VoteRepository;
 	private _topServerService: TopServerService;
-	private _voteModel: VoteModel;
+	private _messageModel: MessageModel;
 	private _logService: LogService;
 
 	constructor() {
@@ -27,9 +27,9 @@ export class VoteService {
 	 * Retourne la configuration du message d'appel aux votes
 	 * @private
 	 */
-	private async getMessage(): Promise<VoteModel> {
+	private async getMessage(): Promise<MessageModel> {
 		const result: unknown = await this._voteRepository.getMessageVote();
-		return AutoMapper.mapVoteModel(result);
+		return AutoMapper.mapMessageModel(result);
 	}
 
 	/**
@@ -37,22 +37,22 @@ export class VoteService {
 	 * @param message {Message} - Message discord
 	 */
 	public async saveMessage(message: Message): Promise<void> {
-		await this.deleteLastMessage(this._voteModel, message);
+		await this.deleteLastMessage(this._messageModel, message);
 		await this._voteRepository.saveMessage(message.id);
 		await this.updateMessageId();
 	}
 
 	/**
 	 * Supprime le dernier message
-	 * @param voteModel {VoteModel} - Configuration du message des votes
+	 * @param voteModel {MessageModel} - Configuration du message des votes
 	 * @param message {Message} - Message à supprimer
 	 * @private
 	 */
-	private async deleteLastMessage(voteModel: VoteModel, message: Message) {
+	private async deleteLastMessage(voteModel: MessageModel, message: Message) {
 		const channel = message.guild.channels.cache.find(c => c.id === voteModel.channelId) as TextChannel;
 
 		if (channel) {
-			const targetMessage: Message = await channel.messages.fetch(this._voteModel.messageId);
+			const targetMessage: Message = await channel.messages.fetch(this._messageModel.messageId);
 			await targetMessage.delete();
 		}
 	}
@@ -80,6 +80,6 @@ export class VoteService {
 	}
 
 	private async updateMessageId(): Promise<void> {
-		this._voteModel = await this.getMessage();
+		this._messageModel = await this.getMessage();
 	}
 }

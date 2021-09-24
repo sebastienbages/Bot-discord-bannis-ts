@@ -13,6 +13,7 @@ import { HelpCommand } from "../Commands/utility/Help";
 import { RestartCommand } from "../Commands/utility/Restart";
 import { TopServerCommand } from "../Commands/utility/TopServer";
 import { VoteCommand } from "../Commands/utility/Vote";
+import { RulesCommand } from "../Commands/moderation/Rules";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ export class Config {
 	public static readonly token = process.env.TOKEN;
 	public static readonly tokenTopServer = process.env.TOKEN_TOP_SERVEUR;
 	public static readonly devId = process.env.DEV_ID;
+	public static readonly rulesChannelId = process.env.CHA_RULES;
 	public static readonly commands = [
 		SayCommand,
 		SaySimpleCommand,
@@ -37,6 +39,7 @@ export class Config {
 		VoteCommand,
 		AdminCommand,
 		TicketCommand,
+		RulesCommand,
 	];
 
 	/**

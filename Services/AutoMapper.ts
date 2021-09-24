@@ -3,7 +3,7 @@ import { TicketConfigModel } from "../Models/TicketConfigModel";
 import { RoleModel } from "../Models/RoleModel";
 import { AdminModel } from "../Models/AdminModel";
 import { Player, TopServerModel } from "../Models/TopServerModel";
-import { VoteModel } from "../Models/VoteModel";
+import { MessageModel } from "../Models/MessageModel";
 
 export class AutoMapper {
 	public static mapTicketModel(data: any): TicketModel {
@@ -119,8 +119,8 @@ export class AutoMapper {
 	 * Retourne un objet Vote
 	 * @param data
 	 */
-	public static mapVoteModel(data: any): VoteModel {
-		const model: VoteModel = new VoteModel();
+	public static mapMessageModel(data: any): MessageModel {
+		const model: MessageModel = new MessageModel();
 
 		data.map(e => {
 			if (e.name) model.name = e.name;

@@ -32,4 +32,18 @@ export class RoleRepository {
 			});
 		});
 	}
+
+	/**
+	 * Retourne les rôles correspondant aux différents serveurs
+	 */
+	public async getServerRoles(): Promise<unknown> {
+		const connection = await SingletonContext.getInstance().getConnection();
+		return new Promise(((resolve, rejects) => {
+			connection.query(`SELECT name, role_id FROM f1mtb0ah6rjbwawm.${this.table} WHERE name LIKE "serveur%"`, (error: MysqlError | null, result: unknown) => {
+				connection.release();
+				if (error) return rejects(error);
+				return resolve(result);
+			});
+		}));
+	}
 }

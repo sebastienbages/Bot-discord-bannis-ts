@@ -16,16 +16,23 @@ export class TicketCommand implements ICommand {
 	public readonly cooldown: number = 0;
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
 
+	private _ticketService: TicketService;
+	private _ticketConfig: TicketConfigModel;
+
+	constructor() {
+		this._ticketService = ServiceProvider.getTicketService();
+		this._ticketConfig = this._ticketService.getTicketConfig();
+	}
+
 	async run(commandContext: CommandContext): Promise<void> {
 		const option: string = commandContext.args[0].toLowerCase();
 		const message: Message = commandContext.message;
-		const ticketService: TicketService = ServiceProvider.getTicketService();
-		const ticketConfig: TicketConfigModel = ticketService.getTicketConfig();
 
-		const category: GuildChannel = message.guild.channels.cache.find(c => c.id === ticketConfig.CategoryId);
-		const channel = message.guild.channels.cache.find(c => c.id === ticketConfig.ChannelId) as TextChannel;
+		const channel = message.guild.channels.cache.find(c => c.id === this._ticketConfig.ChannelId) as TextChannel;
 
 		if (option === "config") {
+			const category: GuildChannel = message.guild.channels.cache.find(c => c.id === this._ticketConfig.CategoryId);
+
 			const messageEmbed = new MessageEmbed()
 				.setColor(Config.color)
 				.setTitle("PARAMETRES DES TICKETS")
@@ -45,34 +52,15 @@ export class TicketCommand implements ICommand {
 				messageEmbed.addField("CHANNEL CREATION DES TICKETS", "Salon non enregistré");
 			}
 
-			messageEmbed.addField("NOMBRE DE TICKET(S)", ticketConfig.LastNumber);
+			messageEmbed.addField("NOMBRE DE TICKET(S)", this._ticketConfig.LastNumber);
 			await message.reply(messageEmbed);
 			return undefined;
 		}
 
 		if (option === "msg") {
-			const oldMessage: Message = channel.messages.cache.get(ticketConfig.MessageId);
+			const oldMessage: Message = channel.messages.cache.get(this._ticketConfig.MessageId);
 			if (oldMessage) await oldMessage.delete();
-
-			const messageEmbed = new MessageEmbed()
-				.setColor(Config.color)
-				.attachFiles(["Images/logo-les-bannis-discord.png"])
-				.setThumbnail("attachment://logo-les-bannis-discord.png")
-				.setTitle("BESOIN D'AIDE ?")
-				.setDescription("Rien de plus simple, clique sur la réaction :ticket: pour créer ton ticket. \n \n Un salon sera créé rien que pour toi afin de discuter avec l'équipe des Bannis :wink: \n")
-				.setFooter("Un seul ticket autorisé par utilisateur");
-
-			if (channel) {
-				const messageSend: Message = await channel.send(messageEmbed);
-				await messageSend.react(TicketService.createReaction);
-				await ticketService.saveTicketConfigMessageId(messageSend.id);
-				await ticketService.updateTicketConfig();
-			}
-			else {
-				const response: Message = await message.reply("Salon des tickets introuvable");
-				await response.delete({ timeout: 5000 });
-			}
-
+			await this._ticketService.sendTicketMessage(message);
 			return undefined;
 		}
 	}
