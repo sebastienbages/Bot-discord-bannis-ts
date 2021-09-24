@@ -67,9 +67,8 @@ export class TicketService {
 	 * @param client {Client} - Client discord
 	 */
 	public async fetchTicketsMessages(client: Client): Promise<void> {
-		const ticketConfigModel: TicketConfigModel = await this.getConfig();
 		const guild = await client.guilds.fetch(Config.guildId) as Guild;
-		const categoryChannel = guild.channels.cache.get(ticketConfigModel.CategoryId) as CategoryChannel;
+		const categoryChannel = guild.channels.cache.get(this._ticketConfig.CategoryId) as CategoryChannel;
 
 		if (categoryChannel) {
 			categoryChannel.children.each(c => {
@@ -104,16 +103,18 @@ export class TicketService {
 	 * @param lastNumber {number} - Dernier numéro de ticket ouvert
 	 */
 	private getChannelName(lastNumber: number): string {
-		const newTicketNumber: number = lastNumber + 1;
-		const channelName: string[] = new Array<string>();
-		channelName.unshift(newTicketNumber.toString());
-
-		while (channelName.length < 4) {
-			channelName.unshift("0");
+		if (lastNumber === 1000) {
+			lastNumber = 0;
+			this._logService.log("Nombre de ticket max atteint (1000), remise à zéro du nombre effectué");
 		}
 
-		channelName.unshift(" ");
-		channelName.unshift("ticket");
+		const channelName: string[] = [];
+		channelName.push("ticket");
+		channelName.push(" ");
+		const newTicketNumber: number = lastNumber + 1;
+		let newTicketNumberToString: string = newTicketNumber.toString();
+		newTicketNumberToString = newTicketNumberToString.padStart(4, "0");
+		channelName.push(newTicketNumberToString);
 		return channelName.join("");
 	}
 
