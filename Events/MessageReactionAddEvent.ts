@@ -43,7 +43,7 @@ export class MessageReactionAddEvent {
 		const targetChannel = messageReaction.message.channel as TextChannel;
 
 		// TICKET
-		if (emoji != TicketService.createReaction || emoji != TicketService.closeReaction || emoji != TicketService.reOpenTicketReaction || emoji != TicketService.deleteTicketReaction) {
+		if (emoji == TicketService.createReaction || emoji == TicketService.closeReaction || emoji == TicketService.reOpenTicketReaction || emoji == TicketService.deleteTicketReaction) {
 			await messageReaction.users.remove(user);
 			let userTicket: TicketModel;
 
