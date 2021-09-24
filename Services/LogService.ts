@@ -25,4 +25,8 @@ export class LogService {
 		fs.appendFile(this._logPath + this._fileName, message + "\n")
 			.catch(err => this.error(err));
 	}
+
+	public async createLogFolder(): Promise<void> {
+		await fs.mkdir(this._logPath, { recursive: true });
+	}
 }
