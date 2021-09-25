@@ -125,8 +125,13 @@ export class RuleService {
 		const channel = guild.channels.cache.get(Config.rulesChannelId) as TextChannel;
 		const messages: Collection<string, Message> = await channel.messages.fetch();
 
-		if (!messages.has(this._serverChoiceMessageId)) {
+		if (!messages.has(this._serverChoiceMessageId) && process.env.NODE_ENV != "dev") {
 			await this.removeMessageServerChoice();
+			return this._logService.log("Message de choix des serveurs absent et effacé en BDD");
+		}
+
+		if (!messages.has(this._serverChoiceMessageId)) {
+			return this._logService.log("Message de choix des serveurs absent");
 		}
 
 		this._logService.log("Message de choix des serveurs récupéré");
