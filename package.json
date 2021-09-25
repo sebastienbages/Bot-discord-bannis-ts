@@ -10,7 +10,9 @@
     "start": "node bin/src/app.js",
     "local_bot": "tsc && copyfiles Images/* bin && node bin/src/app.js",
     "postinstall": "tsc && copyfiles Images/* bin",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "install-node-windows": "node NodeWindows/install-node-windows.js",
+    "uninstall-node-windows": "node NodeWindows/uninstall-node-windows.js"
   },
   "repository": {
     "type": "git",
