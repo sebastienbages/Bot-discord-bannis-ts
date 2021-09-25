@@ -3,14 +3,17 @@ import { RoleModel } from "../Models/RoleModel";
 import { AutoMapper } from "./AutoMapper";
 import { GuildMember, MessageReaction } from "discord.js";
 import { RuleService } from "./RuleService";
+import { LogService } from "./LogService";
 
 export class RoleService {
 
 	private _roleRepository: RoleRepository;
 	private _serveurRoles: RoleModel[];
+	private _logService: LogService;
 
 	constructor() {
 		this._roleRepository = new RoleRepository();
+		this._logService = new LogService();
 		(async () => {
 			await this.updateServeurRoles();
 		})();
@@ -52,6 +55,7 @@ export class RoleService {
 
 		await user.roles.add(roleId);
 		await user.send(`Tu appartiens désormais au serveur ${messageReaction.emoji.name}, amuses toi bien :wink:`);
+		this._logService.log(`${user.displayName} a choisi le serveur ${(indexReaction + 1).toString()}`);
 	}
 
 	/**
