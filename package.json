@@ -2,7 +2,7 @@
   "name": "bot-discord-bannis-ts",
   "version": "1.0.0",
   "engines": {
-    "node": "16.9.1"
+    "node": "16.x"
   },
   "description": "Bot discord du serveur \"Les Bannis\"",
   "main": "bin/src/app.js",
