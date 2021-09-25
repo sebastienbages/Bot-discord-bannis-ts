@@ -13,8 +13,9 @@ export class LogService {
 	}
 
 	public error(error: any): void {
-		console.error(this.now(), error);
-		this.writeLog(this.now() + error + "\n");
+		const message: string = this.now() + " - ";
+		console.error(message, error);
+		this.writeLog(message + error + "\n");
 	}
 
 	private now(): string {
@@ -24,5 +25,9 @@ export class LogService {
 	private writeLog(message: string): void {
 		fs.appendFile(this._logPath + this._fileName, message + "\n")
 			.catch(err => this.error(err));
+	}
+
+	public async createLogFolder(): Promise<void> {
+		await fs.mkdir(this._logPath, { recursive: true });
 	}
 }
