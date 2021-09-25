@@ -19,6 +19,7 @@ Ses principales fonctionnalités sont les suivantes :
 - Gestion des rôles
 - Création de sondages
 - Aide-mémoire des commandes
+- Gestion de logs
 
 Le bot est relié à une base de données MySQL hébergée par [JawsDB](https://www.jawsdb.com/) et consomme l'API de [Top Serveurs](https://top-serveurs.net/).
 
@@ -39,6 +40,7 @@ Its main features are as follows :
 - Role manager
 - Creation of surveys
 - Commands reminder
+- Log handler
 
 The Bot is connected to a MySQL Database host by [JawsDB](https://www.jawsdb.com/) and consume the API of [Top Serveurs](https://top-serveurs.net/).
 
