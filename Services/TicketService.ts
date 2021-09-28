@@ -1,10 +1,9 @@
 import {
-	CategoryChannel, Channel,
-	Client,
-	Guild,
+	CategoryChannel,
+	HexColorString,
 	Message,
 	MessageEmbed,
-	MessageReaction,
+	MessageReaction, Permissions,
 	Role,
 	TextChannel,
 	User,
@@ -18,6 +17,7 @@ import { TicketModel } from "../Models/TicketModel";
 import { RoleRepository } from "../Dal/RoleRepository";
 import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
+import { DiscordHelper } from "../Helper/DiscordHelper";
 
 // noinspection JSIgnoredPromiseFromCall
 export class TicketService {
@@ -37,7 +37,7 @@ export class TicketService {
 	private readonly _cooldown: number = 10 * 60 * 1000;
 	private readonly _datesCooldown: number[];
 	private _requests: number;
-	private readonly _warningColor: string = "#FF0000";
+	private readonly _warningColor = "FF0000" as HexColorString;
 
 	constructor() {
 		this._ticketConfigRepository = new TicketConfigRepository();
@@ -60,26 +60,6 @@ export class TicketService {
 	private async getConfig(): Promise<TicketConfigModel> {
 		const results: unknown = await this._ticketConfigRepository.getConfigData();
 		return AutoMapper.mapTicketConfigModel(results);
-	}
-
-	/**
-	 * Ajoute au cache de la Guild les tickets
-	 * @param client {Client} - Client discord
-	 */
-	public async fetchTicketsMessages(client: Client): Promise<void> {
-		const guild = await client.guilds.fetch(Config.guildId) as Guild;
-		const categoryChannel = guild.channels.cache.get(this._ticketConfig.CategoryId) as CategoryChannel;
-
-		if (categoryChannel) {
-			categoryChannel.children.each(c => {
-				const targetChannel = guild.channels.cache.get(c.id) as TextChannel;
-				targetChannel.messages.fetch();
-			});
-			this._logService.log("Tickets récupérés avec succès");
-		}
-		else {
-			this._logService.log("Echec récupération des tickets");
-		}
 	}
 
 	/**
@@ -122,12 +102,12 @@ export class TicketService {
 	 * Mise à jour de configuration des tickets en cache
 	 */
 	private async updateTicketConfig(): Promise<void> {
-		if (process.env.NODE_ENV == "dev") {
+		if (Config.nodeEnv != "production") {
 			this._ticketConfig = new TicketConfigModel();
-			this._ticketConfig.ChannelId = process.env.CHA_TICKET;
-			this._ticketConfig.CategoryId = process.env.CATEGORY_TICKET;
+			this._ticketConfig.ChannelId = Config.ticketChannel;
+			this._ticketConfig.CategoryId = Config.categoryTicketChannel;
 			this._ticketConfig.LastNumber = 100;
-			this._ticketConfig.MessageId = process.env.MSG_TICKET;
+			this._ticketConfig.MessageId = Config.ticketMessage;
 		}
 		else {
 			this._ticketConfig = await this.getConfig();
@@ -150,13 +130,6 @@ export class TicketService {
 	}
 
 	/**
-	 * Retourne les roles autorisés pour l'administration des tickets
-	 */
-	private getTicketRoles(): Array<RoleModel> {
-		return this._ticketRoles;
-	}
-
-	/**
 	 * Sauvegarde un ticket
 	 * @param user {User} - Utilisateur discord
 	 * @param number {number} - Numéro du ticket
@@ -170,8 +143,7 @@ export class TicketService {
 	 * @param targetChannel {TextChannel} - Salon textuel discord du ticket
 	 */
 	public async getTicketByNumber(targetChannel: TextChannel): Promise<TicketModel> {
-		const channelName: string = targetChannel.name;
-		const nameArray: string[] = channelName.split("-");
+		const nameArray: string[] = targetChannel.name.split("-");
 		const number: number = parseInt(nameArray[1]);
 		const result: unknown = await this._ticketRepository.getTicketByNumber(number);
 		return AutoMapper.mapTicketModel(result);
@@ -206,52 +178,41 @@ export class TicketService {
 
 		if (!category || !everyoneRole) {
 			await messageReaction.message.channel.send("La création de ticket est indisponible, veuillez contacter un admin");
-			return undefined;
+			return;
 		}
 
-		const ticketRoles: RoleModel[] = this.getTicketRoles();
 		const channelName: string = this.getChannelName(this._ticketConfig.LastNumber);
-
-		const ticketChannel = await messageReaction.message.guild.channels.create(channelName, {
-			type: "text",
+		const ticketChannel: TextChannel = await messageReaction.message.guild.channels.create(channelName, {
+			type: "GUILD_TEXT",
 			parent: category,
 			permissionOverwrites: [
 				{
 					id: user.id,
-					allow: [ "VIEW_CHANNEL", "SEND_MESSAGES" ],
-					deny: [ "ADD_REACTIONS" ],
+					allow: [ Permissions.FLAGS.VIEW_CHANNEL ],
+					deny: [ Permissions.FLAGS.ADD_REACTIONS ],
 				},
 				{
 					id: everyoneRole.id,
-					deny: ["VIEW_CHANNEL"],
-				},
-				{
-					id: messageReaction.client.user.id,
-					allow: [ "VIEW_CHANNEL", "MANAGE_CHANNELS", "MANAGE_MESSAGES", "READ_MESSAGE_HISTORY", "SEND_MESSAGES", "EMBED_LINKS", "ATTACH_FILES", "ADD_REACTIONS" ],
+					deny: [ Permissions.FLAGS.VIEW_CHANNEL ],
 				},
 			],
 		}
 		);
 
-		for (const role of ticketRoles) {
+		for (const role of this._ticketRoles) {
 			const ticketRole: Role = messageReaction.message.guild.roles.cache.find(r => r.id === role.discordId);
 			if (ticketRole) {
-				await ticketChannel.createOverwrite(ticketRole,
-					{
-						VIEW_CHANNEL: true,
-						ADD_REACTIONS: false,
-						SEND_MESSAGES: true,
-						EMBED_LINKS: true,
-						READ_MESSAGE_HISTORY: true,
-						ATTACH_FILES: true,
-					}
-				);
+				await ticketChannel.permissionOverwrites.set([ {
+					id: ticketRole,
+					deny: [ Permissions.FLAGS.ADD_REACTIONS ],
+					allow: [ Permissions.FLAGS.VIEW_CHANNEL ],
+				} ]);
 			}
 		}
 
-		const rolesMentions: string[] = new Array<string>();
+		const rolesMentions: string[] = [];
 
-		ticketRoles.map(role => {
+		this._ticketRoles.forEach(role => {
 			if (messageReaction.message.guild.roles.cache.has(role.discordId)) {
 				rolesMentions.push(`<@&${role.discordId}>`);
 			}
@@ -261,8 +222,12 @@ export class TicketService {
 		await ticketChannel.send(rolesMentions.join(" "));
 
 		const newTicketNumber: number = this._ticketConfig.LastNumber + 1;
-		await this.saveTicketConfigNumber(newTicketNumber.toString());
-		await this.updateTicketConfig();
+
+		if (Config.nodeEnv === "production") {
+			await this.saveTicketConfigNumber(newTicketNumber.toString());
+		}
+
+		this._ticketConfig.LastNumber++;
 
 		const messageWelcomeTicket: MessageEmbed = new MessageEmbed()
 			.setColor(Config.color)
@@ -270,10 +235,9 @@ export class TicketService {
 							Ecris-nous le(s) motif(s) de ton ticket et un membre du staff reviendra vers toi dès que possible :wink: \n 
 							Une fois résolu, tu peux fermer le ticket avec le ${TicketService.closeReaction}`);
 
-		const ticket: Message = await ticketChannel.send(messageWelcomeTicket);
+		const ticket: Message = await ticketChannel.send({ embeds: [ messageWelcomeTicket ] });
 		await ticket.react(TicketService.closeReaction);
 		await this.saveTicket(user, newTicketNumber);
-		return undefined;
 	}
 
 	/**
@@ -285,9 +249,8 @@ export class TicketService {
 	 * @private
 	 */
 	public async closeTicket(user: User, messageReaction: MessageReaction, targetChannel: TextChannel, userTicket: TicketModel): Promise<void> {
-		await targetChannel.updateOverwrite(userTicket.userId, {
+		await targetChannel.permissionOverwrites.edit(userTicket.userId, {
 			VIEW_CHANNEL: false,
-			SEND_MESSAGES: false,
 		});
 
 		const closeMessage: MessageEmbed = new MessageEmbed()
@@ -296,7 +259,7 @@ export class TicketService {
 							Ré-ouvrir le ticket : ${TicketService.reOpenTicketReaction} \n
 							Supprimer le ticket : ${TicketService.deleteTicketReaction}`);
 
-		const messageBeforeClose: Message = await messageReaction.message.channel.send(closeMessage);
+		const messageBeforeClose: Message = await messageReaction.message.channel.send({ embeds: [ closeMessage ] });
 		await messageBeforeClose.react(TicketService.reOpenTicketReaction);
 		await messageBeforeClose.react(TicketService.deleteTicketReaction);
 
@@ -311,7 +274,6 @@ export class TicketService {
 
 		await this._ticketRepository.closeTicket(user.id);
 		this._logService.log(`Fermeture d'un ticket : N°${userTicket.number} par le membre ${user.username} (${user.id})`);
-		return undefined;
 	}
 
 	/**
@@ -357,7 +319,7 @@ export class TicketService {
 			.setFooter(`Cela sera à nouveau possible dans ${timeLeft.minutes} minute(s) et ${timeLeft.seconds} seconde(s)`)
 			.setColor(this._warningColor);
 
-		await targetChannel.send(message);
+		await targetChannel.send({ embeds: [ message ] });
 	}
 
 	/**
@@ -381,9 +343,8 @@ export class TicketService {
 	 */
 	public async reOpenTicket(messageReaction: MessageReaction, targetChannel: TextChannel, userTicket: TicketModel): Promise<void> {
 		await messageReaction.message.delete();
-		await targetChannel.updateOverwrite(userTicket.userId, {
+		await targetChannel.permissionOverwrites.edit(userTicket.userId, {
 			VIEW_CHANNEL: true,
-			SEND_MESSAGES: true,
 		});
 
 		if (!this._delayIsActive) {
@@ -398,7 +359,6 @@ export class TicketService {
 		await messageReaction.message.channel.send(`Hey <@${userTicket.userId}>, ton ticket a été ré-ouvert :face_with_monocle:`);
 		await this.openTicket(userTicket);
 		this._logService.log(`Ré-ouverture d'un ticket : N°${userTicket.number}`);
-		return undefined;
 	}
 
 	/**
@@ -411,17 +371,12 @@ export class TicketService {
 			.setColor(this._warningColor)
 			.setDescription("Suppression du ticket dans quelques secondes");
 
-		await targetChannel.send(deleteMessage);
-		const deleteChannel = async (): Promise<Channel> => await targetChannel.delete();
-		setTimeout(async () => deleteChannel(), 5000);
-
-		const channelName: string = targetChannel.name;
-		const nameArray: string[] = channelName.split("-");
+		await targetChannel.send({ embeds: [ deleteMessage ] });
+		setTimeout(async () => targetChannel.delete(), 5000);
+		const nameArray: string[] = targetChannel.name.split("-");
 		const number: number = parseInt(nameArray[1]);
 		await this._ticketRepository.deleteTicket(number);
-
 		this._logService.log(`Suppression d'un ticket : ${targetChannel.name}`);
-		return undefined;
 	}
 
 	/**
@@ -433,21 +388,24 @@ export class TicketService {
 
 		const messageEmbed = new MessageEmbed()
 			.setColor(Config.color)
-			.attachFiles(["Images/logo-les-bannis-discord.png"])
-			.setThumbnail("attachment://logo-les-bannis-discord.png")
+			.setThumbnail("https://www.lesbannis.fr/img/logo.png")
 			.setTitle("BESOIN D'AIDE ?")
 			.setDescription("Rien de plus simple, clique sur la réaction :ticket: pour créer ton ticket. \n \n Un salon sera créé rien que pour toi afin de discuter avec l'équipe des Bannis :wink: \n")
 			.setFooter("Un seul ticket autorisé par utilisateur");
 
 		if (channel) {
-			const messageSend: Message = await channel.send(messageEmbed);
+			const messageSend: Message = await channel.send({ embeds: [ messageEmbed ] });
 			await messageSend.react(TicketService.createReaction);
-			await this.saveTicketConfigMessageId(messageSend.id);
-			await this.updateTicketConfig();
+
+			if (Config.nodeEnv === "production") {
+				await this.saveTicketConfigMessageId(messageSend.id);
+			}
+
+			this._ticketConfig.MessageId = messageSend.id;
 		}
 		else {
-			const response: Message = await message.reply("Salon des tickets introuvable");
-			await response.delete({ timeout: 5000 });
+			const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Salon des tickets introuvable");
+			await DiscordHelper.deleteMessage(response, 5000);
 		}
 	}
 }

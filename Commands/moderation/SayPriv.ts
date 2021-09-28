@@ -1,6 +1,7 @@
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { GuildMember, Message, PermissionResolvable } from "discord.js";
+import { DiscordHelper } from "../../Helper/DiscordHelper";
 
 export class SayPrivCommand implements ICommand {
 	public readonly name: string = "saypriv";
@@ -17,26 +18,24 @@ export class SayPrivCommand implements ICommand {
 		const args: string[] = commandContext.args;
 
 		try {
-			const user: GuildMember = message.guild.member(message.mentions.users.first()) || message.guild.members.cache.get(args[0]);
+			const user: GuildMember = await DiscordHelper.getUserByMention(message);
 
 			if (!user) {
-				const response: Message = await message.reply("ce membre n'existe pas");
-				await response.delete({ timeout: 5000 });
-				return undefined;
+				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce membre n'existe pas");
+				return DiscordHelper.deleteMessage(response, 5000);
 			}
 
 			const privateMessage: string = args[1];
 
 			if (!privateMessage || privateMessage.length < 1) {
-				const response: Message = await message.reply("ton message est vide");
-				await response.delete({ timeout: 5000 });
-				return undefined;
+				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ton message est vide");
+				return DiscordHelper.deleteMessage(response, 5000);
 			}
 
 			await user.send(privateMessage);
 		}
 		catch (error) {
-			await message.reply("je n'arrive pas à lui envoyer un message privé !");
+			await DiscordHelper.replyToMessageAuthor(message, "Je n'arrive pas à lui envoyer un message privé !");
 		}
 	}
 }

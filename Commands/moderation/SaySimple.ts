@@ -14,6 +14,6 @@ export class SaySimpleCommand implements ICommand {
 
 	async run(commandContext: CommandContext): Promise<void> {
 		const messageToSend: string = commandContext.args.join(" ");
-		await commandContext.message.channel.send(messageToSend);
+		commandContext.message.channel.send(messageToSend);
 	}
 }

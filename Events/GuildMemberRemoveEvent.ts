@@ -13,7 +13,11 @@ export class GuildMemberRemoveEvent {
 	public async run(member: GuildMember): Promise<void> {
 		this._logService.log(`Départ d'un membre : "${member.displayName}"`);
 
-		const welcomeChannel = member.guild.channels.cache.find(channel => channel.id === process.env.CHA_WELCOME) as TextChannel;
+		let welcomeChannel = member.guild.channels.cache.get(Config.welcomeChannel) as TextChannel;
+
+		if (!welcomeChannel) {
+			welcomeChannel = await member.guild.channels.fetch(Config.welcomeChannel) as TextChannel;
+		}
 
 		const goodByeEmbed = new MessageEmbed()
 			.setColor(Config.color)
@@ -22,6 +26,6 @@ export class GuildMemberRemoveEvent {
 			.setDescription("Au-revoir et à bientôt !")
 			.setFooter(`Désormais, nous sommes ${member.guild.memberCount} membres`);
 
-		await welcomeChannel.send(goodByeEmbed);
+		await welcomeChannel.send({ embeds: [ goodByeEmbed ] });
 	}
 }

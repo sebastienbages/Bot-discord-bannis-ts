@@ -9,7 +9,7 @@ export class AutoMapper {
 	public static mapTicketModel(data: any): TicketModel {
 		const model: TicketModel = new TicketModel();
 
-		data.map(e => {
+		data.forEach(e => {
 			if (e.userid) model.userId = e.userid;
 			model.number = e.number;
 			if (e.isclosed === 0) model.isClosed = false;
@@ -26,7 +26,7 @@ export class AutoMapper {
 	public static mapTicketConfigModel(data: any): TicketConfigModel {
 		const model: TicketConfigModel = new TicketConfigModel();
 
-		data.map(e => {
+		data.forEach(e => {
 			model.LastNumber = e.last_number;
 			if (e.category_id) model.CategoryId = e.category_id;
 			if (e.channel_id) model.ChannelId = e.channel_id;
@@ -106,12 +106,14 @@ export class AutoMapper {
 	 */
 	public static mapArrayPlayer(data: any): Player[] {
 		const playersModel: Player[] = new Array<Player>();
-		data.players.map(e => {
+
+		data.players.forEach(e => {
 			const player = new Player();
 			player.name = e.playername;
 			player.votes = e.votes;
 			playersModel.push(player);
 		});
+
 		return playersModel;
 	}
 
@@ -122,7 +124,7 @@ export class AutoMapper {
 	public static mapMessageModel(data: any): MessageModel {
 		const model: MessageModel = new MessageModel();
 
-		data.map(e => {
+		data.forEach(e => {
 			if (e.name) model.name = e.name;
 			if (e.message_id) model.messageId = e.message_id;
 			if (e.channel_id) model.channelId = e.channel_id;

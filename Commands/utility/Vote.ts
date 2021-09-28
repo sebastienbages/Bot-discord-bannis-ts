@@ -2,6 +2,7 @@ import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { ServiceProvider } from "../../src/ServiceProvider";
 import { PermissionResolvable } from "discord.js";
+import { VoteService } from "../../Services/VoteService";
 
 export class VoteCommand implements ICommand {
 	public readonly name: string = "vote";
@@ -13,8 +14,14 @@ export class VoteCommand implements ICommand {
 	public readonly cooldown: number = 0;
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
 
+	private _voteService: VoteService;
+
+	constructor() {
+		this._voteService = ServiceProvider.getVoteService();
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async run(commandContext: CommandContext): Promise<void> {
-		await ServiceProvider.getVoteService().sendMessage();
+		await this._voteService.sendMessage();
 	}
 }

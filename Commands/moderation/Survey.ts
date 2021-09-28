@@ -2,6 +2,7 @@ import { Message, MessageEmbed, PermissionResolvable, TextChannel } from "discor
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { Config } from "../../Config/Config";
+import { DiscordHelper } from "../../Helper/DiscordHelper";
 
 export class SurveyCommand implements ICommand {
 	public readonly name: string = "survey";
@@ -19,22 +20,20 @@ export class SurveyCommand implements ICommand {
 		const sondageChannel = message.guild.channels.cache.find(channel => channel.id === Config.surveyChannelId) as TextChannel;
 
 		if (!sondageChannel) {
-			const response: Message = await message.reply("le channel des sondages est introuvable");
-			await response.delete({ timeout: 5000 });
-			return undefined;
+			const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Le channel des sondages est introuvable");
+			return DiscordHelper.deleteMessage(response, 5000);
 		}
 
 		const messageToSend: string = args.join(" ");
 
 		const messageEmbed = new MessageEmbed()
 			.setTitle("SONDAGE")
-			.attachFiles(["Images/point-d-interrogation.jpg"])
-			.setThumbnail("attachment://point-d-interrogation.jpg")
+			.setThumbnail("https://cdn.pixabay.com/photo/2020/01/09/00/55/ballot-4751566_960_720.png")
 			.setDescription(messageToSend)
 			.setColor(Config.color)
 			.setFooter("Répondez en cliquant sur les réactions ci-dessous :");
 
-		const survey = await sondageChannel.send(messageEmbed);
+		const survey = await sondageChannel.send({ embeds: [ messageEmbed ] });
 		await survey.react("✅");
 		await survey.react("❌");
 	}

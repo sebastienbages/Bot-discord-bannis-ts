@@ -35,7 +35,7 @@ export class TopServerService {
 	public async getNumberOfVotes(): Promise<number> {
 		const stats: any = await this._topServerRepository.getServerStats();
 		const date: number = new Date().getMonth();
-		const months: string[] = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december" ];
+		const months: string[] = [ "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december" ];
 		const currentMonth: string = months[date];
 		return stats.monthly[0][currentMonth + "_votes"];
 	}
@@ -46,10 +46,10 @@ export class TopServerService {
 	 */
 	public async createRankingFile(players: Player[]): Promise<void> {
 		let number = 1;
-		players.map(async player => {
+		for (const player of players) {
 			if (player.name === "") player.name = "Sans pseudo";
 			fs.appendFileSync(this.fileName, `${number.toString()} - ${player.name} - ${player.votes} votes \n`);
 			number++;
-		});
+		}
 	}
 }

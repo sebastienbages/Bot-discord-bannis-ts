@@ -18,6 +18,6 @@ export class SayCommand implements ICommand {
 			.setDescription(commandContext.args.join(" "))
 			.setColor(Config.color);
 
-		await commandContext.message.channel.send(messageEmbed);
+		await commandContext.message.channel.send({ embeds: [ messageEmbed ] });
 	}
 }

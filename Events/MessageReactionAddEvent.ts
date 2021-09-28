@@ -12,6 +12,7 @@ import { TicketModel } from "../Models/TicketModel";
 import { LogService } from "../Services/LogService";
 import { RoleService } from "../Services/RoleService";
 import { RuleService } from "../Services/RuleService";
+import { DiscordHelper } from "../Helper/DiscordHelper";
 
 export class MessageReactionAddEvent {
 	private _logService: LogService;
@@ -34,7 +35,11 @@ export class MessageReactionAddEvent {
 
 		// CHOIX DU SERVEUR
 		if (RuleService.serveurReactions.includes(emoji) && messageReaction.message.id === messageServerChoiceId) {
-			const guildMember: GuildMember = await messageReaction.message.guild.members.fetch(user);
+			let guildMember: GuildMember = await messageReaction.message.guild.members.cache.get(user.id);
+
+			if (!guildMember) {
+				guildMember = await messageReaction.message.guild.members.fetch(user);
+			}
 			await this._roleService.assignServerRole(messageReaction, guildMember);
 			return undefined;
 		}
@@ -58,37 +63,31 @@ export class MessageReactionAddEvent {
 
 				if (userTicket.userId === user.id && userTicket) {
 					const response: Message = await messageReaction.message.channel.send(`<@${user.id}>, tu possèdes déjà un ticket ouvert : numéro ${userTicket.number.toString()}`);
-					await response.delete({ timeout: 10 * 1000 });
-					return undefined;
+					return DiscordHelper.deleteMessage(response, 5000);
 				}
 
-				await this._ticketService.createTicket(messageReaction, user);
-				return undefined;
+				return await this._ticketService.createTicket(messageReaction, user);
 			}
 
-			if (messageReaction.emoji.name === TicketService.closeReaction && targetChannel.parentID === ticketConfig.CategoryId) {
+			if (messageReaction.emoji.name === TicketService.closeReaction && targetChannel.parentId === ticketConfig.CategoryId) {
 
 				if (userTicket.isClosed) {
 					const response: Message = await messageReaction.message.channel.send(`<@${user.id}>, le ticket est déjà fermé :face_with_raised_eyebrow:`);
-					await response.delete({ timeout: 10 * 1000 });
-					return undefined;
+					return DiscordHelper.deleteMessage(response, 5000);
 				}
 
-				await this._ticketService.closeTicket(user, messageReaction, targetChannel, userTicket);
-				return undefined;
+				return await this._ticketService.closeTicket(user, messageReaction, targetChannel, userTicket);
 			}
 
 			if (messageReaction.emoji.name === TicketService.reOpenTicketReaction && messageReaction.message.author.bot) {
-				await this._ticketService.reOpenTicket(messageReaction, targetChannel, userTicket);
-				return undefined;
+				return await this._ticketService.reOpenTicket(messageReaction, targetChannel, userTicket);
 			}
 
 			if (messageReaction.emoji.name === TicketService.deleteTicketReaction && messageReaction.message.author.bot) {
-				await this._ticketService.deleteTicket(targetChannel);
-				return undefined;
+				return await this._ticketService.deleteTicket(targetChannel);
 			}
 
-			return undefined;
+			return;
 		}
 	}
 }

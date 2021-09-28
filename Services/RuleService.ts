@@ -1,10 +1,11 @@
 import { RoleService } from "./RoleService";
-import { Client, Collection, Guild, Message, MessageReaction, TextChannel } from "discord.js";
+import { Collection, Message, MessageReaction, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
 import { RulesRepository } from "../Dal/RulesRepository";
 import { MessageModel } from "../Models/MessageModel";
 import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
+import { DiscordHelper } from "../Helper/DiscordHelper";
 
 // noinspection JSIgnoredPromiseFromCall
 export class RuleService {
@@ -30,8 +31,13 @@ export class RuleService {
 	 * @private
 	 */
 	private async updateServerChoiceMessageId(): Promise<void> {
-		const messageModel = await this.getMessageServerChoice();
-		this._serverChoiceMessageId = messageModel.messageId;
+		if (Config.nodeEnv === "production") {
+			const messageModel = await this.getMessageServerChoice();
+			this._serverChoiceMessageId = messageModel.messageId;
+		}
+		else {
+			this._serverChoiceMessageId = Config.serverChoiceMsg;
+		}
 	}
 
 	/**
@@ -51,12 +57,13 @@ export class RuleService {
 		const lastMessage = await this.getLastMessageInChannel(message);
 
 		if (this.reactServeurChoiceExist(lastMessage)) {
-			const response = await message.reply("une ou plusieurs réactions sont déjà présentes");
-			await response.delete({ timeout: 5000 });
-			return undefined;
+			const response = await DiscordHelper.replyToMessageAuthor(message, "Une ou plusieurs réactions sont déjà présentes");
+			return DiscordHelper.deleteMessage(response, 5000);
 		}
 
-		RuleService.serveurReactions.map(async react => await lastMessage.react(react));
+		for (const react of RuleService.serveurReactions) {
+			await lastMessage.react(react);
+		}
 
 		if (this._serverChoiceMessageId != lastMessage.id) {
 			this._serverChoiceMessageId = lastMessage.id;
@@ -70,7 +77,7 @@ export class RuleService {
 	 * @private
 	 */
 	private reactServeurChoiceExist(message: Message): boolean {
-		RuleService.serveurReactions.map(react => {
+		RuleService.serveurReactions.forEach(react => {
 			if (message.reactions.cache.has(react)) {
 				return true;
 			}
@@ -85,13 +92,13 @@ export class RuleService {
 	 */
 	public async removeReactForServeurChoice(message: Message): Promise<void> {
 		const lastMessage: Message = await message.channel.messages.fetch(this._serverChoiceMessageId);
-		RuleService.serveurReactions.map(async react => {
+		for (const react of RuleService.serveurReactions) {
 			if (lastMessage.reactions.cache.has(react)) {
 				const messageReaction: MessageReaction = lastMessage.reactions.cache.find(r => r.emoji.name === react);
 				await messageReaction.remove();
 				await this.removeMessageServerChoice();
 			}
-		});
+		}
 	}
 
 	/**
@@ -114,27 +121,6 @@ export class RuleService {
 		}
 
 		return lastMessage;
-	}
-
-	/**
-	 * Récupère l'enregistrement du message qui possède les réactions correspondantes au choix du serveur
-	 * @param client
-	 */
-	public async fetchServerChoiceMessage(client: Client): Promise<void> {
-		const guild = await client.guilds.fetch(Config.guildId) as Guild;
-		const channel = guild.channels.cache.get(Config.rulesChannelId) as TextChannel;
-		const messages: Collection<string, Message> = await channel.messages.fetch();
-
-		if (!messages.has(this._serverChoiceMessageId) && process.env.NODE_ENV != "dev") {
-			await this.removeMessageServerChoice();
-			return this._logService.log("Message de choix des serveurs absent et effacé en BDD");
-		}
-
-		if (!messages.has(this._serverChoiceMessageId)) {
-			return this._logService.log("Message de choix des serveurs absent");
-		}
-
-		this._logService.log("Message de choix des serveurs récupéré");
 	}
 
 	/**

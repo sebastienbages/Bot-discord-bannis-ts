@@ -1,7 +1,8 @@
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { Config } from "../../Config/Config";
-import { Message, PermissionResolvable } from "discord.js";
+import { Message, PermissionResolvable, Permissions } from "discord.js";
+import { DiscordHelper } from "../../Helper/DiscordHelper";
 
 export class HelpCommand implements ICommand {
 	public readonly name: string = "help";
@@ -11,40 +12,39 @@ export class HelpCommand implements ICommand {
 	public readonly usage: string = "<nom de la commande>";
 	public readonly guildOnly: boolean = false;
 	public readonly cooldown: number = 0;
-	public readonly permission: PermissionResolvable = "MANAGE_MESSAGES";
+	public readonly permission: PermissionResolvable = Permissions.FLAGS.MANAGE_MESSAGES;
 
 	async run(commandContext: CommandContext): Promise<void> {
 		const args: string[] = commandContext.args;
 		const message: Message = commandContext.message;
 		const commands: ICommand[] = Config.getCommandsInstances();
-		const data: string[] = new Array<string>();
+		const data: string[] = [];
 
 		if (!args.length) {
 			data.push("Liste des commandes :");
 			data.push(commands.map(command => `\`${command.name}\``).join(", "));
 			data.push(`\nTu peux m'envoyer en privé \`${commandContext.commandPrefix}help [nom de la commande]\` pour obtenir plus d'informations sur une commande :wink:`);
 
-			await message.author.send(data, { split: true });
+			await message.author.send({ content: data.join("\n") });
 
-			if (message.channel.type != "dm") {
-				const response: Message = await message.reply("Je t'ai envoyé la liste des commandes en message privé :wink:");
-				await response.delete({ timeout: 5000 });
+			if (message.channel.type != "DM") {
+				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Je t'ai envoyé la liste des commandes en message privé :wink:");
+				DiscordHelper.deleteMessage(response, 5000);
 			}
 
-			return undefined;
+			return;
 		}
 
 		const name: string = args[0].toLowerCase();
 		const command: ICommand = commands.find(c => c.aliases.includes(name) || c.name.includes(name));
 
 		if (!command) {
-			if (message.channel.type === "dm") {
-				await message.reply("Cette commande n'existe pas");
+			if (message.channel.type === "DM") {
+				await DiscordHelper.replyToMessageAuthor(message, "Cette commande n'existe pas");
 			}
 			else {
-				const response: Message = await message.reply("Cette commande n'existe pas");
-				await response.delete({ timeout: 10000 });
-				return undefined;
+				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Cette commande n'existe pas");
+				return DiscordHelper.deleteMessage(response, 5000);
 			}
 		}
 
@@ -61,6 +61,6 @@ export class HelpCommand implements ICommand {
 		if (command.usage) data.push(`**Usage :** \`${commandContext.commandPrefix}${command.name} ${command.usage}\``);
 
 		data.push(`**Cooldown :** ${command.cooldown} seconde(s)`);
-		await message.author.send(data, { split: true });
+		await message.author.send(data.join("\n"));
 	}
 }

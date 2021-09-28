@@ -3,7 +3,7 @@ import { CommandContext } from "../CommandContext";
 import { ServiceProvider } from "../../src/ServiceProvider";
 import { GuildMember, Message, PermissionResolvable } from "discord.js";
 import { AdminService } from "../../Services/AdminService";
-import { AdminModel } from "../../Models/AdminModel";
+import { DiscordHelper } from "../../Helper/DiscordHelper";
 
 export class AdminCommand implements ICommand {
 	public readonly name: string = "admin";
@@ -15,61 +15,50 @@ export class AdminCommand implements ICommand {
 	public readonly cooldown: number = 0;
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
 
+	private _adminService: AdminService;
+
+	constructor() {
+		this._adminService = ServiceProvider.getAdminService();
+	}
+
 	async run(commandContext: CommandContext): Promise<void> {
 		const command: string = commandContext.args[0].toLowerCase();
-		const adminService: AdminService = ServiceProvider.getAdminService();
 		const message: Message = commandContext.message;
-		const args: string[] = commandContext.args;
 
 		if (command === "list") {
-			const admins: AdminModel[] = adminService.getAdmins();
-			const adminsNames: string[] = new Array<string>();
-			admins.map(admin => adminsNames.push(admin.name));
-			const data: string[] = new Array<string>();
-			data.push("__LISTE DES ADMINISTRATEURS :__");
-			data.push(`\`${adminsNames.join(", ")}\``);
-			await message.channel.send(data);
-			return undefined;
+			return this._adminService.sendAdminList(message);
 		}
 
-		const user: GuildMember = message.guild.member(message.mentions.users.first()) || message.guild.members.cache.get(args[1]);
-		const discordId: string = user.user.id;
+		const user: GuildMember = await DiscordHelper.getUserByMention(message);
+		const discordId: string = user.id;
 
 		if (!user) {
-			const response: Message = await message.reply("ce membre n'existe pas");
-			await response.delete({ timeout: 5000 });
-			return undefined;
+			const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce membre n'existe pas");
+			return DiscordHelper.deleteMessage(response, 5000);
 		}
 
 		if (command === "add") {
-			const userName: string = user.user.username;
-
-			if (await adminService.adminIsExist(discordId)) {
-				const response: Message = await message.reply("ce membre est déjà enregistré");
-				await response.delete({ timeout: 5000 });
+			if (!this._adminService.adminIsExist(discordId)) {
+				await this._adminService.createAdmin(discordId, user.displayName);
+				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Enregistrement effectué avec succès");
+				return DiscordHelper.deleteMessage(response, 5000);
 			}
 			else {
-				await adminService.createAdmin(discordId, userName);
-				const response: Message = await message.reply("enregistrement effectué avec succès");
-				await response.delete({ timeout: 5000 });
+				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce membre est déjà enregistré");
+				return DiscordHelper.deleteMessage(response, 5000);
 			}
-
-			return undefined;
 		}
 
 		if (command === "remove") {
-
-			if (!await adminService.adminIsExist(discordId)) {
-				const response: Message = await message.reply("ce membre n'est pas enregistré");
-				await response.delete({ timeout: 5000 });
+			if (this._adminService.adminIsExist(discordId)) {
+				await this._adminService.removeAdmin(discordId);
+				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Administrateur supprimé avec succès");
+				return DiscordHelper.deleteMessage(response, 5000);
 			}
 			else {
-				await adminService.removeAdmin(discordId);
-				const response: Message = await message.reply("administrateur supprimé avec succès");
-				await response.delete({ timeout: 5000 });
+				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce membre n'est pas enregistré");
+				return DiscordHelper.deleteMessage(response, 5000);
 			}
-
-			return undefined;
 		}
 	}
 }
