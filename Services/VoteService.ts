@@ -48,12 +48,14 @@ export class VoteService {
 	 * @param message {Message} - Message à supprimer
 	 * @private
 	 */
-	private async deleteLastMessage(voteModel: MessageModel, message: Message) {
-		const channel = message.guild.channels.cache.find(c => c.id === voteModel.channelId) as TextChannel;
+	private async deleteLastMessage(voteModel: MessageModel, message: Message): Promise<void> {
+		const channel = message.channel as TextChannel;
 
 		if (channel) {
 			const targetMessage: Message = await channel.messages.fetch(this._messageModel.messageId);
-			await targetMessage.delete();
+			if (targetMessage) {
+				await targetMessage.delete();
+			}
 		}
 	}
 
