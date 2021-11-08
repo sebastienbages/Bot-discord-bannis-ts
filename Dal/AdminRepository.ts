@@ -12,8 +12,8 @@ export class AdminRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`SELECT * FROM f1mtb0ah6rjbwawm.${this.table}`, (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
@@ -28,8 +28,8 @@ export class AdminRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`INSERT INTO f1mtb0ah6rjbwawm.${this.table} (discord_id, name) VALUES (?, ?)`, [ id, name ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
@@ -43,8 +43,8 @@ export class AdminRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`DELETE FROM f1mtb0ah6rjbwawm.${this.table} WHERE (discord_id = ?)`, [ id ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});

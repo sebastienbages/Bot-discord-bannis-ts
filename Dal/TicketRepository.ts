@@ -14,8 +14,8 @@ export class TicketRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`INSERT INTO f1mtb0ah6rjbwawm.${this.table} (userid, number) VALUES (?, ?)`, [ userId, number ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
@@ -29,8 +29,8 @@ export class TicketRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`SELECT * FROM f1mtb0ah6rjbwawm.${this.table} WHERE number = ?`, [ number ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
@@ -44,8 +44,8 @@ export class TicketRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`SELECT * FROM f1mtb0ah6rjbwawm.${this.table} WHERE userid = ?`, [ userId ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
@@ -59,8 +59,8 @@ export class TicketRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`UPDATE f1mtb0ah6rjbwawm.${this.table} SET isclosed = "1" WHERE (userid = ?)`, [ userId ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
@@ -74,8 +74,8 @@ export class TicketRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`UPDATE f1mtb0ah6rjbwawm.${this.table} SET isclosed = "0" WHERE (userid = ?)`, [ userId ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
@@ -89,8 +89,8 @@ export class TicketRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`DELETE FROM f1mtb0ah6rjbwawm.${this.table} WHERE (number = ?)`, [ number ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
