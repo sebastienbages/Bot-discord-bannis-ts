@@ -12,8 +12,8 @@ export class TicketConfigRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`SELECT * FROM f1mtb0ah6rjbwawm.${this.table} WHERE (id = 1)`, (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
@@ -27,8 +27,8 @@ export class TicketConfigRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`UPDATE f1mtb0ah6rjbwawm.${this.table} SET message_id = ? WHERE (id = 1)`, [ messageId ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
@@ -42,8 +42,8 @@ export class TicketConfigRepository {
 		const connection = await SingletonContext.getInstance().getConnection();
 		return new Promise((resolve, rejects) => {
 			connection.query(`UPDATE f1mtb0ah6rjbwawm.${this.table} SET last_number = ? WHERE (id = 1)`, [ number ], (error: MysqlError | null, result: unknown) => {
-				if (error) return rejects(error);
 				connection.release();
+				if (error) return rejects(error);
 				return resolve(result);
 			});
 		});
