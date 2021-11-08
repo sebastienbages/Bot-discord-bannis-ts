@@ -173,7 +173,7 @@ export class TicketService {
 	 * @private
 	 */
 	public async createTicket(messageReaction: MessageReaction, user: User): Promise<void> {
-		const category = messageReaction.message.guild.channels.cache.find(c => c.id === this._ticketConfig.CategoryId) as CategoryChannel;
+		const category = messageReaction.message.guild.channels.cache.get(this._ticketConfig.CategoryId) as CategoryChannel;
 		const everyoneRole: Role = messageReaction.message.guild.roles.cache.find(r => r.name === "@everyone");
 
 		if (!category || !everyoneRole) {
@@ -199,24 +199,18 @@ export class TicketService {
 		}
 		);
 
-		for (const role of this._ticketRoles) {
-			const ticketRole: Role = messageReaction.message.guild.roles.cache.find(r => r.id === role.discordId);
-			if (ticketRole) {
-				await ticketChannel.permissionOverwrites.set([ {
-					id: ticketRole,
-					deny: [ Permissions.FLAGS.ADD_REACTIONS ],
-					allow: [ Permissions.FLAGS.VIEW_CHANNEL ],
-				} ]);
-			}
-		}
-
 		const rolesMentions: string[] = [];
 
-		this._ticketRoles.forEach(role => {
-			if (messageReaction.message.guild.roles.cache.has(role.discordId)) {
-				rolesMentions.push(`<@&${role.discordId}>`);
+		for (const role of this._ticketRoles) {
+			const ticketRole: Role = messageReaction.message.guild.roles.cache.get(role.discordId);
+			if (ticketRole) {
+				rolesMentions.push(`<@&${ticketRole.id}>`);
+				await ticketChannel.permissionOverwrites.create(ticketRole, {
+					ADD_REACTIONS: false,
+					VIEW_CHANNEL: true,
+				});
 			}
-		});
+		}
 
 		rolesMentions.push(`<@${user.id}>`);
 		await ticketChannel.send(rolesMentions.join(" "));
