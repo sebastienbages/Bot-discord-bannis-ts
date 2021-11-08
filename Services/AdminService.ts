@@ -58,14 +58,14 @@ export class AdminService {
 
 		if (Config.nodeEnv === "production") {
 			for (const admin of this._admins) {
-				const user: User = message.client.users.cache.find(a => a.id === admin.discordId);
+				const user: User = message.client.users.cache.get(admin.discordId);
 				if (user) {
 					await user.send({ embeds: [ messageEmbed ] });
 				}
 			}
 		}
 		else {
-			const user: User = message.client.users.cache.find(u => u.id === Config.devId);
+			const user: User = message.client.users.cache.get(Config.devId);
 			if (user) {
 				await user.send({ embeds: [ messageEmbed ] });
 			}
