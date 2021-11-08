@@ -4,7 +4,7 @@ import { CommandContext } from "../CommandContext";
 import { ServiceProvider } from "../../src/ServiceProvider";
 import { Player } from "../../Models/TopServerModel";
 import { TopServerService } from "../../Services/TopServerService";
-import * as fs from "fs";
+import * as fs from "fs/promises";
 
 export class TopServerCommand implements ICommand {
 	public readonly name: string = "topserveur";
@@ -16,10 +16,15 @@ export class TopServerCommand implements ICommand {
 	public readonly cooldown: number = 30;
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
 
+	private _topServerService: TopServerService;
+
+	constructor() {
+		this._topServerService = ServiceProvider.getTopServerService();
+	}
+
 	async run(commandContext: CommandContext): Promise<void> {
 		const args: string[] = commandContext.args;
 		const message: Message = commandContext.message;
-		const topServerService: TopServerService = ServiceProvider.getTopServerService();
 
 		let title: string;
 		let players: Array<Player>;
@@ -27,19 +32,17 @@ export class TopServerCommand implements ICommand {
 		const option: string = args[0];
 
 		if (option === "last") {
-			players = await topServerService.getPlayersRanking(false);
+			players = await this._topServerService.getPlayersRanking(false);
 			title = "Classement Top Serveur du mois dernier";
 		}
 		else {
-			players = await topServerService.getPlayersRanking(true);
+			players = await this._topServerService.getPlayersRanking(true);
 			title = "Classement Top Serveur du mois en cours";
 		}
 
-		const fileName: string = topServerService.fileName;
-		await topServerService.createRankingFile(players);
-		await message.author.send(title, { files: [fileName] });
-		fs.rm(fileName, err => {
-			if (err) console.error(err);
-		});
+		const fileName: string = this._topServerService.fileName;
+		await this._topServerService.createRankingFile(players);
+		await message.author.send({ files: [ fileName ], content: title });
+		await fs.rm(fileName);
 	}
 }

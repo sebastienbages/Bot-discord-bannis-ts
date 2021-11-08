@@ -2,6 +2,7 @@ import { Message, MessageEmbed, PermissionResolvable, TextChannel } from "discor
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { Config } from "../../Config/Config";
+import { DiscordHelper } from "../../Helper/DiscordHelper";
 
 export class ClearCommand implements ICommand {
 	public readonly name: string = "clear";
@@ -25,11 +26,11 @@ export class ClearCommand implements ICommand {
 				.setColor(Config.color)
 				.setDescription(`J'ai supprimé ***${args[0]} message(s)***`);
 
-			const response: Message = await message.channel.send(messageEmbed);
-			await response.delete({ timeout: 10000 });
+			const response: Message = await message.channel.send({ embeds: [ messageEmbed ] });
+			await DiscordHelper.deleteMessage(response, 5000);
 		}
 		catch (error) {
-			await message.reply("je ne peux pas effacer ce nombre de messages");
+			await DiscordHelper.replyToMessageAuthor(message, "Je ne peux pas effacer ce nombre de messages");
 		}
 	}
 }

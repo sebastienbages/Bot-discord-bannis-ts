@@ -5,6 +5,7 @@ import { Config } from "../Config/Config";
 import { ServiceProvider } from "./ServiceProvider";
 import { WebhookProvider } from "./WebhookProvider";
 import { LogService } from "../Services/LogService";
+import { DiscordHelper } from "../Helper/DiscordHelper";
 
 export class CommandHandler {
 	private _commands: ICommand[];
@@ -22,14 +23,14 @@ export class CommandHandler {
 	async handleMessage(message: Message, client: Client): Promise<void> {
 		const webHookVoteKeeper = WebhookProvider.getVoteKeeper();
 
-		if (message.author.id === webHookVoteKeeper.id) {
+		if (message.author.id === webHookVoteKeeper.id && Config.nodeEnv === "production") {
 			await ServiceProvider.getVoteService().saveMessage(message);
 			return undefined;
 		}
 
 		if (message.author.bot) return undefined;
 
-		if (message.channel.type === "dm" && !message.content.startsWith(this._prefix)) {
+		if (message.channel.type === "DM" && !message.content.startsWith(this._prefix)) {
 			const adminService = await ServiceProvider.getAdminService();
 			await adminService.transfertPrivateMessage(message);
 			return undefined;
@@ -37,15 +38,14 @@ export class CommandHandler {
 
 		if (!this.isCommand(message)) return undefined;
 
-		if (message.channel.type != "dm") await message.delete();
+		if (message.channel.type != "DM") await message.delete();
 
 		const commandContext = new CommandContext(message, this._prefix);
 		const matchedCommands = this._commands.find(command => command.aliases.includes(commandContext.command) || command.name.includes(commandContext.command));
 
 		if (!matchedCommands) {
-			const response = await message.reply("je ne reconnais pas cette commande");
-			await response.delete({ timeout: 5000 });
-			return undefined;
+			const response = await DiscordHelper.replyToMessageAuthor(message, "Je ne reconnais pas cette commande");
+			return DiscordHelper.deleteMessage(response, 5000);
 		}
 
 		this._logService.log(`${message.author.username} a utilisé une commande : ${commandContext.message}`);
@@ -53,22 +53,21 @@ export class CommandHandler {
 		const guild = client.guilds.cache.find(g => g.id === Config.guildId);
 		const authorPerms = guild.members.cache.find(user => user.id === message.author.id);
 
-		if (!authorPerms || !authorPerms.hasPermission(matchedCommands.permission)) {
-			if (message.channel.type != "dm") {
-				const response = await message.reply("Vous n'avez pas la permission d'utiliser cette commande");
-				await response.delete({ timeout: 5000 });
-				this._logService.log(`Commande ${commandContext.command} non autorisé pour ${message.author.username}`);
-				return undefined;
+		if (!authorPerms || !authorPerms.permissions.has(matchedCommands.permission)) {
+			if (message.channel.type != "DM") {
+				const response = await DiscordHelper.replyToMessageAuthor(message, "Vous n'avez pas la permission d'utiliser cette commande");
+				DiscordHelper.deleteMessage(response, 5000);
+				return this._logService.log(`Commande ${commandContext.command} non autorisé pour ${message.author.username}`);
 			}
 			else {
-				await message.reply("Vous n'avez pas la permission d'utiliser cette commande");
-				return undefined;
+				await DiscordHelper.replyToMessageAuthor(message, "Vous n'avez pas la permission d'utiliser cette commande");
+				return;
 			}
 		}
 
-		if (matchedCommands.guildOnly && message.channel.type === "dm") {
-			await message.reply("Je ne peux pas éxécuter cette commande dans un salon privé");
-			return undefined;
+		if (matchedCommands.guildOnly && message.channel.type === "DM") {
+			await DiscordHelper.replyToMessageAuthor(message, "Je ne peux pas éxécuter cette commande dans un salon privé");
+			return;
 		}
 
 		if (matchedCommands.argumentIsNecessary && !commandContext.args.length) {
@@ -79,8 +78,7 @@ export class CommandHandler {
 			}
 
 			const response = await message.channel.send(reply);
-			await response.delete({ timeout: 10000 });
-			return undefined;
+			return DiscordHelper.deleteMessage(response, 10000);
 		}
 
 		if (!this._cooldowns.has(matchedCommands.name)) {
@@ -97,14 +95,13 @@ export class CommandHandler {
 			if (now < expirationTime) {
 				const timeLeft = (expirationTime - now) / 1000;
 
-				if (message.channel.type === "dm") {
+				if (message.channel.type === "DM") {
 					await message.reply(`Tu dois attendre ${timeLeft.toFixed(1)} seconde(s) avant de pouvoir réutiliser la commande \`${matchedCommands.name}\``);
-					return undefined;
+					return;
 				}
 				else {
-					const response = await message.reply(`Tu dois attendre ${timeLeft.toFixed(1)} seconde(s) avant de pouvoir réutiliser la commande \`${matchedCommands.name}\``);
-					await response.delete({ timeout: 5000 });
-					return undefined;
+					const response = await DiscordHelper.replyToMessageAuthor(message, `Tu dois attendre ${timeLeft.toFixed(1)} seconde(s) avant de pouvoir réutiliser la commande \`${matchedCommands.name}\``);
+					return DiscordHelper.deleteMessage(response, 5000);
 				}
 			}
 		}
@@ -116,8 +113,7 @@ export class CommandHandler {
 			await matchedCommands.run(commandContext);
 		}
 		catch (error) {
-			await message.reply("une erreur s'est produite, veuillez contacter un administrateur");
-			this._logService.error(error.stack);
+			await DiscordHelper.replyToMessageAuthor(message, "une erreur s'est produite, veuillez contacter un administrateur");
 		}
 	}
 

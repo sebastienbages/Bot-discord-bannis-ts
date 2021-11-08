@@ -1,4 +1,4 @@
-import { Message, MessageEmbed } from "discord.js";
+import { Message, MessageEmbed, User } from "discord.js";
 import { Config } from "../Config/Config";
 import { AdminRepository } from "../Dal/AdminRepository";
 import { AdminModel } from "../Models/AdminModel";
@@ -15,7 +15,9 @@ export class AdminService {
 	constructor() {
 		this._adminRepository = new AdminRepository();
 		this._logService = new LogService();
-		this.updateAdmins();
+		(async () => {
+			await this.updateAdmins();
+		})();
 	}
 
 	/**
@@ -37,12 +39,8 @@ export class AdminService {
 	 * Vérifie l'existence d'un administrateur
 	 * @param id {string} - Identifiant discord de l'utilisateur
 	 */
-	public async adminIsExist(id: string): Promise<boolean> {
-		let result = false;
-		this._admins.forEach(admin => {
-			if (admin.discordId === id) result = true;
-		});
-		return result;
+	public adminIsExist(id: string): boolean {
+		return this._admins.some(admin => admin.discordId === id);
 	}
 
 	/**
@@ -58,12 +56,20 @@ export class AdminService {
 			.addField("MESSAGE", message.content)
 			.setTimestamp();
 
-		this._admins.map(admin => {
-			const user = message.client.users.cache.find(a => a.id === admin.discordId);
-			if (user) {
-				user.send(messageEmbed);
+		if (Config.nodeEnv === "production") {
+			for (const admin of this._admins) {
+				const user: User = message.client.users.cache.get(admin.discordId);
+				if (user) {
+					await user.send({ embeds: [ messageEmbed ] });
+				}
 			}
-		});
+		}
+		else {
+			const user: User = message.client.users.cache.get(Config.devId);
+			if (user) {
+				await user.send({ embeds: [ messageEmbed ] });
+			}
+		}
 
 		this._logService.log(`Message privé reçu de la part de ${message.author.username} : ${message.content}`);
 	}
@@ -84,7 +90,7 @@ export class AdminService {
 	 * @param id {string} - Identifiant discord de l'utilisateur
 	 */
 	public async removeAdmin(id: string): Promise<void> {
-		const admin: AdminModel = this._admins.find(a => a.discordId == id);
+		const admin: AdminModel = this._admins.find(a => a.discordId === id);
 		await this._adminRepository.removeAdmin(id);
 		await this.updateAdmins();
 		this._logService.log(`Administrateur supprimé : ${admin.name} (${admin.discordId})`);
@@ -96,5 +102,21 @@ export class AdminService {
 	 */
 	private async updateAdmins(): Promise<void> {
 		this._admins = await this.getAdminsData();
+	}
+
+	/**
+	 * Envoi la liste des administrateurs en privé à l'émetteur du message
+	 * @param message
+	 */
+	public async sendAdminList(message: Message): Promise<void> {
+		const admins: AdminModel[] = this.getAdmins();
+		const adminsNames: string[] = [];
+		admins.forEach(admin => adminsNames.push(admin.name));
+		const data: string[] = [];
+		data.push("__LISTE DES ADMINISTRATEURS :__");
+		data.push(`\`${adminsNames.join(", ")}\``);
+		for (const element of data) {
+			await message.author.send(element);
+		}
 	}
 }

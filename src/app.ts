@@ -27,7 +27,7 @@ logService.log("Services initialisés");
 WebhookProvider.initializeWebHook();
 logService.log("Webhooks initialisés");
 
-const commandHandler = new CommandHandler(process.env.PREFIX);
+const commandHandler = new CommandHandler(Config.prefix);
 logService.log("Gestion des commandes initialisée");
 
 const events = new Events();
@@ -37,7 +37,7 @@ const bot: Bot = new Bot(Config.token);
 bot.start();
 
 try {
-	bot.client.on("message", (message: Message) => commandHandler.handleMessage(message, bot.client));
+	bot.client.on("messageCreate", (message: Message) => commandHandler.handleMessage(message, bot.client));
 	bot.client.on("messageReactionAdd", (messageReaction: MessageReaction, user: User) => events.messageReactionAdd().run(messageReaction, user));
 	bot.client.on("guildMemberAdd", (member: GuildMember) => events.guildMemberAdd().run(member));
 	bot.client.on("guildMemberRemove", (member: GuildMember) => events.guildMemberRemove().run(member));

@@ -20,7 +20,9 @@ export class VoteService {
 		this._voteRepository = new VoteRepository();
 		this._topServerService = new TopServerService();
 		this._logService = new LogService();
-		this.updateMessageId();
+		(async () => {
+			await this.updateMessageId();
+		})();
 	}
 
 	/**
@@ -71,16 +73,19 @@ export class VoteService {
 			.setColor(Config.color)
 			.setTitle("VOTEZ POUR LE SERVEUR")
 			.setURL(topServeurUrl)
-			.attachFiles(["Images/topServeur.png"])
-			.setThumbnail("attachment://topServeur.png")
+			.setThumbnail("https://top-serveurs.net/images/logo-base.png")
 			.setDescription("N'hésitez pas à donner un coup de pouce au serveur en votant. Merci pour votre participation :thumbsup:")
 			.addField("LIEN TOP SERVEUR", topServeurUrl)
 			.setFooter(`Pour l'instant, nous avons ${numberOfVotes.toString()} votes ce mois-ci`);
 
-		await WebhookProvider.getVoteKeeper().send(messageEmbed);
+		await WebhookProvider.getVoteKeeper().send({ embeds: [ messageEmbed ] });
 		this._logService.log("Message des votes envoyé");
 	}
 
+	/**
+	 * MAJ du cache contenant les informations du dernier message
+	 * @private
+	 */
 	private async updateMessageId(): Promise<void> {
 		this._messageModel = await this.getMessage();
 	}

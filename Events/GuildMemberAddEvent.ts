@@ -16,27 +16,45 @@ export class GuildMemberAddEvent {
 
 	public async run(member: GuildMember): Promise<void> {
 		this._logService.log(`Arrivée d'un nouveau membre : ${member.displayName}`);
+		let roleStart: Role;
 
-		const roleStart: RoleModel = await ServiceProvider.getRoleService().getStartRole();
-		const role: Role = member.guild.roles.cache.find(r => r.id === roleStart.discordId);
+		if (Config.nodeEnv === "production") {
+			const roleModel: RoleModel = await ServiceProvider.getRoleService().getStartRole();
+			roleStart = await member.guild.roles.cache.get(roleModel.discordId);
+		}
+		else {
+			roleStart = await member.guild.roles.cache.get(Config.roleStart);
+		}
 
-		if (role) {
-			await member.roles.add(role);
-			this._logService.log(`Attribution du role d'arrivée à ${role.name} effectué`);
+		if (roleStart) {
+			await member.roles.add(roleStart);
+			this._logService.log(`Attribution du role d'arrivée à ${roleStart.name} effectué`);
 		}
 		else {
 			const adminService: AdminService = ServiceProvider.getAdminService();
 			const admins: AdminModel[] = adminService.getAdmins();
-			admins.map(admin => {
-				const user: GuildMember = member.guild.members.cache.find(u => u.id === admin.discordId);
-				if (admin) {
-					user.send(`Je n'ai pas réussi à attribuer le role d'arrivée à \`${member.user.username}\``);
+
+			if (Config.nodeEnv === "production") {
+				for (const admin of admins) {
+					const user: GuildMember = await member.guild.members.fetch(admin.discordId);
+					if (user) {
+						await user.send(`Je n'ai pas réussi à attribuer le role d'arrivée à \`${member.user.username}\``);
+					}
 				}
-			});
+			}
+			else {
+				const dev: GuildMember = await member.guild.members.cache.get(Config.devId);
+				await dev.send(`Je n'ai pas réussi à attribuer le role d'arrivée à \`${member.user.username}\``);
+			}
+
 			this._logService.log(`Echec de l'attribution du role d'arrivée à ${member.displayName}`);
 		}
 
-		const welcomeChannel = member.guild.channels.cache.find(channel => channel.id === process.env.CHA_WELCOME) as TextChannel;
+		let welcomeChannel = member.guild.channels.cache.get(Config.welcomeChannel) as TextChannel;
+
+		if (!welcomeChannel) {
+			welcomeChannel = await member.guild.channels.fetch(Config.welcomeChannel) as TextChannel;
+		}
 
 		const welcomeEmbed = new MessageEmbed()
 			.setColor(Config.color)
@@ -45,6 +63,6 @@ export class GuildMemberAddEvent {
 			.setDescription("Nous te souhaitons la bienvenue !")
 			.setFooter(`Désormais, nous sommes ${member.guild.memberCount} membres`);
 
-		await welcomeChannel.send(welcomeEmbed);
+		await welcomeChannel.send({ embeds: [ welcomeEmbed ] });
 	}
 }

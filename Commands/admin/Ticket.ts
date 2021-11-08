@@ -1,7 +1,13 @@
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { ServiceProvider } from "../../src/ServiceProvider";
-import { GuildChannel, Message, MessageEmbed, PermissionResolvable, TextChannel } from "discord.js";
+import {
+	CategoryChannel,
+	Message,
+	MessageEmbed,
+	PermissionResolvable,
+	TextChannel,
+} from "discord.js";
 import { Config } from "../../Config/Config";
 import { TicketService } from "../../Services/TicketService";
 import { TicketConfigModel } from "../../Models/TicketConfigModel";
@@ -17,21 +23,20 @@ export class TicketCommand implements ICommand {
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
 
 	private _ticketService: TicketService;
-	private _ticketConfig: TicketConfigModel;
 
 	constructor() {
 		this._ticketService = ServiceProvider.getTicketService();
-		this._ticketConfig = this._ticketService.getTicketConfig();
 	}
 
 	async run(commandContext: CommandContext): Promise<void> {
 		const option: string = commandContext.args[0].toLowerCase();
 		const message: Message = commandContext.message;
+		const ticketConfig: TicketConfigModel = this._ticketService.getTicketConfig();
 
-		const channel = message.guild.channels.cache.find(c => c.id === this._ticketConfig.ChannelId) as TextChannel;
+		const channel = message.guild.channels.cache.find(c => c.id === ticketConfig.ChannelId) as TextChannel;
 
 		if (option === "config") {
-			const category: GuildChannel = message.guild.channels.cache.find(c => c.id === this._ticketConfig.CategoryId);
+			const category = message.guild.channels.cache.find(c => c.id === ticketConfig.CategoryId) as CategoryChannel;
 
 			const messageEmbed = new MessageEmbed()
 				.setColor(Config.color)
@@ -52,16 +57,15 @@ export class TicketCommand implements ICommand {
 				messageEmbed.addField("CHANNEL CREATION DES TICKETS", "Salon non enregistré");
 			}
 
-			messageEmbed.addField("NOMBRE DE TICKET(S)", this._ticketConfig.LastNumber);
-			await message.reply(messageEmbed);
-			return undefined;
+			messageEmbed.addField("NOMBRE DE TICKET(S)", ticketConfig.LastNumber.toString());
+			await message.reply({ embeds: [ messageEmbed ] });
+			return;
 		}
 
 		if (option === "msg") {
-			const oldMessage: Message = channel.messages.cache.get(this._ticketConfig.MessageId);
+			const oldMessage: Message = channel.messages.cache.get(ticketConfig.MessageId);
 			if (oldMessage) await oldMessage.delete();
-			await this._ticketService.sendTicketMessage(message);
-			return undefined;
+			return await this._ticketService.sendTicketMessage(message);
 		}
 	}
 }

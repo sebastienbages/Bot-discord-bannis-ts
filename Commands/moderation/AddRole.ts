@@ -2,6 +2,7 @@ import { GuildMember, Message, MessageEmbed, PermissionResolvable, Role } from "
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { Config } from "../../Config/Config";
+import { DiscordHelper } from "../../Helper/DiscordHelper";
 
 export class AddRoleCommand implements ICommand {
 	public readonly name: string = "addrole";
@@ -16,27 +17,24 @@ export class AddRoleCommand implements ICommand {
 	async run(commandContext: CommandContext): Promise<void> {
 		const message: Message = commandContext.message;
 		const args: string[] = commandContext.args;
-		const user: GuildMember = message.guild.member(message.mentions.users.first()) || message.guild.members.cache.get(args[0]);
+		const user: GuildMember = await DiscordHelper.getUserByMention(message);
 
 		if (!user) {
-			const response: Message = await message.reply("ce membre n'existe pas");
-			await response.delete({ timeout: 5000 });
-			return undefined;
+			const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce membre n'existe pas");
+			return DiscordHelper.deleteMessage(response, 5000);
 		}
 
 		const roleAssign: string = args[1];
 		const role: Role = message.guild.roles.cache.find(r => r.name.toLowerCase() === roleAssign.toLowerCase());
 
 		if (!role) {
-			const response: Message = await message.reply("ce rôle n'existe pas !");
-			await response.delete({ timeout: 5000 });
-			return undefined;
+			const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce rôle n'existe pas !");
+			return DiscordHelper.deleteMessage(response, 5000);
 		}
 
 		if (user.roles.cache.has(role.id)) {
-			const response: Message = await message.reply("ce membre possède déjà ce role !");
-			await response.delete({ timeout: 5000 });
-			return undefined;
+			const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce membre possède déjà ce role !");
+			return DiscordHelper.deleteMessage(response, 5000);
 		}
 
 		await user.roles.add(role.id);
@@ -45,8 +43,8 @@ export class AddRoleCommand implements ICommand {
 			.setColor(Config.color)
 			.setDescription(`Bravo ! Tu as reçu le rôle de **${role.name}** !`);
 
-		await user.send(dmMessageToUser);
-		const response: Message = await message.reply("rôle attribué avec succès !");
-		await response.delete({ timeout: 5000 });
+		await user.send({ embeds: [ dmMessageToUser ] });
+		const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Rôle attribué avec succès !");
+		DiscordHelper.deleteMessage(response, 5000);
 	}
 }

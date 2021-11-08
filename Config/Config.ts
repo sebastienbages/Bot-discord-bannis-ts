@@ -14,17 +14,30 @@ import { RestartCommand } from "../Commands/utility/Restart";
 import { TopServerCommand } from "../Commands/utility/TopServer";
 import { VoteCommand } from "../Commands/utility/Vote";
 import { RulesCommand } from "../Commands/moderation/Rules";
+import { HexColorString } from "discord.js";
 
 dotenv.config();
 
 export class Config {
-	public static readonly color = process.env.COLOR;
-	public static readonly guildId = process.env.GUILD_ID;
-	public static readonly surveyChannelId = process.env.CHA_SURVEY;
-	public static readonly token = process.env.TOKEN;
-	public static readonly tokenTopServer = process.env.TOKEN_TOP_SERVEUR;
-	public static readonly devId = process.env.DEV_ID;
-	public static readonly rulesChannelId = process.env.CHA_RULES;
+	public static readonly color: HexColorString = process.env.COLOR as HexColorString;
+	public static readonly guildId: string = process.env.GUILD_ID;
+	public static readonly surveyChannelId: string = process.env.CHA_SURVEY;
+	public static readonly token: string = process.env.TOKEN;
+	public static readonly tokenTopServer: string = process.env.TOKEN_TOP_SERVEUR;
+	public static readonly devId: string = process.env.DEV_ID;
+	public static readonly rulesChannelId: string = process.env.CHA_RULES;
+	public static readonly nodeEnv: string = process.env.NODE_ENV;
+	public static readonly welcomeChannel: string = process.env.CHA_WELCOME;
+	public static readonly prefix: string = process.env.PREFIX;
+	public static readonly ticketChannel: string = process.env.CHA_TICKET;
+	public static readonly categoryTicketChannel: string = process.env.CATEGORY_TICKET;
+	public static readonly ticketMessage: string = process.env.MSG_TICKET;
+	public static readonly webhookVoteKeeper: string = process.env.WH_VOTE_KEEPER;
+	public static readonly webhookServerKeeper: string = process.env.WH_SERVER_KEEPER;
+	public static readonly roleStart: string = process.env.ROLE_START;
+	public static readonly serverChoiceMsg: string = process.env.SERVER_MSG;
+	public static readonly serverRoleOne: string = process.env.SERVER_ROLE_1;
+	public static readonly serverRoleTwo: string = process.env.SERVER_ROLE_2;
 	public static readonly commands = [
 		SayCommand,
 		SaySimpleCommand,
