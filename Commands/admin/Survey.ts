@@ -1,4 +1,10 @@
-import { Message, MessageEmbed, PermissionResolvable, TextChannel } from "discord.js";
+import {
+	Message,
+	MessageAttachment,
+	MessageEmbed,
+	PermissionResolvable,
+	TextChannel,
+} from "discord.js";
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { Config } from "../../Config/Config";
@@ -26,15 +32,15 @@ export class SurveyCommand implements ICommand {
 
 		const messageToSend: string = args.join(" ");
 
+		const image = new MessageAttachment("./Images/image-survey.png");
 		const messageEmbed = new MessageEmbed()
 			.setTitle("SONDAGE")
-			.setThumbnail("https://cdn.pixabay.com/photo/2020/01/09/00/55/ballot-4751566_960_720.png")
+			.setThumbnail("attachment://image-survey.png")
 			.setDescription(messageToSend)
-			.setColor(Config.color)
-			.setFooter("Répondez en cliquant sur les réactions ci-dessous :");
+			.setColor(Config.color);
 
-		const survey = await sondageChannel.send({ embeds: [ messageEmbed ] });
-		await survey.react("✅");
-		await survey.react("❌");
+		const survey = await sondageChannel.send({ embeds: [ messageEmbed ], files: [ image ] });
+		await survey.react("👍");
+		await survey.react("👎");
 	}
 }

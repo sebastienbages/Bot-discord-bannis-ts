@@ -8,7 +8,7 @@ import { RemoveRoleCommand } from "../Commands/moderation/RemoveRole";
 import { SayCommand } from "../Commands/moderation/Say";
 import { SayPrivCommand } from "../Commands/moderation/SayPriv";
 import { SaySimpleCommand } from "../Commands/moderation/SaySimple";
-import { SurveyCommand } from "../Commands/moderation/Survey";
+import { SurveyCommand } from "../Commands/admin/Survey";
 import { HelpCommand } from "../Commands/utility/Help";
 import { RestartCommand } from "../Commands/utility/Restart";
 import { TopServerCommand } from "../Commands/utility/TopServer";
@@ -19,7 +19,7 @@ import { HexColorString } from "discord.js";
 dotenv.config();
 
 export class Config {
-	public static readonly color: HexColorString = process.env.COLOR as HexColorString;
+	public static readonly color: HexColorString = `#${process.env.COLOR}`;
 	public static readonly guildId: string = process.env.GUILD_ID;
 	public static readonly surveyChannelId: string = process.env.CHA_SURVEY;
 	public static readonly token: string = process.env.TOKEN;

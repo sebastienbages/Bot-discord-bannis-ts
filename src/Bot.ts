@@ -8,7 +8,7 @@ export class Bot {
 	private events: Events;
 	private _logService: LogService;
 
-	constructor(token: string) {
+	constructor(token: string, events: Events) {
 		this.client = new Client({
 			intents: [
 				Intents.FLAGS.GUILDS,
@@ -28,7 +28,7 @@ export class Bot {
 			],
 			partials: [ "MESSAGE", "CHANNEL", "REACTION" ],
 		});
-		this.events = new Events();
+		this.events = events;
 		this._logService = new LogService();
 		this.token = token;
 	}
