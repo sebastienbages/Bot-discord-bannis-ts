@@ -33,7 +33,7 @@ logService.log("Gestion des commandes initialisée");
 const events = new Events();
 logService.log("Évènements initialisés");
 
-const bot: Bot = new Bot(Config.token);
+const bot: Bot = new Bot(Config.token, events);
 bot.start();
 
 try {
