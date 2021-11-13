@@ -3,7 +3,6 @@ import { ICommand } from "../Commands/ICommand";
 import { CommandContext } from "../Commands/CommandContext";
 import { Config } from "../Config/Config";
 import { ServiceProvider } from "./ServiceProvider";
-import { WebhookProvider } from "./WebhookProvider";
 import { LogService } from "../Services/LogService";
 import { DiscordHelper } from "../Helper/DiscordHelper";
 
@@ -21,19 +20,11 @@ export class CommandHandler {
 	}
 
 	async handleMessage(message: Message, client: Client): Promise<void> {
-		const webHookVoteKeeper = WebhookProvider.getVoteKeeper();
-
-		if (message.author.id === webHookVoteKeeper.id && Config.nodeEnv === "production") {
-			await ServiceProvider.getVoteService().saveMessage(message);
-			return undefined;
-		}
-
 		if (message.author.bot) return undefined;
 
 		if (message.channel.type === "DM" && !message.content.startsWith(this._prefix)) {
 			const adminService = await ServiceProvider.getAdminService();
-			await adminService.transfertPrivateMessage(message);
-			return undefined;
+			return await adminService.transfertPrivateMessage(message);
 		}
 
 		if (!this.isCommand(message)) return undefined;
@@ -113,6 +104,7 @@ export class CommandHandler {
 			await matchedCommands.run(commandContext);
 		}
 		catch (error) {
+			this._logService.error(error);
 			await DiscordHelper.replyToMessageAuthor(message, "une erreur s'est produite, veuillez contacter un administrateur");
 		}
 	}

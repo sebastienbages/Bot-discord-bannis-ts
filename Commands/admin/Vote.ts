@@ -1,7 +1,7 @@
 import { ICommand } from "../ICommand";
 import { CommandContext } from "../CommandContext";
 import { ServiceProvider } from "../../src/ServiceProvider";
-import { PermissionResolvable } from "discord.js";
+import { Guild, PermissionResolvable } from "discord.js";
 import { VoteService } from "../../Services/VoteService";
 
 export class VoteCommand implements ICommand {
@@ -20,8 +20,8 @@ export class VoteCommand implements ICommand {
 		this._voteService = ServiceProvider.getVoteService();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async run(commandContext: CommandContext): Promise<void> {
-		await this._voteService.sendMessage();
+		const guild: Guild = commandContext.message.guild;
+		await this._voteService.sendMessage(guild);
 	}
 }
