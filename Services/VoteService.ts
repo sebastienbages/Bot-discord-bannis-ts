@@ -1,14 +1,20 @@
-import { Message, MessageEmbed, TextChannel } from "discord.js";
+import {
+	Guild,
+	Message,
+	MessageActionRow,
+	MessageAttachment,
+	MessageButton,
+	MessageEmbed,
+	TextChannel,
+} from "discord.js";
 import { Config } from "../Config/Config";
 import { VoteRepository } from "../Dal/VoteRepository";
 import { TopServerModel } from "../Models/TopServerModel";
 import { MessageModel } from "../Models/MessageModel";
 import { TopServerService } from "./TopServerService";
 import { AutoMapper } from "./AutoMapper";
-import { WebhookProvider } from "../src/WebhookProvider";
 import { LogService } from "./LogService";
 
-// noinspection JSIgnoredPromiseFromCall
 export class VoteService {
 
 	private _voteRepository: VoteRepository;
@@ -64,22 +70,42 @@ export class VoteService {
 	/**
 	 * Envoi le message d'appel aux votes
 	 */
-	public async sendMessage(): Promise<void> {
+	public async sendMessage(guild: Guild): Promise<void> {
 		const topServerModel: TopServerModel = await this._topServerService.getSlugTopServer();
 		const numberOfVotes: number = await this._topServerService.getNumberOfVotes();
 		const topServeurUrl: string = "https://top-serveurs.net/conan-exiles/vote/" + topServerModel.slug;
 
+		const logo = new MessageAttachment("./Images/logo-topserver.png");
 		const messageEmbed = new MessageEmbed()
 			.setColor(Config.color)
-			.setTitle("VOTEZ POUR LE SERVEUR")
+			.setTitle("SUPPORTEZ NOTRE COMMUNAUTE")
 			.setURL(topServeurUrl)
-			.setThumbnail("https://top-serveurs.net/images/logo-base.png")
-			.setDescription("N'hésitez pas à donner un coup de pouce au serveur en votant. Merci pour votre participation :thumbsup:")
-			.addField("LIEN TOP SERVEUR", topServeurUrl)
+			.setThumbnail("attachment://logo-topserver.png")
+			.setDescription("N'hésitez pas à donner un coup de pouce au serveur en votant sur Top Serveurs. Merci pour votre soutien :thumbsup:")
 			.setFooter(`Pour l'instant, nous avons ${numberOfVotes.toString()} votes ce mois-ci`);
 
-		await WebhookProvider.getVoteKeeper().send({ embeds: [ messageEmbed ] });
-		this._logService.log("Message des votes envoyé");
+		const components = new MessageActionRow()
+			.addComponents(
+				new MessageButton()
+					.setStyle("LINK")
+					.setLabel("LIEN TOP SERVEURS")
+					.setEmoji("🔗")
+					.setURL(topServeurUrl)
+			);
+
+		const voteChannel = guild.channels.cache.get(Config.voteChannelId) as TextChannel;
+
+		if (voteChannel) {
+			const voteMessage = await voteChannel.send({ embeds: [ messageEmbed ], files: [ logo ], components: [ components ] });
+
+			if (Config.nodeEnv === "production") {
+				await this.saveMessage(voteMessage);
+			}
+
+			return this._logService.log("Message des votes envoyé");
+		}
+
+		throw new Error("Erreur envoi message des votes");
 	}
 
 	/**

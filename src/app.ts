@@ -44,5 +44,5 @@ try {
 	bot.client.on("interactionCreate", (interaction: Interaction) => events.interactionCreate().run(interaction));
 }
 catch (error) {
-	logService.error(error.stack);
+	logService.error(error);
 }
