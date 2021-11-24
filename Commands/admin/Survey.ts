@@ -36,7 +36,7 @@ export class SurveyCommand implements ICommand {
 		const messageEmbed = new MessageEmbed()
 			.setTitle("SONDAGE")
 			.setThumbnail("attachment://image-survey.png")
-			.setDescription(messageToSend)
+			.setDescription(`<@&${Config.roleStart}> \n ${messageToSend}`)
 			.setColor(Config.color);
 
 		const survey = await sondageChannel.send({ embeds: [ messageEmbed ], files: [ image ] });
