@@ -1,36 +1,36 @@
 import {
-	Message,
+	CommandInteraction,
 	MessageAttachment,
 	MessageEmbed,
 	PermissionResolvable,
 	TextChannel,
 } from "discord.js";
-import { ICommand } from "../ICommand";
-import { CommandContext } from "../CommandContext";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../ISlashCommand";
 import { Config } from "../../Config/Config";
-import { DiscordHelper } from "../../Helper/DiscordHelper";
+import { ApplicationCommandOptionType } from "discord-api-types";
 
-export class SurveyCommand implements ICommand {
-	public readonly name: string = "survey";
-	public readonly aliases: string[] = [ "question", "sondage" ];
-	public readonly argumentIsNecessary: boolean = true;
-	public readonly description: string = "Créé un sondage dans le salon des sondages";
-	public readonly usage: string = "<question>";
-	public readonly guildOnly: boolean = true;
-	public readonly cooldown: number = 0;
+export class SurveyCommand implements ISlashCommand {
+	public readonly name: string = "sondage";
+	public readonly description: string = "Rédige ta question et j'enverrai un sondage dans le bon channel";
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
+	public readonly subCommandsOptions: SubCommandOptions[] = [];
+	public readonly commandOptions: CommandOptions[] = [
+		{
+			type: ApplicationCommandOptionType.String,
+			name: "question",
+			description: "La question à poser...",
+			isRequired: true,
+		},
+	];
 
-	async run(commandContext: CommandContext): Promise<void> {
-		const message: Message = commandContext.message;
-		const args: string[] = commandContext.args;
-		const sondageChannel = message.guild.channels.cache.find(channel => channel.id === Config.surveyChannelId) as TextChannel;
+	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
+		const sondageChannel = commandInteraction.guild.channels.cache.find(channel => channel.id === Config.surveyChannelId) as TextChannel;
 
 		if (!sondageChannel) {
-			const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Le channel des sondages est introuvable");
-			return DiscordHelper.deleteMessage(response, 5000);
+			await commandInteraction.reply({ content: "Le channel des sondages est introuvable", ephemeral: true });
 		}
 
-		const messageToSend: string = args.join(" ");
+		const messageToSend: string = commandInteraction.options.data[0].value as string;
 
 		const image = new MessageAttachment("./Images/image-survey.png");
 		const messageEmbed = new MessageEmbed()
@@ -42,5 +42,7 @@ export class SurveyCommand implements ICommand {
 		const survey = await sondageChannel.send({ embeds: [ messageEmbed ], files: [ image ] });
 		await survey.react("👍");
 		await survey.react("👎");
+
+		return await commandInteraction.reply({ content: "J'ai bien envoyé le sondage :blush:", ephemeral: true, fetchReply: false });
 	}
 }

@@ -1,36 +1,30 @@
-import { Message, MessageEmbed, PermissionResolvable, TextChannel } from "discord.js";
-import { ICommand } from "../ICommand";
-import { CommandContext } from "../CommandContext";
-import { Config } from "../../Config/Config";
-import { DiscordHelper } from "../../Helper/DiscordHelper";
+import { CommandInteraction, PermissionResolvable, TextChannel } from "discord.js";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../ISlashCommand";
+import { ApplicationCommandOptionType } from "discord-api-types";
 
-export class ClearCommand implements ICommand {
-	public readonly name: string = "clear";
-	public readonly aliases: string[] = [ "effacer", "nettoyer" ];
-	public readonly argumentIsNecessary: boolean = true;
-	public readonly description: string = "Efface le nombre de message spécifié dans le salon visé";
-	public readonly usage: string = "<nombre>";
-	public readonly guildOnly: boolean = true;
-	public readonly cooldown: number = 5;
+export class ClearCommand implements ISlashCommand {
+	public readonly name: string = "effacer";
+	public readonly description: string = "Je peux effacer le nombre de message(s) que tu auras choisi dans le salon où tu te situe";
 	public readonly permission: PermissionResolvable = "MANAGE_MESSAGES";
+	readonly commandOptions: CommandOptions[] = [
+		{
+			type: ApplicationCommandOptionType.Number,
+			name: "nombre",
+			description: "Combien de messages ?",
+			isRequired: true,
+		},
+	];
+	readonly subCommandsOptions: SubCommandOptions[] = [];
 
-	async run(commandContext: CommandContext): Promise<void> {
-		const message: Message = commandContext.message;
-		const channel = message.channel as TextChannel;
-		const args: string[] = commandContext.args;
-
+	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
+		const number = commandInteraction.options.getNumber("nombre") as number;
+		const channel = commandInteraction.channel as TextChannel;
 		try {
-			await channel.bulkDelete(parseInt(args[0]), true);
-
-			const messageEmbed = new MessageEmbed()
-				.setColor(Config.color)
-				.setDescription(`J'ai supprimé ***${args[0]} message(s)***`);
-
-			const response: Message = await message.channel.send({ embeds: [ messageEmbed ] });
-			await DiscordHelper.deleteMessage(response, 5000);
+			await channel.bulkDelete(number, true);
+			return await commandInteraction.reply({ content: `J'ai supprimé ***${number.toString()} message(s)*** :broom:`, ephemeral: true, fetchReply: false });
 		}
 		catch (error) {
-			await DiscordHelper.replyToMessageAuthor(message, "Je ne peux pas effacer ce nombre de messages");
+			throw Error("Je n'arrive pas à supprimer tous les messages :weary:");
 		}
 	}
 }

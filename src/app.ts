@@ -1,11 +1,9 @@
-// noinspection JSIgnoredPromiseFromCall
 import { GuildMember, Interaction, Message, MessageReaction, User } from "discord.js";
 import * as dotenv from "dotenv";
 import { Config } from "../Config/Config";
 import { Bot } from "./Bot";
-import { CommandHandler } from "./CommandHandler";
-import { Events } from "./Events";
-import { ServiceProvider } from "./ServiceProvider";
+import { EventsProvider } from "./EventsProvider";
+import { ServicesProvider } from "./ServicesProvider";
 import { WebhookProvider } from "./WebhookProvider";
 import { LogService } from "../Services/LogService";
 
@@ -18,26 +16,33 @@ try {
 	})();
 }
 catch (error) {
-	logService.error(error.stack);
+	logService.error(error);
 }
 
-ServiceProvider.initializeServices();
+ServicesProvider.initializeServices();
 logService.log("Services initialisés");
 
 WebhookProvider.initializeWebHook();
 logService.log("Webhooks initialisés");
 
-const commandHandler = new CommandHandler(Config.prefix);
-logService.log("Gestion des commandes initialisée");
-
-const events = new Events();
+const events = new EventsProvider();
 logService.log("Évènements initialisés");
 
 const bot: Bot = new Bot(Config.token, events);
 bot.start();
 
+(async () => {
+	try {
+		await ServicesProvider.getSlashCommandService().registerSlashCommand();
+		logService.log("Commandes enregistrées");
+	}
+	catch (error) {
+		logService.error(error);
+	}
+})();
+
 try {
-	bot.client.on("messageCreate", (message: Message) => commandHandler.handleMessage(message, bot.client));
+	bot.client.on("messageCreate", (message: Message) => events.messageCreateEvent().run(message));
 	bot.client.on("messageReactionAdd", (messageReaction: MessageReaction, user: User) => events.messageReactionAdd().run(messageReaction, user));
 	bot.client.on("guildMemberAdd", (member: GuildMember) => events.guildMemberAdd().run(member));
 	bot.client.on("guildMemberRemove", (member: GuildMember) => events.guildMemberRemove().run(member));

@@ -4,14 +4,16 @@ import { TicketService } from "../Services/TicketService";
 import { TopServerService } from "../Services/TopServerService";
 import { VoteService } from "../Services/VoteService";
 import { RuleService } from "../Services/RuleService";
+import { SlashCommandService } from "../Services/SlashCommandService";
 
-export class ServiceProvider {
+export class ServicesProvider {
 	private static _ticketService: TicketService;
 	private static _topServerService: TopServerService;
 	private static _voteService: VoteService;
 	private static _adminService: AdminService;
 	private static _roleService: RoleService;
 	private static _ruleService: RuleService;
+	private static _slashCommandService: SlashCommandService;
 
 	public static initializeServices(): void {
 		this._ticketService = new TicketService();
@@ -20,6 +22,7 @@ export class ServiceProvider {
 		this._adminService = new AdminService();
 		this._roleService = new RoleService();
 		this._ruleService = new RuleService();
+		this._slashCommandService = new SlashCommandService();
 	}
 
 	public static getTicketService(): TicketService {
@@ -44,5 +47,9 @@ export class ServiceProvider {
 
 	public static getRuleService(): RuleService {
 		return this._ruleService;
+	}
+
+	public static getSlashCommandService(): SlashCommandService {
+		return this._slashCommandService;
 	}
 }

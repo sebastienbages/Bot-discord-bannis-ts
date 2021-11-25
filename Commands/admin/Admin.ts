@@ -1,63 +1,72 @@
-import { ICommand } from "../ICommand";
-import { CommandContext } from "../CommandContext";
-import { ServiceProvider } from "../../src/ServiceProvider";
-import { GuildMember, Message, PermissionResolvable } from "discord.js";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../ISlashCommand";
+import { ServicesProvider } from "../../src/ServicesProvider";
+import { CommandInteraction, GuildMember, PermissionResolvable } from "discord.js";
 import { AdminService } from "../../Services/AdminService";
-import { DiscordHelper } from "../../Helper/DiscordHelper";
+import { ApplicationCommandOptionType } from "discord-api-types";
 
-export class AdminCommand implements ICommand {
+export class AdminCommand implements ISlashCommand {
 	public readonly name: string = "admin";
-	public readonly aliases: string[] = [];
-	public readonly argumentIsNecessary: boolean = true;
-	public readonly description: string = "Outils de gestion des admins du serveur";
-	public readonly usage: string = "[list] / [add] <@membre> / [remove] <@membre>";
-	public readonly guildOnly: boolean = true;
-	public readonly cooldown: number = 0;
+	public readonly description: string = "Tu peux choisir qui recevra une copie de messages privés adressés au bot";
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
-
+	public readonly commandOptions: CommandOptions[] = [];
+	public readonly subCommandsOptions: SubCommandOptions[] = [
+		{
+			name: "liste",
+			description: "Tu veux connaître la liste des administrateurs ?",
+		},
+		{
+			name: "ajouter",
+			description: "Je peux enregistrer un utilisateur comme administrateur",
+			option: {
+				type: ApplicationCommandOptionType.User,
+				name: "utilisateur",
+				description: "Quel utilisateur ?",
+				isRequired: true,
+			},
+		},
+		{
+			name: "supprimer",
+			description: "Je peux supprimer un administrateur de la liste",
+			option: {
+				type: ApplicationCommandOptionType.User,
+				name: "utilisateur",
+				description: "Quel utilisateur ?",
+				isRequired: true,
+			},
+		},
+	];
 	private _adminService: AdminService;
 
 	constructor() {
-		this._adminService = ServiceProvider.getAdminService();
+		this._adminService = ServicesProvider.getAdminService();
 	}
 
-	async run(commandContext: CommandContext): Promise<void> {
-		const command: string = commandContext.args[0].toLowerCase();
-		const message: Message = commandContext.message;
+	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
+		const subCommandName = commandInteraction.options.getSubcommand();
 
-		if (command === "list") {
-			return this._adminService.sendAdminList(message);
+		if (subCommandName === "liste") {
+			await this._adminService.sendAdminList(commandInteraction);
 		}
 
-		const user: GuildMember = await DiscordHelper.getUserByMention(message);
-		const discordId: string = user.id;
-
-		if (!user) {
-			const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce membre n'existe pas");
-			return DiscordHelper.deleteMessage(response, 5000);
-		}
-
-		if (command === "add") {
-			if (!this._adminService.adminIsExist(discordId)) {
-				await this._adminService.createAdmin(discordId, user.displayName);
-				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Enregistrement effectué avec succès");
-				return DiscordHelper.deleteMessage(response, 5000);
+		if (subCommandName === "ajouter") {
+			const guildMember = commandInteraction.options.getMember("utilisateur") as GuildMember;
+			if (!this._adminService.adminIsExist(guildMember.id)) {
+				await this._adminService.createAdmin(guildMember.id, guildMember.displayName);
+				return await commandInteraction.reply({ content: "Enregistrement effectué avec succès", ephemeral: true, fetchReply: false });
 			}
 			else {
-				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce membre est déjà enregistré");
-				return DiscordHelper.deleteMessage(response, 5000);
+				return await commandInteraction.reply({ content: "Cet utilisateur est déjà enregistré", ephemeral: true, fetchReply: false });
 			}
 		}
 
-		if (command === "remove") {
-			if (this._adminService.adminIsExist(discordId)) {
-				await this._adminService.removeAdmin(discordId);
-				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Administrateur supprimé avec succès");
-				return DiscordHelper.deleteMessage(response, 5000);
+		if (subCommandName === "supprimer") {
+			const guildMember = commandInteraction.options.getMember("utilisateur") as GuildMember;
+			if (this._adminService.adminIsExist(guildMember.id)) {
+				await this._adminService.removeAdmin(guildMember.id);
+				return await commandInteraction.reply({ content: "Suppression effectuée avec succès", ephemeral: true, fetchReply: false });
 			}
 			else {
-				const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Ce membre n'est pas enregistré");
-				return DiscordHelper.deleteMessage(response, 5000);
+				return await commandInteraction.reply({ content: "Cet utilisateur n'est pas enregistré", ephemeral: true, fetchReply: false });
 			}
 		}
 	}

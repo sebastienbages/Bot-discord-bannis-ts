@@ -1,20 +1,53 @@
-import { ICommand } from "../ICommand";
-import { CommandContext } from "../CommandContext";
-import { PermissionResolvable } from "discord.js";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../ISlashCommand";
+import { CommandInteraction, PermissionResolvable } from "discord.js";
 import { WebhookProvider } from "../../src/WebhookProvider";
+import { Config } from "../../Config/Config";
+import { ApplicationCommandOptionType } from "discord-api-types";
 
-export class RestartCommand implements ICommand {
+export class RestartCommand implements ISlashCommand {
 	public readonly name: string = "restart";
-	public readonly aliases: string[] = [];
-	public readonly argumentIsNecessary: boolean = false;
-	public readonly description: string = "Envoi un message d'alerte de restart du serveur en utilisant le Webhook Gardien du serveur";
-	public readonly usage: string = "[nom de la commande]";
-	public readonly guildOnly: boolean = true;
-	public readonly cooldown: number = 0;
+	public readonly description: string = "Envoi un message d'alerte de restart du serveur";
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
+	readonly commandOptions: CommandOptions[] = [
+		{
+			type: ApplicationCommandOptionType.String,
+			name: "option",
+			description: "Pour quel(s) serveur(s) ?",
+			isRequired: true,
+			choices: [
+				[
+					"Serveur 1",
+					"serveur_1",
+				],
+				[
+					"Serveur 2",
+					"serveur_2",
+				],
+				[
+					"Tous les serveurs",
+					"serveur_tous",
+				],
+			],
+		},
+	];
+	readonly subCommandsOptions: SubCommandOptions[] = [];
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async run(commandContext: CommandContext): Promise<void> {
-		await WebhookProvider.getServerKeeper().send(":warning: @everyone Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:");
+	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
+		const option = commandInteraction.options.getString("option") as string;
+
+		if (option === "serveur_tous") {
+			await WebhookProvider.getServerKeeperOne().send(`:warning: <@&${Config.serverRoleOne}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
+			await WebhookProvider.getServerKeeperTwo().send(`:warning: <@&${Config.serverRoleTwo}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
+		}
+
+		if (option === "serveur_1") {
+			await WebhookProvider.getServerKeeperOne().send(`:warning: <@&${Config.serverRoleOne}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
+		}
+
+		if (option === "serveur_2") {
+			await WebhookProvider.getServerKeeperTwo().send(`:warning: <@&${Config.serverRoleTwo}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
+		}
+
+		return await commandInteraction.reply({ content: "C'est bon, les utilisateurs sont avertis :mega:", ephemeral: true, fetchReply: false });
 	}
 }

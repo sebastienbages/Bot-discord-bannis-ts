@@ -3,7 +3,7 @@ import {
 	MessageReaction,
 	User,
 } from "discord.js";
-import { ServiceProvider } from "../src/ServiceProvider";
+import { ServicesProvider } from "../src/ServicesProvider";
 import { TicketService } from "../Services/TicketService";
 import { LogService } from "../Services/LogService";
 import { RoleService } from "../Services/RoleService";
@@ -17,9 +17,9 @@ export class MessageReactionAddEvent {
 
 	constructor() {
 		this._logService = new LogService();
-		this._roleService = ServiceProvider.getRoleService();
-		this._ruleService = ServiceProvider.getRuleService();
-		this._ticketService = ServiceProvider.getTicketService();
+		this._roleService = ServicesProvider.getRoleService();
+		this._ruleService = ServicesProvider.getRuleService();
+		this._ticketService = ServicesProvider.getTicketService();
 	}
 
 	public async run(messageReaction: MessageReaction, user: User): Promise<void> {

@@ -3,7 +3,7 @@ import { Config } from "../Config/Config";
 import { AdminModel } from "../Models/AdminModel";
 import { RoleModel } from "../Models/RoleModel";
 import { AdminService } from "../Services/AdminService";
-import { ServiceProvider } from "../src/ServiceProvider";
+import { ServicesProvider } from "../src/ServicesProvider";
 import { LogService } from "../Services/LogService";
 
 export class GuildMemberAddEvent {
@@ -19,7 +19,7 @@ export class GuildMemberAddEvent {
 		let roleStart: Role;
 
 		if (Config.nodeEnv === "production") {
-			const roleModel: RoleModel = await ServiceProvider.getRoleService().getStartRole();
+			const roleModel: RoleModel = await ServicesProvider.getRoleService().getStartRole();
 			roleStart = await member.guild.roles.cache.get(roleModel.discordId);
 		}
 		else {
@@ -31,7 +31,7 @@ export class GuildMemberAddEvent {
 			this._logService.log(`Attribution du role d'arrivée à ${roleStart.name} effectué`);
 		}
 		else {
-			const adminService: AdminService = ServiceProvider.getAdminService();
+			const adminService: AdminService = ServicesProvider.getAdminService();
 			const admins: AdminModel[] = adminService.getAdmins();
 
 			if (Config.nodeEnv === "production") {

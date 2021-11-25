@@ -1,13 +1,11 @@
 import { RoleService } from "./RoleService";
-import { Collection, Message, MessageReaction, TextChannel } from "discord.js";
+import { Collection, CommandInteraction, Guild, Message, MessageReaction, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
 import { RulesRepository } from "../Dal/RulesRepository";
 import { MessageModel } from "../Models/MessageModel";
 import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
-import { DiscordHelper } from "../Helper/DiscordHelper";
 
-// noinspection JSIgnoredPromiseFromCall
 export class RuleService {
 
 	private _roleService: RoleService;
@@ -51,14 +49,13 @@ export class RuleService {
 
 	/**
 	 * Ajoute les réactions correspondantes au choix des serveurs sur le dernier message du channel règlements
-	 * @param message
+	 * @param commandInteraction
 	 */
-	public async addReactForServeurChoice(message: Message): Promise<void> {
-		const lastMessage = await this.getLastMessageInChannel(message);
+	public async addReactForServeurChoice(commandInteraction: CommandInteraction): Promise<void> {
+		const lastMessage = await this.getLastMessageInChannel(commandInteraction.guild);
 
 		if (this.reactServeurChoiceExist(lastMessage)) {
-			const response = await DiscordHelper.replyToMessageAuthor(message, "Une ou plusieurs réactions sont déjà présentes");
-			return DiscordHelper.deleteMessage(response, 5000);
+			return await commandInteraction.reply({ content: "Une ou plusieurs réactions sont déjà présentes :face_with_monocle:", ephemeral: true, fetchReply: false });
 		}
 
 		for (const react of RuleService.serveurReactions) {
@@ -67,8 +64,13 @@ export class RuleService {
 
 		if (this._serverChoiceMessageId != lastMessage.id) {
 			this._serverChoiceMessageId = lastMessage.id;
+		}
+
+		if (Config.nodeEnv === "production") {
 			await this._rulesRepository.saveMessageServerChoice(lastMessage.id);
 		}
+
+		return await commandInteraction.reply({ content: "J'ai bien ajouté les réactions :mechanical_arm:", ephemeral: true, fetchReply: false });
 	}
 
 	/**
@@ -88,26 +90,32 @@ export class RuleService {
 
 	/**
 	 * Supprime les réactions liées aux choix du serveur sur le message
-	 * @param message
+	 * @param commandInteraction
 	 */
-	public async removeReactForServeurChoice(message: Message): Promise<void> {
-		const lastMessage: Message = await message.channel.messages.fetch(this._serverChoiceMessageId);
+	public async removeReactForServeurChoice(commandInteraction: CommandInteraction): Promise<void> {
+		const rulesChannel = await commandInteraction.guild.channels.fetch(Config.rulesChannelId) as TextChannel;
+		const lastMessage: Message = await rulesChannel.messages.fetch(this._serverChoiceMessageId);
 		for (const react of RuleService.serveurReactions) {
 			if (lastMessage.reactions.cache.has(react)) {
 				const messageReaction: MessageReaction = lastMessage.reactions.cache.find(r => r.emoji.name === react);
 				await messageReaction.remove();
-				await this.removeMessageServerChoice();
 			}
 		}
+
+		if (Config.nodeEnv === "production") {
+			await this.removeMessageServerChoice();
+		}
+
+		return await commandInteraction.reply({ content: "J'ai bien supprimé les réactions :mechanical_arm:", ephemeral: true, fetchReply: false });
 	}
 
 	/**
 	 * Récupère le dernier message dans le channel dédié au règlement
-	 * @param message
 	 * @private
+	 * @param guild
 	 */
-	private async getLastMessageInChannel(message: Message): Promise<Message> {
-		const rulesChannel = await message.client.channels.fetch(Config.rulesChannelId) as TextChannel;
+	private async getLastMessageInChannel(guild: Guild): Promise<Message> {
+		const rulesChannel = await guild.channels.fetch(Config.rulesChannelId) as TextChannel;
 
 		if (!rulesChannel) {
 			throw new Error("Le channel du règlement est introuvable");

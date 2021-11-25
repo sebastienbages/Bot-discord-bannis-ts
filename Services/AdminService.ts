@@ -1,11 +1,10 @@
-import { Message, MessageEmbed, User } from "discord.js";
+import { CommandInteraction, Message, MessageEmbed, User } from "discord.js";
 import { Config } from "../Config/Config";
 import { AdminRepository } from "../Dal/AdminRepository";
 import { AdminModel } from "../Models/AdminModel";
 import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
 
-// noinspection JSIgnoredPromiseFromCall
 export class AdminService {
 
 	private _adminRepository: AdminRepository;
@@ -106,17 +105,11 @@ export class AdminService {
 
 	/**
 	 * Envoi la liste des administrateurs en privé à l'émetteur du message
-	 * @param message
+	 * @param commandInteraction
 	 */
-	public async sendAdminList(message: Message): Promise<void> {
+	public async sendAdminList(commandInteraction: CommandInteraction): Promise<void> {
 		const admins: AdminModel[] = this.getAdmins();
-		const adminsNames: string[] = [];
-		admins.forEach(admin => adminsNames.push(admin.name));
-		const data: string[] = [];
-		data.push("__LISTE DES ADMINISTRATEURS :__");
-		data.push(`\`${adminsNames.join(", ")}\``);
-		for (const element of data) {
-			await message.author.send(element);
-		}
+		const adminsNames: string[] = admins.map(a => a.name);
+		return await commandInteraction.reply({ content: `LISTE DES ADMINISTRATEURS : \n \`\`${adminsNames.join(", ")}\`\``, ephemeral: true, fetchReply: false });
 	}
 }

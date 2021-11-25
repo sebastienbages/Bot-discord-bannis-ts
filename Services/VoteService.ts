@@ -104,8 +104,9 @@ export class VoteService {
 
 			return this._logService.log("Message des votes envoyé");
 		}
-
-		throw new Error("Erreur envoi message des votes");
+		else {
+			throw new Error("Je ne trouve pas la taverne :weary:");
+		}
 	}
 
 	/**
