@@ -1,10 +1,10 @@
 import { RoleRepository } from "../Dal/RoleRepository";
 import { RoleModel } from "../Models/RoleModel";
 import { AutoMapper } from "./AutoMapper";
-import { GuildMember, MessageReaction, Role } from "discord.js";
-import { RuleService } from "./RuleService";
+import { GuildMember, SelectMenuInteraction } from "discord.js";
 import { LogService } from "./LogService";
 import { Config } from "../Config/Config";
+import { ServerSelectMenu } from "../Interactions/SelectMenus/ServerSelectMenu";
 
 export class RoleService {
 
@@ -47,40 +47,34 @@ export class RoleService {
 	}
 
 	/**
-	 * Retourne le Role attribué aux nouveaux arrivants sur le serveur
-	 */
-	public async getStartRole(): Promise<RoleModel> {
-		const result: unknown = await this._roleRepository.getStartRole();
-		return AutoMapper.mapRoleModel(result);
-	}
-
-	/**
 	 * Assigne le role correspondant au numéro du serveur selon la réaction
-	 * @param messageReaction
-	 * @param user
+	 * @param selectMenuInteraction
 	 */
-	public async assignServerRole(messageReaction: MessageReaction, user: GuildMember): Promise<void> {
-		const indexReaction: number = RuleService.serveurReactions.indexOf(messageReaction.emoji.name);
-		const roleId: string = this._serveurRoles[indexReaction].discordId;
+	public async assignServerRole(selectMenuInteraction: SelectMenuInteraction): Promise<void> {
+		const guildMember = selectMenuInteraction.member as GuildMember;
+		const guildMemberName = guildMember.displayName;
 
-		for (const r of this._serveurRoles) {
-			const index = this._serveurRoles.indexOf(r);
-			if (this.userHasRole(user, r.discordId)) {
-				await messageReaction.users.remove(user);
-				await user.send(`Désolé, tu appartiens déjà au serveur ${RuleService.serveurReactions[index]} !`);
-				return undefined;
+		for (const role of this._serveurRoles) {
+			if (this.userHasRole(role.discordId, guildMember)) {
+				return selectMenuInteraction.reply({ content: `Tu appartiens déjà au **${role.name}** :nerd:`, ephemeral: true, fetchReply: false });
 			}
 		}
 
-		let serverRole: Role = user.guild.roles.cache.get(roleId);
+		const choice = selectMenuInteraction.values[0] as string;
 
-		if (!serverRole) {
-			serverRole = await user.guild.roles.fetch(roleId);
+		if (choice === ServerSelectMenu.serverOne) {
+			await guildMember.roles.add(Config.serverRoleOne);
+			await guildMember.setNickname(guildMemberName + " (1)");
+			await selectMenuInteraction.reply({ content: "Voilà, tu appartiens maintenant au **Serveur 1** :sunglasses: ! \n D'ailleurs je me suis permis de l'écrire à côté de ton pseudo :relaxed:", ephemeral: true, fetchReply: false });
+			return this._logService.log(`${guildMember.displayName} a choisi le serveur 1`);
 		}
 
-		await user.roles.add(serverRole);
-		await user.send(`Tu appartiens désormais au serveur ${messageReaction.emoji.name}, amuses toi bien :wink:`);
-		this._logService.log(`${user.displayName} a choisi le serveur ${(indexReaction + 1).toString()}`);
+		if (choice === ServerSelectMenu.serverTwo) {
+			await guildMember.roles.add(Config.serverRoleTwo);
+			await guildMember.setNickname(guildMemberName + " (2)");
+			await selectMenuInteraction.reply({ content: "Voilà, tu appartiens maintenant au **Serveur 2** :sunglasses: ! \n D'ailleurs je me suis permis de l'écrire à côté de ton pseudo :relaxed:", ephemeral: true, fetchReply: false });
+			return this._logService.log(`${guildMember.displayName} a choisi le serveur 2`);
+		}
 	}
 
 	/**
@@ -98,7 +92,25 @@ export class RoleService {
 	 * @param roleId
 	 * @private
 	 */
-	private userHasRole(user: GuildMember, roleId: string): boolean {
+	public userHasRole(roleId: string, user: GuildMember): boolean {
 		return user.roles.cache.has(roleId);
+	}
+
+	/**
+	 * Attribue un rôle au membre de la guild
+	 * @param guildMember
+	 * @param roleId
+	 */
+	public async setRole(roleId: string, guildMember: GuildMember): Promise<GuildMember> {
+		return await guildMember.roles.add(roleId);
+	}
+
+	/**
+	 * Supprime un rôle pour le membre de la guild
+	 * @param roleId
+	 * @param guildMember
+	 */
+	public async removeRole(roleId: string, guildMember: GuildMember): Promise<GuildMember> {
+		return await guildMember.roles.remove(roleId);
 	}
 }

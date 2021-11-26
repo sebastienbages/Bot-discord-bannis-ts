@@ -1,4 +1,4 @@
-import { GuildMember, Interaction, Message, MessageReaction, User } from "discord.js";
+import { GuildMember, Interaction, Message } from "discord.js";
 import * as dotenv from "dotenv";
 import { Config } from "../Config/Config";
 import { Bot } from "./Bot";
@@ -43,7 +43,6 @@ bot.start();
 
 try {
 	bot.client.on("messageCreate", (message: Message) => events.messageCreateEvent().run(message));
-	bot.client.on("messageReactionAdd", (messageReaction: MessageReaction, user: User) => events.messageReactionAdd().run(messageReaction, user));
 	bot.client.on("guildMemberAdd", (member: GuildMember) => events.guildMemberAdd().run(member));
 	bot.client.on("guildMemberRemove", (member: GuildMember) => events.guildMemberRemove().run(member));
 	bot.client.on("interactionCreate", (interaction: Interaction) => events.interactionCreate().run(interaction));

@@ -1,28 +1,35 @@
 import { LogService } from "../Services/LogService";
 import {
+	BaseCommandInteraction,
 	ButtonInteraction, Collection, CommandInteraction,
 	GuildMember,
 	Interaction,
-	Message,
-	MessageActionRow,
-	TextChannel,
+	SelectMenuInteraction,
+
 } from "discord.js";
 import { TicketService } from "../Services/TicketService";
 import { ServicesProvider } from "../src/ServicesProvider";
 import { SlashCommandService } from "../Services/SlashCommandService";
-import { ISlashCommand } from "../Commands/ISlashCommand";
+import { ISlashCommand } from "../Interfaces/ISlashCommand";
+import { ButtonService } from "../Services/ButtonService";
+import { IButton } from "../Interfaces/IButton";
+import { SelectMenuService } from "../Services/SelectMenuService";
 
 export class InteractionCreateEvent {
 
 	private _logService: LogService;
 	private _ticketService: TicketService;
 	private _slashCommandService: SlashCommandService;
+	private _buttonService: ButtonService;
+	private _selectMenuService: SelectMenuService;
 	private _commands: Collection<string, ISlashCommand>;
 
 	constructor() {
 		this._logService = new LogService();
 		this._ticketService = ServicesProvider.getTicketService();
 		this._slashCommandService = ServicesProvider.getSlashCommandService();
+		this._buttonService = ServicesProvider.getButtonService();
+		this._selectMenuService = ServicesProvider.getSelectMenuService();
 		this._commands = new Collection<string, ISlashCommand>();
 		this._slashCommandService._commandsInstances.forEach(cmd => {
 			this._commands.set(cmd.name, cmd);
@@ -30,64 +37,34 @@ export class InteractionCreateEvent {
 	}
 
 	public async run(interaction: Interaction): Promise<void> {
-		if (interaction.isCommand()) {
-			const commandInteraction = interaction as CommandInteraction;
-			const slashCommand: ISlashCommand = this._commands.get(commandInteraction.commandName);
-			const member = commandInteraction.member as GuildMember;
-			try {
+		try {
+			if (interaction.isCommand()) {
+				const commandInteraction = interaction as CommandInteraction;
+				const slashCommand: ISlashCommand = this._commands.get(commandInteraction.commandName);
+				const member = commandInteraction.member as GuildMember;
 				await slashCommand.executeInteraction(commandInteraction);
 				return this._logService.log(`L'utilisateur ${member.displayName} a utilisé la commande "${commandInteraction.commandName}"`);
 			}
-			catch (error) {
-				this._logService.error(error);
-				if (!error.message) {
-					error.message = "Oups ! Une erreur s'est produite :thermometer_face:";
-				}
-				return await interaction.reply({ content: error.message, ephemeral: true });
+
+			if (interaction.isSelectMenu()) {
+				const selectMenuInteraction = interaction as SelectMenuInteraction;
+				const selectMenuInstance = this._selectMenuService.getInstance(selectMenuInteraction.customId);
+				return await selectMenuInstance.executeInteraction(selectMenuInteraction);
+			}
+
+			if (interaction.isButton()) {
+				const buttonInteraction = interaction as ButtonInteraction;
+				const instanceButton: IButton = this._buttonService.getInstance(buttonInteraction.customId);
+				return await instanceButton.executeInteraction(buttonInteraction);
 			}
 		}
-
-		if (interaction.isButton()) {
-			const buttonInteraction = interaction as ButtonInteraction;
-			const message = buttonInteraction.message as Message;
-			const guildMember: GuildMember = buttonInteraction.member as GuildMember;
-			const customId: string = buttonInteraction.customId;
-			const targetChannel = message.channel as TextChannel;
-
-			if (customId === TicketService.createTicket) {
-				const userTicket = await this._ticketService.getTicketByUserId(guildMember.id);
-				if (!userTicket.userId) {
-					await buttonInteraction.update({});
-					return await this._ticketService.createTicket(message, guildMember);
-				}
-				else {
-					return await buttonInteraction.reply({ content: `<@${guildMember.id}>, tu possèdes déjà un ticket ouvert : numéro ${userTicket.number.toString()}`, ephemeral: true });
-				}
+		catch (error) {
+			const baseInteraction = interaction as BaseCommandInteraction;
+			this._logService.error(error);
+			if (!error.message) {
+				error.message = "Oups ! Une erreur s'est produite :thermometer_face:";
 			}
-
-			if (customId === TicketService.closeTicket) {
-				const userTicket = await this._ticketService.getTicketByNumber(targetChannel);
-				if (userTicket.isClosed) {
-					return await buttonInteraction.reply({ content: "Le ticket est déjà fermé", ephemeral: true });
-				}
-				else {
-					await this._ticketService.closeTicket(guildMember, message, targetChannel, userTicket);
-					const components = buttonInteraction.message.components as MessageActionRow[];
-					components[0].components[0].setDisabled();
-					return buttonInteraction.update({ components: components });
-				}
-			}
-
-			if (customId === TicketService.reOpenTicket) {
-				await buttonInteraction.update({});
-				const userTicket = await this._ticketService.getTicketByNumber(targetChannel);
-				return await this._ticketService.reOpenTicket(message, targetChannel, userTicket);
-			}
-
-			if (customId === TicketService.deleteTicket) {
-				await buttonInteraction.update({});
-				return await this._ticketService.deleteTicket(targetChannel);
-			}
+			return await baseInteraction.reply({ content: "Oups ! Une erreur s'est produite : " + error.message, ephemeral: true });
 		}
 	}
 }
