@@ -1,5 +1,5 @@
 import {
-	CategoryChannel, GuildMember,
+	CategoryChannel, CommandInteraction, GuildMember,
 	HexColorString,
 	Message, MessageActionRow, MessageAttachment, MessageButton,
 	MessageEmbed,
@@ -16,9 +16,7 @@ import { TicketModel } from "../Models/TicketModel";
 import { RoleRepository } from "../Dal/RoleRepository";
 import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
-import { DiscordHelper } from "../Helper/DiscordHelper";
 
-// noinspection JSIgnoredPromiseFromCall
 export class TicketService {
 	private _ticketConfigRepository: TicketConfigRepository;
 	private _roleRepository: RoleRepository;
@@ -66,14 +64,6 @@ export class TicketService {
 	private async getConfig(): Promise<TicketConfigModel> {
 		const results: unknown = await this._ticketConfigRepository.getConfigData();
 		return AutoMapper.mapTicketConfigModel(results);
-	}
-
-	/**
-	 * Sauvegarde le message de création des tickets
-	 * @param id {string} - Identifiant du message
-	 */
-	private async saveTicketConfigMessageId(id: string): Promise<void> {
-		await this._ticketConfigRepository.saveTicketConfigMessageId(id);
 	}
 
 	/**
@@ -404,11 +394,12 @@ export class TicketService {
 
 	/**
 	 * Envoi le message pilote pour la création des tickets
-	 * @param message
+	 * @param commandInteraction
 	 */
-	public async sendTicketMessage(message: Message): Promise<void> {
-		const channel = message.guild.channels.cache.find(c => c.id === this._ticketConfig.ChannelId) as TextChannel;
+	public async sendTicketMessage(commandInteraction: CommandInteraction): Promise<void> {
+		const channel = commandInteraction.options.getChannel("channel") as TextChannel;
 		const logo = new MessageAttachment("./Images/logo-bannis.png");
+
 		const messageEmbed = new MessageEmbed()
 			.setColor(Config.color)
 			.setThumbnail("attachment://logo-bannis.png")
@@ -425,18 +416,12 @@ export class TicketService {
 					.setEmoji(TicketService.emojiCreateTicket),
 			);
 
-		if (channel) {
-			const messageSend: Message = await channel.send({ embeds: [ messageEmbed ], components: [ row ], files: [ logo ] });
-
-			if (Config.nodeEnv === "production") {
-				await this.saveTicketConfigMessageId(messageSend.id);
-			}
-
-			this._ticketConfig.MessageId = messageSend.id;
+		try {
+			await channel.send({ embeds: [ messageEmbed ], components: [ row ], files: [ logo ] });
+			return commandInteraction.reply({ content: "J'ai bien envoyé le message :ticket:", ephemeral: true, fetchReply: false });
 		}
-		else {
-			const response: Message = await DiscordHelper.replyToMessageAuthor(message, "Salon des tickets introuvable");
-			await DiscordHelper.deleteMessage(response, 5000);
+		catch (error) {
+			throw Error("On dirait que le format du channel n'est pas correct :thinking:");
 		}
 	}
 }

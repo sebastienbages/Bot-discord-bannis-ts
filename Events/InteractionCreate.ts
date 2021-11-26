@@ -1,6 +1,6 @@
 import { LogService } from "../Services/LogService";
 import {
-	ButtonInteraction,
+	ButtonInteraction, Collection, CommandInteraction,
 	GuildMember,
 	Interaction,
 	Message,
@@ -8,18 +8,45 @@ import {
 	TextChannel,
 } from "discord.js";
 import { TicketService } from "../Services/TicketService";
+import { ServicesProvider } from "../src/ServicesProvider";
+import { SlashCommandService } from "../Services/SlashCommandService";
+import { ISlashCommand } from "../Commands/ISlashCommand";
 
 export class InteractionCreateEvent {
 
 	private _logService: LogService;
 	private _ticketService: TicketService;
+	private _slashCommandService: SlashCommandService;
+	private _commands: Collection<string, ISlashCommand>;
 
 	constructor() {
 		this._logService = new LogService();
-		this._ticketService = new TicketService();
+		this._ticketService = ServicesProvider.getTicketService();
+		this._slashCommandService = ServicesProvider.getSlashCommandService();
+		this._commands = new Collection<string, ISlashCommand>();
+		this._slashCommandService._commandsInstances.forEach(cmd => {
+			this._commands.set(cmd.name, cmd);
+		});
 	}
 
 	public async run(interaction: Interaction): Promise<void> {
+		if (interaction.isCommand()) {
+			const commandInteraction = interaction as CommandInteraction;
+			const slashCommand: ISlashCommand = this._commands.get(commandInteraction.commandName);
+			const member = commandInteraction.member as GuildMember;
+			try {
+				await slashCommand.executeInteraction(commandInteraction);
+				return this._logService.log(`L'utilisateur ${member.displayName} a utilisé la commande "${commandInteraction.commandName}"`);
+			}
+			catch (error) {
+				this._logService.error(error);
+				if (!error.message) {
+					error.message = "Oups ! Une erreur s'est produite :thermometer_face:";
+				}
+				return await interaction.reply({ content: error.message, ephemeral: true });
+			}
+		}
+
 		if (interaction.isButton()) {
 			const buttonInteraction = interaction as ButtonInteraction;
 			const message = buttonInteraction.message as Message;

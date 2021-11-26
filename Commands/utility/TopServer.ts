@@ -1,48 +1,60 @@
-import { Message, PermissionResolvable } from "discord.js";
-import { ICommand } from "../ICommand";
-import { CommandContext } from "../CommandContext";
-import { ServiceProvider } from "../../src/ServiceProvider";
+import { CommandInteraction, PermissionResolvable } from "discord.js";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../ISlashCommand";
+import { ServicesProvider } from "../../src/ServicesProvider";
 import { Player } from "../../Models/TopServerModel";
 import { TopServerService } from "../../Services/TopServerService";
 import * as fs from "fs/promises";
+import { ApplicationCommandOptionType } from "discord-api-types";
 
-export class TopServerCommand implements ICommand {
-	public readonly name: string = "topserveur";
-	public readonly aliases: string[] = [ "classement" ];
-	public readonly argumentIsNecessary: boolean = false;
-	public readonly description: string = "Envoi le classement des votes de Top serveur du mois dernier ou courant";
-	public readonly usage: string = "[last] (option facultative)";
-	public readonly guildOnly: boolean = false;
-	public readonly cooldown: number = 30;
+export class TopServerCommand implements ISlashCommand {
+	public readonly name: string = "top-serveur";
+	public readonly description: string = "Je peux t'envoyer le classement des votes sur Top serveur";
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
+	readonly commandOptions: CommandOptions[] = [
+		{
+			type: ApplicationCommandOptionType.String,
+			name: "option",
+			description: "Quel classement veux-tu ?",
+			isRequired: true,
+			choices: [
+				[
+					"Ce mois-ci",
+					"courant",
+				],
+				[
+					"Le mois dernier",
+					"dernier",
+				],
+			],
+		},
+	];
+	readonly subCommandsOptions: SubCommandOptions[] = [];
 
 	private _topServerService: TopServerService;
 
 	constructor() {
-		this._topServerService = ServiceProvider.getTopServerService();
+		this._topServerService = ServicesProvider.getTopServerService();
 	}
 
-	async run(commandContext: CommandContext): Promise<void> {
-		const args: string[] = commandContext.args;
-		const message: Message = commandContext.message;
-
+	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
 		let title: string;
 		let players: Array<Player>;
+		const option = commandInteraction.options.getString("option") as string;
 
-		const option: string = args[0];
-
-		if (option === "last") {
+		if (option === "dernier") {
 			players = await this._topServerService.getPlayersRanking(false);
 			title = "Classement Top Serveur du mois dernier";
 		}
-		else {
+
+		if (option === "courant") {
 			players = await this._topServerService.getPlayersRanking(true);
 			title = "Classement Top Serveur du mois en cours";
 		}
 
 		const fileName: string = this._topServerService.fileName;
 		await this._topServerService.createRankingFile(players);
-		await message.author.send({ files: [ fileName ], content: title });
+		await commandInteraction.user.send({ files: [ fileName ], content: title });
 		await fs.rm(fileName);
+		return await commandInteraction.reply({ content: "Je t'ai envoyé le classement en privé :wink:", ephemeral: true, fetchReply: false });
 	}
 }

@@ -1,14 +1,14 @@
 import { Client, Intents } from "discord.js";
-import { Events } from "./Events";
+import { EventsProvider } from "./EventsProvider";
 import { LogService } from "../Services/LogService";
 
 export class Bot {
 	public client: Client;
 	private readonly token: string;
-	private events: Events;
+	private events: EventsProvider;
 	private _logService: LogService;
 
-	constructor(token: string, events: Events) {
+	constructor(token: string, events: EventsProvider) {
 		this.client = new Client({
 			intents: [
 				Intents.FLAGS.GUILDS,

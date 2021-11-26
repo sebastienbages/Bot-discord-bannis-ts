@@ -1,27 +1,23 @@
-import { ICommand } from "../ICommand";
-import { CommandContext } from "../CommandContext";
-import { ServiceProvider } from "../../src/ServiceProvider";
-import { Guild, PermissionResolvable } from "discord.js";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../ISlashCommand";
+import { ServicesProvider } from "../../src/ServicesProvider";
+import { CommandInteraction, PermissionResolvable } from "discord.js";
 import { VoteService } from "../../Services/VoteService";
 
-export class VoteCommand implements ICommand {
+export class VoteCommand implements ISlashCommand {
 	public readonly name: string = "vote";
-	public readonly aliases: string[] = [];
-	public readonly argumentIsNecessary: boolean = false;
-	public readonly description: string = "Envoi un message d'appel aux votes en utilisant le WebHook Gardien des votes";
-	public readonly usage: string = "[nom de la commande]";
-	public readonly guildOnly: boolean = true;
-	public readonly cooldown: number = 0;
+	public readonly description: string = "Je peux envoyer le message Top Serveurs dans la taverne et je m'occuperai d'effacer le dernier";
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
+	readonly commandOptions: CommandOptions[] = [];
+	readonly subCommandsOptions: SubCommandOptions[] = [];
 
 	private _voteService: VoteService;
 
 	constructor() {
-		this._voteService = ServiceProvider.getVoteService();
+		this._voteService = ServicesProvider.getVoteService();
 	}
 
-	async run(commandContext: CommandContext): Promise<void> {
-		const guild: Guild = commandContext.message.guild;
-		await this._voteService.sendMessage(guild);
+	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
+		await this._voteService.sendMessage(commandInteraction.guild);
+		return await commandInteraction.reply({ content: "J'ai bien envoyé le message :mechanical_arm:", ephemeral: true, fetchReply: false });
 	}
 }
