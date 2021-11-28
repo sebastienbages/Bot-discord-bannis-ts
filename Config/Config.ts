@@ -42,6 +42,7 @@ export class Config {
 
 	// ROLES
 	public static readonly roleStart: string = process.env.ROLE_START;
+	public static readonly roleFrontiere: string = process.env.ROLE_FRONTIERE;
 
 	// CHOICE SERVER
 	public static readonly serverChoiceMsg: string = process.env.MSG_SERVER;

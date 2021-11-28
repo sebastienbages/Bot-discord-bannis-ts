@@ -1,7 +1,6 @@
-import { GuildMember, MessageEmbed, Role, TextChannel } from "discord.js";
+import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
 import { AdminModel } from "../Models/AdminModel";
-import { RoleModel } from "../Models/RoleModel";
 import { AdminService } from "../Services/AdminService";
 import { ServicesProvider } from "../src/ServicesProvider";
 import { LogService } from "../Services/LogService";
@@ -16,25 +15,17 @@ export class GuildMemberAddEvent {
 
 	public async run(member: GuildMember): Promise<void> {
 		this._logService.log(`Arrivée d'un nouveau membre : ${member.displayName}`);
-		let roleStart: Role;
-
-		if (Config.nodeEnv === Config.nodeEnvValues.production) {
-			const roleModel: RoleModel = await ServicesProvider.getRoleService().getStartRole();
-			roleStart = await member.guild.roles.cache.get(roleModel.discordId);
-		}
-		else {
-			roleStart = await member.guild.roles.cache.get(Config.roleStart);
-		}
+		const roleStart = await member.guild.roles.cache.get(Config.roleFrontiere);
 
 		if (roleStart) {
 			await member.roles.add(roleStart);
-			this._logService.log(`Attribution du role d'arrivée à ${roleStart.name} effectué`);
+			this._logService.log(`Attribution du role ${roleStart.name} effectué`);
 		}
 		else {
 			const adminService: AdminService = ServicesProvider.getAdminService();
 			const admins: AdminModel[] = adminService.getAdmins();
 
-			if (Config.nodeEnv === Config.nodeEnvValues.production) {
+			if (Config.nodeEnv === "production") {
 				for (const admin of admins) {
 					const user: GuildMember = await member.guild.members.fetch(admin.discordId);
 					if (user) {

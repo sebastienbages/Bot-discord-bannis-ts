@@ -1,8 +1,8 @@
 import {
-	CategoryChannel, CommandInteraction, GuildMember,
+	ButtonInteraction,
+	CategoryChannel, CommandInteraction, Guild, GuildMember,
 	HexColorString,
-	Message, MessageActionRow, MessageAttachment, MessageButton,
-	MessageEmbed,
+	Message, MessageActionRow, MessageAttachment, MessageEmbed,
 	Permissions,
 	Role,
 	TextChannel,
@@ -16,6 +16,10 @@ import { TicketModel } from "../Models/TicketModel";
 import { RoleRepository } from "../Dal/RoleRepository";
 import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
+import { ReOpenTicketButton } from "../Interactions/Buttons/ReOpenTicketButton";
+import { DeleteTicketButton } from "../Interactions/Buttons/DeleteTicketButton";
+import { CloseTicketButton } from "../Interactions/Buttons/CloseTicketButton";
+import { CreateTicketButton } from "../Interactions/Buttons/CreateTicketButton";
 
 export class TicketService {
 	private _ticketConfigRepository: TicketConfigRepository;
@@ -24,18 +28,6 @@ export class TicketService {
 	private _ticketConfig: TicketConfigModel;
 	private _ticketRoles: Array<RoleModel>;
 	private _logService: LogService;
-	public static readonly createTicket: string = "createTicket";
-	public static readonly closeTicket: string = "closeTicket";
-	public static readonly reOpenTicket: string = "reOpenTicket";
-	public static readonly deleteTicket: string = "deleteTicket";
-	public static readonly labelCloseTicket: string = "Fermer";
-	public static readonly labelCreateTicket: string = "Créer ticket";
-	public static readonly labelReOpenTicket: string = "Ré-ouvrir";
-	public static readonly labelDeleteTicket: string = "Supprimer";
-	public static readonly emojiCreateTicket: string = "🎫";
-	public static readonly emojiCloseTicket: string = "🔒";
-	public static readonly emojiReOpenTicket: string = "🔓";
-	public static readonly emojiDeleteTicket: string = "🧹";
 
 	private _delayIsActive: boolean;
 	private readonly _cooldown: number = 10 * 60 * 1000;
@@ -119,13 +111,6 @@ export class TicketService {
 	}
 
 	/**
-	 * Retourne la configuration du gestionnaire des tickets
-	 */
-	public getTicketConfig(): TicketConfigModel {
-		return this._ticketConfig;
-	}
-
-	/**
 	 * Sauvegarde un ticket
 	 * @param guildMember {User} - Utilisateur discord
 	 * @param number {number} - Numéro du ticket
@@ -138,7 +123,7 @@ export class TicketService {
 	 * Retourne un ticket selon son numéro
 	 * @param targetChannel {TextChannel} - Salon textuel discord du ticket
 	 */
-	public async getTicketByNumber(targetChannel: TextChannel): Promise<TicketModel> {
+	private async getTicketByNumber(targetChannel: TextChannel): Promise<TicketModel> {
 		const nameArray: string[] = targetChannel.name.split("-");
 		const number: number = parseInt(nameArray[1]);
 		const result: unknown = await this._ticketRepository.getTicketByNumber(number);
@@ -164,20 +149,26 @@ export class TicketService {
 
 	/**
 	 * Création d'un nouveau ticket
-	 * @param message {Message} - MessageReaction discord
-	 * @param guildMember {User} - Utilisateur discord concerné
+	 * @param buttonInteraction
 	 */
-	public async createTicket(message: Message, guildMember: GuildMember): Promise<void> {
-		const category = message.guild.channels.cache.get(this._ticketConfig.CategoryId) as CategoryChannel;
-		const everyoneRole: Role = message.guild.roles.cache.find(r => r.name === "@everyone");
+	public async createTicket(buttonInteraction: ButtonInteraction): Promise<void> {
+		const guildMember = buttonInteraction.member as GuildMember;
+		const userTicket = await this.getTicketByUserId(guildMember.id);
+
+		if (userTicket.userId) {
+			return await buttonInteraction.reply({ content: `<@${guildMember.id}>, tu possèdes déjà un ticket ouvert : numéro ${userTicket.number.toString()}`, ephemeral: true });
+		}
+
+		const guild = buttonInteraction.guild as Guild;
+		const category = guild.channels.cache.get(this._ticketConfig.CategoryId) as CategoryChannel;
+		const everyoneRole: Role = guild.roles.cache.find(r => r.name === "@everyone");
 
 		if (!category || !everyoneRole) {
-			await message.channel.send("La création de ticket est indisponible, veuillez contacter un admin");
-			return;
+			throw Error("Il semble que la création des tickets soit indisponible :weary:");
 		}
 
 		const channelName: string = this.getChannelName(this._ticketConfig.LastNumber);
-		const ticketChannel: TextChannel = await message.guild.channels.create(channelName, {
+		const ticketChannel: TextChannel = await guild.channels.create(channelName, {
 			type: "GUILD_TEXT",
 			parent: category,
 			permissionOverwrites: [
@@ -197,7 +188,7 @@ export class TicketService {
 		const rolesMentions: string[] = [];
 
 		for (const role of this._ticketRoles) {
-			const ticketRole: Role = message.guild.roles.cache.get(role.discordId);
+			const ticketRole: Role = guild.roles.cache.get(role.discordId);
 			if (ticketRole) {
 				rolesMentions.push(`<@&${ticketRole.id}>`);
 				await ticketChannel.permissionOverwrites.create(ticketRole, {
@@ -217,16 +208,7 @@ export class TicketService {
 		}
 
 		this._ticketConfig.LastNumber++;
-
-		const row = new MessageActionRow()
-			.addComponents(
-				new MessageButton()
-					.setCustomId(TicketService.closeTicket)
-					.setLabel(TicketService.labelCloseTicket)
-					.setStyle("DANGER")
-					.setEmoji(TicketService.emojiCloseTicket)
-			);
-
+		const row = new MessageActionRow().addComponents(CloseTicketButton.button);
 		const messageWelcomeTicket: MessageEmbed = new MessageEmbed()
 			.setColor(Config.color)
 			.setDescription(`Bienvenue sur ton ticket <@${guildMember.id}> \n 
@@ -235,18 +217,20 @@ export class TicketService {
 
 		await ticketChannel.send({ embeds: [ messageWelcomeTicket ], components: [ row ] });
 		await this.saveTicket(guildMember, newTicketNumber);
+		return this._logService.log(`Création du ticket N°${newTicketNumber.toString()} pour ${guildMember.displayName}`);
 	}
 
 	/**
 	 * Fermeture d'un ticket
-	 * @param guildMember {User} - Utilisateur discord concerné
-	 * @param message {Message} - MessageReaction discord
-	 * @param targetChannel {TextChannel} - Salon textuel discord concerné
-	 * @param userTicket {TicketModel} - Ticket de l'utilisateur
+	 * @param buttonInteraction
 	 */
-	public async closeTicket(guildMember: GuildMember, message: Message, targetChannel: TextChannel, userTicket: TicketModel): Promise<void> {
+	public async closeTicket(buttonInteraction: ButtonInteraction): Promise<void> {
+		const targetChannel = buttonInteraction.channel as TextChannel;
+		const userTicket = await this.getTicketByNumber(targetChannel);
+		const guildMember = buttonInteraction.member as GuildMember;
 		await targetChannel.permissionOverwrites.edit(userTicket.userId, {
 			VIEW_CHANNEL: false,
+			SEND_MESSAGES: false,
 		});
 
 		const closeMessage: MessageEmbed = new MessageEmbed()
@@ -255,19 +239,11 @@ export class TicketService {
 
 		const row = new MessageActionRow()
 			.addComponents(
-				new MessageButton()
-					.setCustomId(TicketService.reOpenTicket)
-					.setLabel(TicketService.labelReOpenTicket)
-					.setStyle("SUCCESS")
-					.setEmoji(TicketService.emojiReOpenTicket),
-				new MessageButton()
-					.setCustomId(TicketService.deleteTicket)
-					.setLabel(TicketService.labelDeleteTicket)
-					.setStyle("DANGER")
-					.setEmoji(TicketService.emojiDeleteTicket)
+				ReOpenTicketButton.button,
+				DeleteTicketButton.button
 			);
 
-		await message.channel.send({ embeds: [ closeMessage ], components: [ row ] });
+		await targetChannel.send({ embeds: [ closeMessage ], components: [ row ] });
 
 		if (!this._delayIsActive) {
 			this.addRequest();
@@ -342,14 +318,17 @@ export class TicketService {
 
 	/**
 	 * Ré-ouverture d'un ticket
-	 * @param message {Message} - MessageReaction discord
-	 * @param targetChannel {TextChannel} - Salon textuel discord concerné
-	 * @param userTicket {TicketModel} - Ticket de l'utilisateur
+	 * @param buttonInteraction
 	 */
-	public async reOpenTicket(message: Message, targetChannel: TextChannel, userTicket: TicketModel): Promise<void> {
+	public async reOpenTicket(buttonInteraction: ButtonInteraction): Promise<void> {
+		const targetChannel = buttonInteraction.channel as TextChannel;
+		const userTicket = await this.getTicketByNumber(targetChannel);
+		const message = buttonInteraction.message as Message;
 		await message.delete();
+
 		await targetChannel.permissionOverwrites.edit(userTicket.userId, {
 			VIEW_CHANNEL: true,
+			SEND_MESSAGES: true,
 		});
 
 		if (!this._delayIsActive) {
@@ -361,15 +340,7 @@ export class TicketService {
 			await this.sendCooldownMessage(targetChannel);
 		}
 
-		const row = new MessageActionRow()
-			.addComponents(
-				new MessageButton()
-					.setCustomId(TicketService.closeTicket)
-					.setLabel(TicketService.labelCloseTicket)
-					.setStyle("DANGER")
-					.setEmoji(TicketService.emojiCloseTicket)
-			);
-
+		const row = new MessageActionRow().addComponents(CloseTicketButton.button);
 		await message.channel.send({ content: `Hey <@${userTicket.userId}>, ton ticket a été ré-ouvert :face_with_monocle:`, components: [ row ] });
 		await this.openTicket(userTicket);
 		this._logService.log(`Ré-ouverture d'un ticket : N°${userTicket.number}`);
@@ -377,9 +348,11 @@ export class TicketService {
 
 	/**
 	 * Supprimer un ticket
-	 * @param targetChannel {TextChannel} - Salon textuel discord concerné
+	 * @param buttonInteraction
 	 */
-	public async deleteTicket(targetChannel: TextChannel): Promise<void> {
+	public async deleteTicket(buttonInteraction: ButtonInteraction): Promise<void> {
+		const targetChannel = buttonInteraction.channel as TextChannel;
+
 		const deleteMessage: MessageEmbed = new MessageEmbed()
 			.setColor(this._warningColor)
 			.setDescription("Suppression du ticket dans quelques secondes");
@@ -407,17 +380,10 @@ export class TicketService {
 			.setDescription("Rien de plus simple, utilise le bouton ci-dessous pour créer ton ticket. \n \n Un salon sera créé rien que pour toi afin de discuter avec l'équipe des Bannis :wink: \n")
 			.setFooter("Un seul ticket autorisé par utilisateur");
 
-		const row = new MessageActionRow()
-			.addComponents(
-				new MessageButton()
-					.setCustomId(TicketService.createTicket)
-					.setLabel(TicketService.labelCreateTicket)
-					.setStyle("PRIMARY")
-					.setEmoji(TicketService.emojiCreateTicket),
-			);
+		const actionRow = new MessageActionRow().addComponents(CreateTicketButton.button);
 
 		try {
-			await channel.send({ embeds: [ messageEmbed ], components: [ row ], files: [ logo ] });
+			await channel.send({ embeds: [ messageEmbed ], components: [ actionRow ], files: [ logo ] });
 			return commandInteraction.reply({ content: "J'ai bien envoyé le message :ticket:", ephemeral: true, fetchReply: false });
 		}
 		catch (error) {

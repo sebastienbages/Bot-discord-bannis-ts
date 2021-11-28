@@ -5,7 +5,7 @@ import {
 	PermissionResolvable,
 	TextChannel,
 } from "discord.js";
-import { CommandOptions, ISlashCommand, SubCommandOptions } from "../ISlashCommand";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../../Interfaces/ISlashCommand";
 import { Config } from "../../Config/Config";
 import { ApplicationCommandOptionType } from "discord-api-types";
 

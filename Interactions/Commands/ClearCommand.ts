@@ -1,5 +1,5 @@
 import { CommandInteraction, PermissionResolvable, TextChannel } from "discord.js";
-import { CommandOptions, ISlashCommand, SubCommandOptions } from "../ISlashCommand";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../../Interfaces/ISlashCommand";
 import { ApplicationCommandOptionType } from "discord-api-types";
 
 export class ClearCommand implements ISlashCommand {

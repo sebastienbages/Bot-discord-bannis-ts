@@ -1,19 +1,19 @@
-import { SurveyCommand } from "../Commands/admin/Survey";
-import { CommandOptions, ISlashCommand, SubCommandOptions } from "../Commands/ISlashCommand";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../Interfaces/ISlashCommand";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { ApplicationCommandOptionType, RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord-api-types/v9";
 import { REST } from "@discordjs/rest";
 import { Config } from "../Config/Config";
-import { AdminCommand } from "../Commands/admin/Admin";
-import { TicketCommand } from "../Commands/admin/Ticket";
-import { VoteCommand } from "../Commands/admin/Vote";
-import { RoleCommand } from "../Commands/moderation/Role";
-import { ClearCommand } from "../Commands/moderation/Clear";
-import { SayCommand } from "../Commands/moderation/Say";
-import { SayPrivCommand } from "../Commands/moderation/SayPriv";
-import { RestartCommand } from "../Commands/utility/Restart";
-import { TopServerCommand } from "../Commands/utility/TopServer";
-import { ServersCommand } from "../Commands/moderation/Servers";
+import { SurveyCommand } from "../Interactions/Commands/SurveyCommand";
+import { AdminCommand } from "../Interactions/Commands/AdminCommand";
+import { TicketCommand } from "../Interactions/Commands/TicketCommand";
+import { VoteCommand } from "../Interactions/Commands/VoteCommand";
+import { RoleCommand } from "../Interactions/Commands/RoleCommand";
+import { ClearCommand } from "../Interactions/Commands/ClearCommand";
+import { SayCommand } from "../Interactions/Commands/SayCommand";
+import { SayPrivCommand } from "../Interactions/Commands/SayPrivCommand";
+import { RestartCommand } from "../Interactions/Commands/RestartCommand";
+import { TopServerCommand } from "../Interactions/Commands/TopServerCommand";
+import { ServersCommand } from "../Interactions/Commands/ServersCommand";
 
 export class SlashCommandService {
 	/**

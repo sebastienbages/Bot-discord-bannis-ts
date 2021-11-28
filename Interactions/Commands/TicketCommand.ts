@@ -1,4 +1,4 @@
-import { CommandOptions, ISlashCommand, SubCommandOptions } from "../ISlashCommand";
+import { CommandOptions, ISlashCommand, SubCommandOptions } from "../../Interfaces/ISlashCommand";
 import { ServicesProvider } from "../../src/ServicesProvider";
 import { CommandInteraction, PermissionResolvable } from "discord.js";
 import { TicketService } from "../../Services/TicketService";
