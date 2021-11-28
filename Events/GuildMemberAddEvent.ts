@@ -18,7 +18,7 @@ export class GuildMemberAddEvent {
 		this._logService.log(`Arrivée d'un nouveau membre : ${member.displayName}`);
 		let roleStart: Role;
 
-		if (Config.nodeEnv === "production") {
+		if (Config.nodeEnv === Config.nodeEnvValues.production) {
 			const roleModel: RoleModel = await ServicesProvider.getRoleService().getStartRole();
 			roleStart = await member.guild.roles.cache.get(roleModel.discordId);
 		}
@@ -34,7 +34,7 @@ export class GuildMemberAddEvent {
 			const adminService: AdminService = ServicesProvider.getAdminService();
 			const admins: AdminModel[] = adminService.getAdmins();
 
-			if (Config.nodeEnv === "production") {
+			if (Config.nodeEnv === Config.nodeEnvValues.production) {
 				for (const admin of admins) {
 					const user: GuildMember = await member.guild.members.fetch(admin.discordId);
 					if (user) {

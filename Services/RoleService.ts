@@ -25,7 +25,7 @@ export class RoleService {
 	 * @private
 	 */
 	private async updateServeurRoles(): Promise<void> {
-		if (Config.nodeEnv === "production") {
+		if (Config.nodeEnv === Config.nodeEnvValues.production) {
 			this._serveurRoles = await this.getServeurRolesData();
 		}
 		else {

@@ -29,7 +29,7 @@ export class RuleService {
 	 * @private
 	 */
 	private async updateServerChoiceMessageId(): Promise<void> {
-		if (Config.nodeEnv === "production") {
+		if (Config.nodeEnv === Config.nodeEnvValues.production) {
 			const messageModel = await this.getMessageServerChoice();
 			this._serverChoiceMessageId = messageModel.messageId;
 		}
@@ -66,7 +66,7 @@ export class RuleService {
 			this._serverChoiceMessageId = lastMessage.id;
 		}
 
-		if (Config.nodeEnv === "production") {
+		if (Config.nodeEnv === Config.nodeEnvValues.production) {
 			await this._rulesRepository.saveMessageServerChoice(lastMessage.id);
 		}
 
@@ -102,7 +102,7 @@ export class RuleService {
 			}
 		}
 
-		if (Config.nodeEnv === "production") {
+		if (Config.nodeEnv === Config.nodeEnvValues.production) {
 			await this.removeMessageServerChoice();
 		}
 
