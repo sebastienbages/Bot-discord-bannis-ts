@@ -98,7 +98,7 @@ export class VoteService {
 		if (voteChannel) {
 			const voteMessage = await voteChannel.send({ embeds: [ messageEmbed ], files: [ logo ], components: [ components ] });
 
-			if (Config.nodeEnv === "production") {
+			if (Config.nodeEnv === Config.nodeEnvValues.production) {
 				await this.saveMessage(voteMessage);
 			}
 

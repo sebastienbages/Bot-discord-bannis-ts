@@ -55,7 +55,7 @@ export class AdminService {
 			.addField("MESSAGE", message.content)
 			.setTimestamp();
 
-		if (Config.nodeEnv === "production") {
+		if (Config.nodeEnv === Config.nodeEnvValues.production) {
 			for (const admin of this._admins) {
 				const user: User = message.client.users.cache.get(admin.discordId);
 				if (user) {

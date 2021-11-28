@@ -98,7 +98,7 @@ export class TicketService {
 	 * Mise à jour de configuration des tickets en cache
 	 */
 	private async updateTicketConfig(): Promise<void> {
-		if (Config.nodeEnv != "production") {
+		if (Config.nodeEnv != Config.nodeEnvValues.production) {
 			this._ticketConfig = new TicketConfigModel();
 			this._ticketConfig.ChannelId = Config.ticketChannel;
 			this._ticketConfig.CategoryId = Config.categoryTicketChannel;
@@ -212,7 +212,7 @@ export class TicketService {
 
 		const newTicketNumber: number = this._ticketConfig.LastNumber + 1;
 
-		if (Config.nodeEnv === "production") {
+		if (Config.nodeEnv === Config.nodeEnvValues.production) {
 			await this.saveTicketConfigNumber(newTicketNumber.toString());
 		}
 

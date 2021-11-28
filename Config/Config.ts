@@ -5,6 +5,10 @@ dotenv.config();
 
 export class Config {
 	// ENV
+	public static readonly nodeEnvValues = {
+		production: "production",
+		development: "dev",
+	};
 	public static readonly nodeEnv: string = process.env.NODE_ENV;
 
 	// APPLICATION
