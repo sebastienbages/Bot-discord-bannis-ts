@@ -1,12 +1,41 @@
-# BOT DISCORD
+<div align="center">
+  <br />
+    <img src="https://www.lesbannis.fr/img/banderole.gif" width="546" alt="discord.js" />
+    <h2>BOT DISCORD</h2>
+  <p>
+    <img src="https://img.shields.io/badge/Uses-TypeScript-2f74c1" alt="uses javascript">
+    <img src="https://img.shields.io/badge/Uses-NodeJS-73ac61" alt="made with node.js">
+    <img src="https://img.shields.io/badge/Uses-Mysql-f7f7f7" alt="made with mysql">
+    <img src="https://img.shields.io/badge/NPM-Discord.js-1591f1" alt="uses discord.js">
+    <img src="https://img.shields.io/badge/Host-Heroku-6762a5" alt="host heroku">
+    <img src="https://img.shields.io/badge/Use-Docker-blue" alt="uses Docker">
+  </p>
+</div>
 
-<img src="https://img.shields.io/badge/Uses-TypeScript-2f74c1" alt="uses javascript"> <img src="https://img.shields.io/badge/Uses-NodeJS-73ac61" alt="made with node.js"> <img src="https://img.shields.io/badge/Uses-Mysql-f7f7f7" alt="made with mysql"> <img src="https://img.shields.io/badge/NPM-Discord.js%20v12.5.3-1591f1" alt="uses discord.js"> <img src="https://img.shields.io/badge/Host-Heroku-6762a5" alt="host heroku"> <img src="https://img.shields.io/badge/Uses-Git-red.svg" alt="uses git"> <img src="https://img.shields.io/badge/Uses-VS Code-22a1eb" alt="uses vscode">
- 
+## Installation
+
+**[Docker](https://www.docker.com/) is required on your system**
+
+#### Development env
+```shell
+docker build -t bot/bannis --target dev .
+```
+
+#### Production env
+```shell
+docker build -t bot/bannis --target production .
+```
+
+#### Start
+```shell
+docker-compose up -d
+```
+
 ## A propos / About
 
 🇫🇷
 
-Bot du serveur Discord appelé "Les Bannis". Celui-ci rassemble les joueurs du serveur multijoueurs appelé aussi "Les Bannis" basé sur le jeux vidéo PC "Conan Exiles" développé par Funcom. Il permet l'administration automatique des membres du serveur et apporte des commandes, outils et fonctions spécifiques aux administrateurs et membres du serveur.
+Bot du serveur Discord appelé "Les Bannis". Celui-ci rassemble les joueurs du serveur multijoueurs appelé aussi "Les Bannis" basé sur le jeu vidéo PC "Conan Exiles" développé par Funcom. Il permet l'administration automatique des membres du serveur et apporte des commandes, outils et fonctions spécifiques aux administrateurs et membres du serveur.
 
 Ses principales fonctionnalités sont les suivantes :
 
@@ -18,8 +47,7 @@ Ses principales fonctionnalités sont les suivantes :
 - Envoi messages simples / enrichies / privés depuis le bot
 - Gestion des rôles
 - Création de sondages
-- Aide-mémoire des commandes
-- Gestion de logs
+- Utilise les commandes de l'application
 
 Le bot est relié à une base de données MySQL hébergée par [JawsDB](https://www.jawsdb.com/) et consomme l'API de [Top Serveurs](https://top-serveurs.net/).
 
@@ -39,8 +67,7 @@ Its main features are as follows :
 - Sending simple / enriched / private messages from the bot
 - Role manager
 - Creation of surveys
-- Commands reminder
-- Log handler
+- Uses the application's commands
 
 The Bot is connected to a MySQL Database host by [JawsDB](https://www.jawsdb.com/) and consume the API of [Top Serveurs](https://top-serveurs.net/).
 

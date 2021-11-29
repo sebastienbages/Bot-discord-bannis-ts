@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+bin
+.git
+.gitignore
+docker-compose.*
+.eslint*
+.idea
+Procfile
+.env.model
+.env
+tslint*
+.dockerignore
+Dockerfile

@@ -1,12 +1,12 @@
-import { AdminService } from "../Services/AdminService";
-import { RoleService } from "../Services/RoleService";
-import { TicketService } from "../Services/TicketService";
-import { TopServerService } from "../Services/TopServerService";
-import { VoteService } from "../Services/VoteService";
-import { RuleService } from "../Services/RuleService";
-import { SlashCommandService } from "../Services/SlashCommandService";
-import { ButtonService } from "../Services/ButtonService";
-import { SelectMenuService } from "../Services/SelectMenuService";
+import { AdminService } from "./Services/AdminService";
+import { RoleService } from "./Services/RoleService";
+import { TicketService } from "./Services/TicketService";
+import { TopServerService } from "./Services/TopServerService";
+import { VoteService } from "./Services/VoteService";
+import { RuleService } from "./Services/RuleService";
+import { SlashCommandService } from "./Services/SlashCommandService";
+import { ButtonService } from "./Services/ButtonService";
+import { SelectMenuService } from "./Services/SelectMenuService";
 
 export class ServicesProvider {
 	private static _ticketService: TicketService;

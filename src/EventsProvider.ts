@@ -1,8 +1,8 @@
-import { ReadyEvent } from "../Events/ReadyEvent";
-import { GuildMemberAddEvent } from "../Events/GuildMemberAddEvent";
-import { GuildMemberRemoveEvent } from "../Events/GuildMemberRemoveEvent";
-import { InteractionCreateEvent } from "../Events/InteractionCreate";
-import { MessageCreateEvent } from "../Events/MessageCreateEvent";
+import { ReadyEvent } from "./Events/ReadyEvent";
+import { GuildMemberAddEvent } from "./Events/GuildMemberAddEvent";
+import { GuildMemberRemoveEvent } from "./Events/GuildMemberRemoveEvent";
+import { InteractionCreateEvent } from "./Events/InteractionCreate";
+import { MessageCreateEvent } from "./Events/MessageCreateEvent";
 
 export class EventsProvider {
 	private readonly _readyEvent: ReadyEvent;
