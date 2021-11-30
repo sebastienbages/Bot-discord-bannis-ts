@@ -13,12 +13,13 @@ import { LogService } from "../../Services/LogService";
 
 export class ValidationRulesButton implements IButton {
 	static readonly id: string = "validation_rules";
-	static readonly label: string = "Démarrez l'aventure";
+	static readonly label: string = "Valider le règlement";
 	static readonly style: MessageButtonStyleResolvable = "SUCCESS";
 	static readonly button: MessageButton = new MessageButton()
 		.setCustomId(this.id)
 		.setLabel(this.label)
-		.setStyle(this.style);
+		.setStyle(this.style)
+		.setEmoji("🖱");
 
 	public readonly customId: string;
 	private _roleService: RoleService;

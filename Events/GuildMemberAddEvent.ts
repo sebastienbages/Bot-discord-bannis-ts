@@ -84,7 +84,7 @@ export class GuildMemberAddEvent {
 			.setTitle("BIENVENUE")
 			.setDescription(`Bien le bonjour **${member.displayName}** ! \n
 							Consulte les salons ouverts pour en apprendre d'avantage sur le contenu des Bannis. Tu peux poser tes questions à notre équipe dans ce salon si tu as besoin :wink:. \n
-							Dès que tu seras prêt, lis le <#${Config.rulesChannelId}> puis choisi ton serveur avec le menu déroulant et démarre ton aventure :rocket:.
+							Dès que tu seras prêt, lis le <#${Config.rulesChannelId}> puis choisi ton serveur avec le menu déroulant et valide le règlement à l'aide du bouton vert :rocket:.
 			`);
 
 		await borderChannel.send({ content: `<@${member.user.id}>`, embeds: [ borderMessageEmbed ], files: [ logo ], components: [ actionRow ] });
