@@ -1,4 +1,10 @@
-import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
+import {
+	GuildMember,
+	MessageActionRow,
+	MessageAttachment, MessageButton,
+	MessageEmbed,
+	TextChannel,
+} from "discord.js";
 import { Config } from "../Config/Config";
 import { AdminModel } from "../Models/AdminModel";
 import { AdminService } from "../Services/AdminService";
@@ -55,5 +61,32 @@ export class GuildMemberAddEvent {
 			.setFooter(`Désormais, nous sommes ${member.guild.memberCount} membres`);
 
 		await welcomeChannel.send({ embeds: [ welcomeEmbed ] });
+
+		let borderChannel = member.guild.channels.cache.get(Config.borderChannel) as TextChannel;
+
+		if (!borderChannel) {
+			borderChannel = await member.guild.channels.fetch(Config.borderChannel) as TextChannel;
+		}
+
+		const logo = new MessageAttachment("./Images/logo-bannis.png");
+		const rulesChannel = member.guild.channels.cache.get(Config.rulesChannelId) as TextChannel;
+
+		const actionRow = new MessageActionRow().addComponents(
+			new MessageButton()
+				.setStyle("LINK")
+				.setLabel("Où ?")
+				.setURL(`https://discord.com/channels/${Config.guildId}/${Config.rulesChannelId}/${rulesChannel.lastMessageId}`)
+		);
+
+		const borderMessageEmbed = new MessageEmbed()
+			.setColor(Config.color)
+			.setThumbnail("attachment://logo-bannis.png")
+			.setTitle("BIENVENUE")
+			.setDescription(`Bien le bonjour **${member.displayName}** ! \n
+							Consulte les salons ouverts pour en apprendre d'avantage sur le contenu des Bannis. Tu peux poser tes questions à notre équipe dans ce salon si tu as besoin :wink:. \n
+							Dès que tu seras prêt, lis le <#${Config.rulesChannelId}> puis choisi ton serveur avec le menu déroulant et démarre ton aventure :rocket:.
+			`);
+
+		await borderChannel.send({ content: `<@${member.user.id}>`, embeds: [ borderMessageEmbed ], files: [ logo ], components: [ actionRow ] });
 	}
 }
