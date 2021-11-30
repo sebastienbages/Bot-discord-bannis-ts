@@ -25,7 +25,8 @@ export class RuleService {
 		const rowSelectMenu = new MessageActionRow().addComponents(ServerSelectMenu.selectMenu);
 
 		try {
-			await channel.send({ files: [ image ], components: [ rowSelectMenu, rowButton ] });
+			await channel.send({ files: [ image ] });
+			await channel.send({ content: "**CHOISI TON SERVEUR ET DEMARRE TON AVENTURE :rocket:**", components: [ rowSelectMenu, rowButton ] });
 			return commandInteraction.reply({ content: "J'ai bien envoyé le message pour le règlement :incoming_envelope:", ephemeral: true, fetchReply: false });
 		}
 		catch (error) {

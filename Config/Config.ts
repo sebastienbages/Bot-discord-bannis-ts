@@ -31,6 +31,7 @@ export class Config {
 	public static readonly welcomeChannel: string = process.env.CHA_WELCOME;
 	public static readonly surveyChannelId: string = process.env.CHA_SURVEY;
 	public static readonly voteChannelId: string = process.env.CHA_VOTE;
+	public static readonly borderChannel: string = process.env.CHA_FRONTIERE;
 
 	// CATEGORIES
 	public static readonly categoryTicketChannel: string = process.env.CATEGORY_TICKET;
