@@ -18,6 +18,7 @@ export class RuleService {
 	}
 
 	public async sendServerMessage(commandInteraction: CommandInteraction): Promise<void> {
+		await commandInteraction.deferReply({ ephemeral: true, fetchReply: false });
 		const channel = commandInteraction.options.getChannel("channel") as TextChannel;
 
 		const image = new MessageAttachment("./Images/banderole.gif");
@@ -26,8 +27,8 @@ export class RuleService {
 
 		try {
 			await channel.send({ files: [ image ] });
-			await channel.send({ content: "**CHOISI TON SERVEUR ET DEMARRE TON AVENTURE :rocket:**", components: [ rowSelectMenu, rowButton ] });
-			return commandInteraction.reply({ content: "J'ai bien envoyé le message pour le règlement :incoming_envelope:", ephemeral: true, fetchReply: false });
+			await channel.send({ content: "**CHOISI TON SERVEUR ET VALIDE LE REGLEMENT :rocket:**", components: [ rowSelectMenu, rowButton ] });
+			await commandInteraction.editReply({ content: "J'ai bien envoyé le message pour le règlement :incoming_envelope:" });
 		}
 		catch (error) {
 			throw Error("On dirait que le format du channel n'est pas correct :thinking:");
