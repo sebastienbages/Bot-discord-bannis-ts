@@ -34,15 +34,15 @@ export class ValidationRulesButton implements IButton {
 	public async executeInteraction(buttonInteraction: ButtonInteraction): Promise<void> {
 		const guildMember = buttonInteraction.member as GuildMember;
 
-		if (this._roleService.userHasRole(Config.roleStart, guildMember)) {
-			return await buttonInteraction.reply({ content: "Je vois que le voyage en fusée t'a beaucoup plus :grin: :wink:", ephemeral: true, fetchReply: false });
-		}
-
+		const userHasStartRole = this._roleService.userHasRole(Config.roleStart, guildMember);
 		const userHasServerOneRole = this._roleService.userHasRole(Config.serverRoleOne, guildMember);
 		const userHasServerTwoRole = this._roleService.userHasRole(Config.serverRoleTwo, guildMember);
 
-		if (!userHasServerOneRole && !userHasServerTwoRole) {
-			return await buttonInteraction.reply({ content: "Tu dois choisir un serveur avant de commencer l'aventure :wink:", ephemeral: true, fetchReply: false });
+		if (userHasStartRole && !userHasServerOneRole && !userHasServerTwoRole) {
+			return await buttonInteraction.reply({ content: "Choisi ton serveur avant de réclamer un autre tour de fusée :stuck_out_tongue_closed_eyes:", ephemeral: true, fetchReply: false });
+		}
+		else if (userHasStartRole) {
+			return await buttonInteraction.reply({ content: "Je vois que le voyage en fusée t'a beaucoup plu :grin: :wink:", ephemeral: true, fetchReply: false });
 		}
 
 		await buttonInteraction.deferReply({ ephemeral: true, fetchReply: false });

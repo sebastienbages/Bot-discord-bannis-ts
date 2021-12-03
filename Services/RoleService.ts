@@ -52,6 +52,12 @@ export class RoleService {
 	 */
 	public async assignServerRole(selectMenuInteraction: SelectMenuInteraction): Promise<void> {
 		const guildMember = selectMenuInteraction.member as GuildMember;
+		const userHasStartRole = this.userHasRole(Config.roleStart, guildMember);
+
+		if (!userHasStartRole) {
+			return selectMenuInteraction.reply({ content: "Tu dois d'abord valider le règlement avant de choisir ton serveur :smirk:. \n Utilise le bouton vert :wink:", ephemeral: true, fetchReply: false });
+		}
+
 		const guildMemberName = guildMember.displayName;
 
 		for (const role of this._serveurRoles) {
@@ -65,14 +71,14 @@ export class RoleService {
 		if (choice === ServerSelectMenu.serverOne) {
 			await guildMember.roles.add(Config.serverRoleOne);
 			await guildMember.setNickname(guildMemberName + " (1)");
-			await selectMenuInteraction.reply({ content: "Voilà, tu appartiens maintenant au **Serveur 1** :sunglasses: ! \n D'ailleurs je me suis permis de l'écrire à côté de ton pseudo :relaxed:", ephemeral: true, fetchReply: false });
+			await selectMenuInteraction.reply({ content: "Voilà, tu appartiens maintenant au **Serveur 1** :sunglasses: ! \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:", ephemeral: true, fetchReply: false });
 			return this._logService.log(`${guildMember.displayName} a choisi le serveur 1`);
 		}
 
 		if (choice === ServerSelectMenu.serverTwo) {
 			await guildMember.roles.add(Config.serverRoleTwo);
 			await guildMember.setNickname(guildMemberName + " (2)");
-			await selectMenuInteraction.reply({ content: "Voilà, tu appartiens maintenant au **Serveur 2** :sunglasses: ! \n D'ailleurs je me suis permis de l'écrire à côté de ton pseudo :relaxed:", ephemeral: true, fetchReply: false });
+			await selectMenuInteraction.reply({ content: "Voilà, tu appartiens maintenant au **Serveur 2** :sunglasses: ! \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:", ephemeral: true, fetchReply: false });
 			return this._logService.log(`${guildMember.displayName} a choisi le serveur 2`);
 		}
 	}
