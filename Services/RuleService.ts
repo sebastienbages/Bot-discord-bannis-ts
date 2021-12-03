@@ -27,7 +27,7 @@ export class RuleService {
 
 		try {
 			await channel.send({ files: [ image ] });
-			await channel.send({ content: "**CHOISI TON SERVEUR ET VALIDE LE REGLEMENT :rocket:**", components: [ rowSelectMenu, rowButton ] });
+			await channel.send({ content: "**VALIDE LE REGLEMENT ET CHOISI TON SERVEUR :rocket:**", components: [ rowSelectMenu, rowButton ] });
 			await commandInteraction.editReply({ content: "J'ai bien envoyé le message pour le règlement :incoming_envelope:" });
 		}
 		catch (error) {
