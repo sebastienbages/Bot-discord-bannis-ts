@@ -5,7 +5,6 @@ import {
 	MessageActionRow, MessageAttachment,
 	TextChannel,
 } from "discord.js";
-import { ValidationRulesButton } from "../Interactions/Buttons/ValidationRulesButton";
 import { ServerSelectMenu } from "../Interactions/SelectMenus/ServerSelectMenu";
 
 export class RuleService {
@@ -22,12 +21,11 @@ export class RuleService {
 		const channel = commandInteraction.options.getChannel("channel") as TextChannel;
 
 		const image = new MessageAttachment("./Images/banderole.gif");
-		const rowButton = new MessageActionRow().addComponents(ValidationRulesButton.button);
 		const rowSelectMenu = new MessageActionRow().addComponents(ServerSelectMenu.selectMenu);
 
 		try {
 			await channel.send({ files: [ image ] });
-			await channel.send({ content: "**VALIDE LE REGLEMENT ET CHOISI TON SERVEUR :rocket:**", components: [ rowSelectMenu, rowButton ] });
+			await channel.send({ content: "**CHOISI TON SERVEUR POUR VALIDER LE REGLEMENT :rocket:**", components: [ rowSelectMenu ] });
 			await commandInteraction.editReply({ content: "J'ai bien envoyé le message pour le règlement :incoming_envelope:" });
 		}
 		catch (error) {

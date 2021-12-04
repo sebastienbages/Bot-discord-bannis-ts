@@ -1,10 +1,11 @@
 import { RoleRepository } from "../Dal/RoleRepository";
 import { RoleModel } from "../Models/RoleModel";
 import { AutoMapper } from "./AutoMapper";
-import { GuildMember, SelectMenuInteraction } from "discord.js";
+import { GuildMember, MessageAttachment, SelectMenuInteraction } from "discord.js";
 import { LogService } from "./LogService";
 import { Config } from "../Config/Config";
 import { ServerSelectMenu } from "../Interactions/SelectMenus/ServerSelectMenu";
+import util from "util";
 
 export class RoleService {
 
@@ -52,13 +53,6 @@ export class RoleService {
 	 */
 	public async assignServerRole(selectMenuInteraction: SelectMenuInteraction): Promise<void> {
 		const guildMember = selectMenuInteraction.member as GuildMember;
-		const userHasStartRole = this.userHasRole(Config.roleStart, guildMember);
-
-		if (!userHasStartRole) {
-			return selectMenuInteraction.reply({ content: "Tu dois d'abord valider le règlement avant de choisir ton serveur :smirk:. \n Utilise le bouton vert :wink:", ephemeral: true, fetchReply: false });
-		}
-
-		const guildMemberName = guildMember.displayName;
 
 		for (const role of this._serveurRoles) {
 			if (this.userHasRole(role.discordId, guildMember)) {
@@ -66,21 +60,33 @@ export class RoleService {
 			}
 		}
 
+		await selectMenuInteraction.deferReply({ ephemeral: true, fetchReply: false });
+		const guildMemberName = guildMember.displayName;
 		const choice = selectMenuInteraction.values[0] as string;
+		let serverNumber;
 
 		if (choice === ServerSelectMenu.serverOne) {
 			await guildMember.roles.add(Config.serverRoleOne);
 			await guildMember.setNickname(guildMemberName + " (1)");
-			await selectMenuInteraction.reply({ content: "Voilà, tu appartiens maintenant au **Serveur 1** :sunglasses: ! \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:", ephemeral: true, fetchReply: false });
-			return this._logService.log(`${guildMember.displayName} a choisi le serveur 1`);
+			serverNumber = "1";
+			this._logService.log(`${guildMember.displayName} a choisi le serveur 1`);
 		}
 
 		if (choice === ServerSelectMenu.serverTwo) {
 			await guildMember.roles.add(Config.serverRoleTwo);
 			await guildMember.setNickname(guildMemberName + " (2)");
-			await selectMenuInteraction.reply({ content: "Voilà, tu appartiens maintenant au **Serveur 2** :sunglasses: ! \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:", ephemeral: true, fetchReply: false });
-			return this._logService.log(`${guildMember.displayName} a choisi le serveur 2`);
+			serverNumber = "2";
+			this._logService.log(`${guildMember.displayName} a choisi le serveur 2`);
 		}
+
+		const wait = util.promisify(setTimeout);
+		const teleportationImage = new MessageAttachment("./Images/teleportation.gif");
+		await selectMenuInteraction.followUp({ content: "Ok c'est parti ! Accroche ta ceinture ça va secouer :rocket:", files: [ teleportationImage ], ephemeral: true, fetchReply: true });
+		await wait(8000);
+		await selectMenuInteraction.editReply({ content: `Te voilà arrivé :partying_face: \nTu appartiens au **serveur ${serverNumber}** :sunglasses: \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:`, attachments: [] });
+		await this.setRole(Config.roleStart, guildMember);
+		await this.removeRole(Config.roleFrontiere, guildMember);
+		return this._logService.log(`${guildMember.displayName} a commencé l'aventure`);
 	}
 
 	/**
