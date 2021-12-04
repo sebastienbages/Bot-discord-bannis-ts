@@ -79,14 +79,20 @@ export class RoleService {
 			this._logService.log(`${guildMember.displayName} a choisi le serveur 2`);
 		}
 
-		const wait = util.promisify(setTimeout);
-		const teleportationImage = new MessageAttachment("./Images/teleportation.gif");
-		await selectMenuInteraction.followUp({ content: "Ok c'est parti ! Accroche ta ceinture ça va secouer :rocket:", files: [ teleportationImage ], ephemeral: true, fetchReply: true });
-		await wait(8000);
-		await selectMenuInteraction.editReply({ content: `Te voilà arrivé :partying_face: \nTu appartiens au **serveur ${serverNumber}** :sunglasses: \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:`, attachments: [] });
-		await this.setRole(Config.roleStart, guildMember);
-		await this.removeRole(Config.roleFrontiere, guildMember);
-		return this._logService.log(`${guildMember.displayName} a commencé l'aventure`);
+		if (!this.userHasRole(Config.roleStart, guildMember)) {
+			const wait = util.promisify(setTimeout);
+			const teleportationImage = new MessageAttachment("./Images/teleportation.gif");
+			await selectMenuInteraction.followUp({ content: "Ok c'est parti ! Accroche ta ceinture ça va secouer :rocket:", files: [ teleportationImage ], ephemeral: true, fetchReply: true });
+			await wait(8000);
+			await selectMenuInteraction.editReply({ content: `Te voilà arrivé :partying_face: \nTu appartiens au **serveur ${serverNumber}** :sunglasses: \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:`, attachments: [] });
+			await this.setRole(Config.roleStart, guildMember);
+			await this.removeRole(Config.roleFrontiere, guildMember);
+			return this._logService.log(`${guildMember.displayName} a commencé l'aventure`);
+
+		}
+		else {
+			await selectMenuInteraction.followUp({ content: `Tu appartiens maintenant au **serveur ${serverNumber}** :sunglasses: \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:`, ephemeral: true, fetchReply: true });
+		}
 	}
 
 	/**
