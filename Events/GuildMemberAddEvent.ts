@@ -84,7 +84,7 @@ export class GuildMemberAddEvent {
 			.setTitle("BIENVENUE")
 			.setDescription(`Bien le bonjour **${member.displayName}** ! \n
 							Consulte les salons ouverts pour en apprendre d'avantage sur le contenu des Bannis. Tu peux poser tes questions à notre équipe dans ce salon si tu as besoin :wink:. \n
-							Pour accéder à la totalité du discord, lis le <#${Config.rulesChannelId}> et valide le grâce au bouton vert :rocket:. \n
+							Pour accéder à la totalité du discord, nous te remercions de prendre connaissance du <#${Config.rulesChannelId}>. \n
 							Ensuite, il ne te restera plus qu'à choisir ton serveur dans la liste :ok_hand:
 			`);
 
