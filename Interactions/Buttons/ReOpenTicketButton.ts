@@ -28,7 +28,6 @@ export class ReOpenTicketButton implements IButton {
 	}
 
 	public async executeInteraction(buttonInteraction: ButtonInteraction): Promise<void> {
-		await buttonInteraction.update({});
 		return await this._ticketService.reOpenTicket(buttonInteraction);
 	}
 }

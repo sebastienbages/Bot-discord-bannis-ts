@@ -2,7 +2,7 @@ import {
 	ButtonInteraction,
 	CategoryChannel, CommandInteraction, Guild, GuildMember,
 	HexColorString,
-	Message, MessageActionRow, MessageAttachment, MessageEmbed,
+	Message, MessageActionRow, MessageAttachment, MessageButton, MessageEmbed,
 	Permissions,
 	Role,
 	TextChannel,
@@ -152,11 +152,31 @@ export class TicketService {
 	 * @param buttonInteraction
 	 */
 	public async createTicket(buttonInteraction: ButtonInteraction): Promise<void> {
+		await buttonInteraction.deferReply({ ephemeral: true });
 		const guildMember = buttonInteraction.member as GuildMember;
 		const userTicket = await this.getTicketByUserId(guildMember.id);
 
+		if (!guildMember.roles.cache.has(Config.serverRoleOne) && !guildMember.roles.cache.has(Config.serverRoleTwo)) {
+			const actionRow = new MessageActionRow().addComponents(
+				new MessageButton()
+					.setStyle("LINK")
+					.setLabel("Choisir son serveur")
+					.setURL(`https://discord.com/channels/${Config.guildId}/${Config.rulesChannelId}/`)
+			);
+			await buttonInteraction.followUp({
+				content: "Tu n'appartiens à aucun serveur :scream: \nUtilise ce bouton et choisi ton serveur :wink:",
+				fetchReply: false,
+				components: [ actionRow ],
+			});
+			return;
+		}
+
 		if (userTicket.userId) {
-			return await buttonInteraction.reply({ content: `<@${guildMember.id}>, tu possèdes déjà un ticket ouvert : numéro ${userTicket.number.toString()}`, ephemeral: true });
+			await buttonInteraction.followUp({
+				content: `<@${guildMember.id}>, tu possèdes déjà un ticket ouvert : numéro ${userTicket.number.toString()}`,
+				fetchReply: false,
+			});
+			return;
 		}
 
 		const guild = buttonInteraction.guild as Guild;
@@ -215,8 +235,22 @@ export class TicketService {
 							Ecris-nous le(s) motif(s) de ton ticket et un membre du staff reviendra vers toi dès que possible :wink: \n 
 							Une fois résolu, tu peux fermer le ticket avec le bouton ci-dessous`);
 
-		await ticketChannel.send({ embeds: [ messageWelcomeTicket ], components: [ row ] });
+		const welcomeMessage = await ticketChannel.send({ embeds: [ messageWelcomeTicket ], components: [ row ] });
 		await this.saveTicket(guildMember, newTicketNumber);
+
+		const actionRow = new MessageActionRow().addComponents(
+			new MessageButton()
+				.setStyle("LINK")
+				.setLabel("Vers mon Ticket")
+				.setURL(`https://discord.com/channels/${Config.guildId}/${ticketChannel.id}/${welcomeMessage.id}`)
+		);
+		await buttonInteraction.followUp({
+			content: "Ton ticket est prêt et il n'attend plus que toi :ok_hand:",
+			ephemeral: true,
+			fetchReply: false,
+			components: [ actionRow ],
+		});
+
 		return this._logService.log(`Création du ticket N°${newTicketNumber.toString()} pour ${guildMember.displayName}`);
 	}
 
@@ -225,6 +259,13 @@ export class TicketService {
 	 * @param buttonInteraction
 	 */
 	public async closeTicket(buttonInteraction: ButtonInteraction): Promise<void> {
+		await buttonInteraction.deferReply();
+
+		const message = buttonInteraction.message as Message;
+		const components = message.components as MessageActionRow[];
+		components[0].components[0].setDisabled();
+		await message.edit({ components: components });
+
 		const targetChannel = buttonInteraction.channel as TextChannel;
 		const userTicket = await this.getTicketByNumber(targetChannel);
 		const guildMember = buttonInteraction.member as GuildMember;
@@ -243,7 +284,7 @@ export class TicketService {
 				DeleteTicketButton.button
 			);
 
-		await targetChannel.send({ embeds: [ closeMessage ], components: [ row ] });
+		await buttonInteraction.followUp({ embeds: [ closeMessage ], components: [ row ] });
 
 		if (!this._delayIsActive) {
 			this.addRequest();
@@ -259,7 +300,7 @@ export class TicketService {
 	}
 
 	/**
-	 * Ajoute un requête ticket au compteur, initialise et démarre son minuteur de recharge
+	 * Ajoute une requête ticket au compteur, initialise et démarre son minuteur de recharge
 	 * @private
 	 */
 	private addRequest(): void {
@@ -321,6 +362,8 @@ export class TicketService {
 	 * @param buttonInteraction
 	 */
 	public async reOpenTicket(buttonInteraction: ButtonInteraction): Promise<void> {
+		await buttonInteraction.deferReply();
+
 		const targetChannel = buttonInteraction.channel as TextChannel;
 		const userTicket = await this.getTicketByNumber(targetChannel);
 		const message = buttonInteraction.message as Message;
@@ -341,7 +384,7 @@ export class TicketService {
 		}
 
 		const row = new MessageActionRow().addComponents(CloseTicketButton.button);
-		await message.channel.send({ content: `Hey <@${userTicket.userId}>, ton ticket a été ré-ouvert :face_with_monocle:`, components: [ row ] });
+		await buttonInteraction.followUp({ content: `Hey <@${userTicket.userId}>, ton ticket a été ré-ouvert :face_with_monocle:`, components: [ row ] });
 		await this.openTicket(userTicket);
 		this._logService.log(`Ré-ouverture d'un ticket : N°${userTicket.number}`);
 	}
@@ -351,14 +394,17 @@ export class TicketService {
 	 * @param buttonInteraction
 	 */
 	public async deleteTicket(buttonInteraction: ButtonInteraction): Promise<void> {
-		const targetChannel = buttonInteraction.channel as TextChannel;
+		await buttonInteraction.deferReply();
 
 		const deleteMessage: MessageEmbed = new MessageEmbed()
 			.setColor(this._warningColor)
 			.setDescription("Suppression du ticket dans quelques secondes");
+		await buttonInteraction.followUp({ embeds: [ deleteMessage ] });
 
-		await targetChannel.send({ embeds: [ deleteMessage ] });
-		setTimeout(async () => targetChannel.delete(), 5000);
+		const targetChannel = buttonInteraction.channel as TextChannel;
+		setTimeout(async () => {
+			await targetChannel.delete();
+		}, 5000);
 		const nameArray: string[] = targetChannel.name.split("-");
 		const number: number = parseInt(nameArray[1]);
 		await this._ticketRepository.deleteTicket(number);
@@ -370,6 +416,7 @@ export class TicketService {
 	 * @param commandInteraction
 	 */
 	public async sendTicketMessage(commandInteraction: CommandInteraction): Promise<void> {
+		await commandInteraction.deferReply({ ephemeral: true });
 		const channel = commandInteraction.options.getChannel("channel") as TextChannel;
 		const logo = new MessageAttachment("./Images/logo-bannis.png");
 
@@ -384,7 +431,7 @@ export class TicketService {
 
 		try {
 			await channel.send({ embeds: [ messageEmbed ], components: [ actionRow ], files: [ logo ] });
-			return commandInteraction.reply({ content: "J'ai bien envoyé le message :ticket:", ephemeral: true, fetchReply: false });
+			await commandInteraction.followUp({ content: "J'ai bien envoyé le message :ticket:", ephemeral: true, fetchReply: false });
 		}
 		catch (error) {
 			throw Error("On dirait que le format du channel n'est pas correct :thinking:");

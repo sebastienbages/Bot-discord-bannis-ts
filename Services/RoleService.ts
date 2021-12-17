@@ -52,15 +52,16 @@ export class RoleService {
 	 * @param selectMenuInteraction
 	 */
 	public async assignServerRole(selectMenuInteraction: SelectMenuInteraction): Promise<void> {
+		await selectMenuInteraction.deferReply({ ephemeral: true, fetchReply: false });
 		const guildMember = selectMenuInteraction.member as GuildMember;
 
 		for (const role of this._serveurRoles) {
 			if (this.userHasRole(role.discordId, guildMember)) {
-				return selectMenuInteraction.reply({ content: `Tu appartiens déjà au **${role.name}** :nerd:`, ephemeral: true, fetchReply: false });
+				await selectMenuInteraction.followUp({ content: `Tu appartiens déjà au **${role.name}** :nerd:`, ephemeral: true, fetchReply: false });
+				return;
 			}
 		}
 
-		await selectMenuInteraction.deferReply({ ephemeral: true, fetchReply: false });
 		const guildMemberName = guildMember.displayName;
 		const choice = selectMenuInteraction.values[0] as string;
 		let serverNumber;
@@ -87,11 +88,7 @@ export class RoleService {
 			await selectMenuInteraction.editReply({ content: `Te voilà arrivé :partying_face: \nTu appartiens au **serveur ${serverNumber}** :sunglasses: \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:`, attachments: [] });
 			await this.setRole(Config.roleStart, guildMember);
 			await this.removeRole(Config.roleFrontiere, guildMember);
-			return this._logService.log(`${guildMember.displayName} a commencé l'aventure`);
-
-		}
-		else {
-			await selectMenuInteraction.followUp({ content: `Tu appartiens maintenant au **serveur ${serverNumber}** :sunglasses: \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:`, ephemeral: true, fetchReply: true });
+			this._logService.log(`${guildMember.displayName} a commencé l'aventure`);
 		}
 	}
 
