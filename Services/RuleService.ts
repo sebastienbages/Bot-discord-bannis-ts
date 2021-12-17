@@ -16,6 +16,10 @@ export class RuleService {
 		this._logService = new LogService();
 	}
 
+	/**
+	 * Envoi le message permettant de choisir son serveur
+	 * @param commandInteraction
+	 */
 	public async sendServerMessage(commandInteraction: CommandInteraction): Promise<void> {
 		await commandInteraction.deferReply({ ephemeral: true, fetchReply: false });
 		const channel = commandInteraction.options.getChannel("channel") as TextChannel;
@@ -26,7 +30,7 @@ export class RuleService {
 		try {
 			await channel.send({ files: [ image ] });
 			await channel.send({ content: "**CHOISI TON SERVEUR POUR VALIDER LE REGLEMENT :rocket:**", components: [ rowSelectMenu ] });
-			await commandInteraction.editReply({ content: "J'ai bien envoyé le message pour le règlement :incoming_envelope:" });
+			await commandInteraction.followUp({ content: "J'ai bien envoyé le message pour le règlement :incoming_envelope:" });
 		}
 		catch (error) {
 			throw Error("On dirait que le format du channel n'est pas correct :thinking:");

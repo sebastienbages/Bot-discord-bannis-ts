@@ -2,7 +2,6 @@ import { IButton } from "../../Interfaces/IButton";
 import {
 	ButtonInteraction,
 	EmojiIdentifierResolvable,
-	MessageActionRow,
 	MessageButton,
 	MessageButtonStyleResolvable,
 } from "discord.js";
@@ -30,8 +29,5 @@ export class CloseTicketButton implements IButton {
 
 	public async executeInteraction(buttonInteraction: ButtonInteraction): Promise<void> {
 		await this._ticketService.closeTicket(buttonInteraction);
-		const components = buttonInteraction.message.components as MessageActionRow[];
-		components[0].components[0].setDisabled();
-		return buttonInteraction.update({ components: components });
 	}
 }

@@ -28,7 +28,6 @@ export class CreateTicketButton implements IButton {
 	}
 
 	public async executeInteraction(buttonInteraction: ButtonInteraction): Promise<void> {
-		await this._ticketService.createTicket(buttonInteraction);
-		return buttonInteraction.update({});
+		return await this._ticketService.createTicket(buttonInteraction);
 	}
 }
