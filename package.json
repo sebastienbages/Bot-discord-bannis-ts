@@ -2,15 +2,15 @@
   "name": "bot-discord-bannis-ts",
   "version": "1.0.0",
   "engines": {
-    "node": "16.x"
+    "node": "16.x.x"
   },
   "description": "Bot discord du serveur \"Les Bannis\"",
-  "main": "bin/src/app.js",
+  "main": "bin/app.js",
   "scripts": {
-    "start": "node bin/src/app.js",
-    "local_bot": "tsc && copyfiles Images/* bin && node bin/src/app.js",
-    "postinstall": "tsc && copyfiles Images/* bin",
-    "lint": "eslint . --ext .ts"
+    "start": "node bin/app.js",
+    "dev": "nodemon -L",
+    "build": "tsc",
+    "lint": "eslint --config=./.eslintrc . --ext .ts"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,8 @@
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "copyfiles": "^2.4.1",
     "eslint": "^8.3.0",
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.4.0",
     "typescript": "^4.5.2"
   },
   "dependencies": {

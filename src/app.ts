@@ -1,32 +1,23 @@
 import { GuildMember, Interaction, Message } from "discord.js";
 import * as dotenv from "dotenv";
-import { Config } from "../Config/Config";
+import { Config } from "./Config/Config";
 import { Bot } from "./Bot";
 import { EventsProvider } from "./EventsProvider";
 import { ServicesProvider } from "./ServicesProvider";
 import { WebhookProvider } from "./WebhookProvider";
-import { LogService } from "../Services/LogService";
+import { LogService } from "./Services/LogService";
 
 dotenv.config();
 const logService = new LogService();
 
-try {
-	(async () => {
-		await logService.createLogFolder();
-	})();
-}
-catch (error) {
-	logService.error(error);
-}
-
 ServicesProvider.initializeServices();
-logService.log("Services initialisés");
+logService.log("Services initialises");
 
 WebhookProvider.initializeWebHook();
-logService.log("Webhooks initialisés");
+logService.log("Webhooks initialises");
 
 const events = new EventsProvider();
-logService.log("Évènements initialisés");
+logService.log("Evenements initialises");
 
 const bot: Bot = new Bot(Config.token, events);
 bot.start();
@@ -34,7 +25,7 @@ bot.start();
 (async () => {
 	try {
 		await ServicesProvider.getSlashCommandService().registerSlashCommand();
-		logService.log("Commandes enregistrées");
+		logService.log("Commandes enregistrees");
 	}
 	catch (error) {
 		logService.error(error);

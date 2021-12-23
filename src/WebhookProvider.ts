@@ -1,5 +1,5 @@
 import { WebhookClient } from "discord.js";
-import { Config } from "../Config/Config";
+import { Config } from "./Config/Config";
 
 export class WebhookProvider {
 	private static _serverKeeperOne: WebhookClient;

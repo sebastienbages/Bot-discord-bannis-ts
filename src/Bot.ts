@@ -1,6 +1,6 @@
 import { Client, Intents } from "discord.js";
 import { EventsProvider } from "./EventsProvider";
-import { LogService } from "../Services/LogService";
+import { LogService } from "./Services/LogService";
 
 export class Bot {
 	public client: Client;
