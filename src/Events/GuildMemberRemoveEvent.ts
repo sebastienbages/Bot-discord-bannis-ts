@@ -1,4 +1,4 @@
-import { GuildMember, MessageEmbed, TextChannel } from "discord.js";
+import { GuildMember, TextChannel } from "discord.js";
 import { Config } from "../Config/Config";
 import { LogService } from "../Services/LogService";
 
@@ -18,14 +18,9 @@ export class GuildMemberRemoveEvent {
 		if (!welcomeChannel) {
 			welcomeChannel = await member.guild.channels.fetch(Config.welcomeChannel) as TextChannel;
 		}
-
-		const goodByeEmbed = new MessageEmbed()
-			.setColor(Config.color)
-			.setThumbnail(member.user.displayAvatarURL())
-			.setTitle(`:outbox_tray: ${member.user.username} a quitté notre communauté`)
-			.setDescription("Au-revoir et à bientôt !")
-			.setFooter(`Désormais, nous sommes ${member.guild.memberCount} membres`);
-
-		await welcomeChannel.send({ embeds: [ goodByeEmbed ] });
+		await welcomeChannel.send(
+			{
+				content: `_${member.user.username} a quitté notre communauté, au-revoir et à bientôt_ :wave:`,
+			});
 	}
 }

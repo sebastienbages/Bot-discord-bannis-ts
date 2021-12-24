@@ -2,14 +2,27 @@ FROM node:16.10.0-alpine AS base
 
 WORKDIR /usr/app/bot-bannis
 
-COPY package*.json .
+COPY package*.json ./
+
+RUN apk add --update --no-cache \
+    make \
+    g++ \
+    jpeg-dev \
+    cairo-dev \
+    giflib-dev \
+    pango-dev \
+    libtool \
+    autoconf \
+    automake
 
 RUN npm install
 
 COPY . .
 
 RUN npm run build
-RUN cp -R Assets/ bin/Assets/
+
+RUN chown -R node:node /usr/app/bot-bannis
+USER node
 
 EXPOSE 5000
 

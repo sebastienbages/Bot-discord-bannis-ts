@@ -32,7 +32,7 @@ export class SurveyCommand implements ISlashCommand {
 
 		const messageToSend: string = commandInteraction.options.data[0].value as string;
 
-		const image = new MessageAttachment("./Assets/image-survey.png");
+		const image = new MessageAttachment(Config.imageDir + "/image-survey.png");
 		const messageEmbed = new MessageEmbed()
 			.setTitle("SONDAGE")
 			.setThumbnail("attachment://image-survey.png")

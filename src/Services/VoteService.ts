@@ -75,7 +75,7 @@ export class VoteService {
 		const numberOfVotes: number = await this._topServerService.getNumberOfVotes();
 		const topServeurUrl: string = "https://top-serveurs.net/conan-exiles/vote/" + topServerModel.slug;
 
-		const logo = new MessageAttachment("./Assets/logo-topserver.png");
+		const logo = new MessageAttachment(Config.imageDir + "/logo-topserver.png");
 		const messageEmbed = new MessageEmbed()
 			.setColor(Config.color)
 			.setTitle("SUPPORTEZ NOTRE COMMUNAUTE")

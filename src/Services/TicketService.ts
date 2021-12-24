@@ -418,7 +418,7 @@ export class TicketService {
 	public async sendTicketMessage(commandInteraction: CommandInteraction): Promise<void> {
 		await commandInteraction.deferReply({ ephemeral: true });
 		const channel = commandInteraction.options.getChannel("channel") as TextChannel;
-		const logo = new MessageAttachment("./Assets/logo-bannis.png");
+		const logo = new MessageAttachment(Config.imageDir + "/logo-bannis.png");
 
 		const messageEmbed = new MessageEmbed()
 			.setColor(Config.color)
