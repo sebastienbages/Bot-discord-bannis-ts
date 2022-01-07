@@ -1,11 +1,11 @@
-version: "3.9"
+version: "3.3"
 
 services:
   bot-bannis:
     image: bot/bannis
     volumes:
       - ./src:/usr/app/bot-bannis/src
-      - ./node_modules:/usr/app/bot-bannis/node_modules
+      - /usr/app/bot-bannis/node_modules
       - ./Logs:/usr/app/bot-bannis/Logs
     ports:
       - "5000:5000"

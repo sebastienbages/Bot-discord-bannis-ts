@@ -6,6 +6,7 @@ import {
 	TextChannel,
 } from "discord.js";
 import { ServerSelectMenu } from "../Interactions/SelectMenus/ServerSelectMenu";
+import { Config } from "../Config/Config";
 
 export class RuleService {
 	private _roleService: RoleService;
@@ -24,7 +25,7 @@ export class RuleService {
 		await commandInteraction.deferReply({ ephemeral: true, fetchReply: false });
 		const channel = commandInteraction.options.getChannel("channel") as TextChannel;
 
-		const image = new MessageAttachment("./Assets/banderole.gif");
+		const image = new MessageAttachment(Config.imageDir + "/banderole.gif");
 		const rowSelectMenu = new MessageActionRow().addComponents(ServerSelectMenu.selectMenu);
 
 		try {

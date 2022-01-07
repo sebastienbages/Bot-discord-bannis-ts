@@ -1,8 +1,6 @@
 import {
 	GuildMember,
-	MessageActionRow,
-	MessageAttachment, MessageButton,
-	MessageEmbed,
+	MessageAttachment,
 	TextChannel,
 } from "discord.js";
 import { Config } from "../Config/Config";
@@ -10,6 +8,7 @@ import { AdminModel } from "../Models/AdminModel";
 import { AdminService } from "../Services/AdminService";
 import { ServicesProvider } from "../ServicesProvider";
 import { LogService } from "../Services/LogService";
+import * as Canvas from "canvas";
 
 export class GuildMemberAddEvent {
 
@@ -53,41 +52,29 @@ export class GuildMemberAddEvent {
 			welcomeChannel = await member.guild.channels.fetch(Config.welcomeChannel) as TextChannel;
 		}
 
-		const welcomeEmbed = new MessageEmbed()
-			.setColor(Config.color)
-			.setThumbnail(member.user.displayAvatarURL())
-			.setTitle(`:inbox_tray: ${member.user.username} a rejoint notre communauté`)
-			.setDescription("Nous te souhaitons la bienvenue !")
-			.setFooter(`Désormais, nous sommes ${member.guild.memberCount} membres`);
+		Canvas.registerFont(Config.fontsDir + "/hyborian2.ttf", { family: "Hyborian" });
+		const welcomeBanner = Canvas.createCanvas(1500, 800);
+		const context = welcomeBanner.getContext("2d");
+		const background = await Canvas.loadImage(Config.imageDir + "/banniere_new_player.png");
+		context.drawImage(background, 0, 0, welcomeBanner.width, welcomeBanner.height);
 
-		await welcomeChannel.send({ embeds: [ welcomeEmbed ] });
+		context.font = "65px Hyborian";
+		context.fillStyle = "#ffffff";
+		const textDimensions = context.measureText(member.displayName);
+		context.fillText(member.displayName, (750 - (textDimensions.width / 2)), 560);
+		const subtitle = "a rejoint notre communauté";
+		const subtitleDimensions = context.measureText(subtitle);
+		context.fillText(subtitle, (750 - (subtitleDimensions.width / 2)), 620);
 
-		let borderChannel = member.guild.channels.cache.get(Config.borderChannel) as TextChannel;
+		context.beginPath();
+		context.arc(750, 340, 150, 0, Math.PI * 2, true);
+		context.closePath();
+		context.clip();
 
-		if (!borderChannel) {
-			borderChannel = await member.guild.channels.fetch(Config.borderChannel) as TextChannel;
-		}
+		const avatar = await Canvas.loadImage(member.user.displayAvatarURL({ format: "jpg" }));
+		context.drawImage(avatar, 600, 190, 300, 300);
 
-		const logo = new MessageAttachment("./Assets/logo-bannis.png");
-		const rulesChannel = member.guild.channels.cache.get(Config.rulesChannelId) as TextChannel;
-
-		const actionRow = new MessageActionRow().addComponents(
-			new MessageButton()
-				.setStyle("LINK")
-				.setLabel("Où ?")
-				.setURL(`https://discord.com/channels/${Config.guildId}/${Config.rulesChannelId}/${rulesChannel.lastMessageId}`)
-		);
-
-		const borderMessageEmbed = new MessageEmbed()
-			.setColor(Config.color)
-			.setThumbnail("attachment://logo-bannis.png")
-			.setTitle("BIENVENUE")
-			.setDescription(`Bien le bonjour **${member.displayName}** ! \n
-							Consulte les salons ouverts pour en apprendre d'avantage sur le contenu des Bannis. Tu peux poser tes questions à notre équipe dans ce salon si tu as besoin :wink:. \n
-							Pour accéder à la totalité du discord, nous te remercions de prendre connaissance du <#${Config.rulesChannelId}>. \n
-							Ensuite, il ne te restera plus qu'à choisir ton serveur dans la liste :ok_hand:
-			`);
-
-		await borderChannel.send({ content: `<@${member.user.id}>`, embeds: [ borderMessageEmbed ], files: [ logo ], components: [ actionRow ] });
+		const attachment = new MessageAttachment(welcomeBanner.toBuffer(), "welcome-profile-image.png");
+		await welcomeChannel.send({ files: [attachment] });
 	}
 }

@@ -82,7 +82,7 @@ export class RoleService {
 
 		if (!this.userHasRole(Config.roleStart, guildMember)) {
 			const wait = util.promisify(setTimeout);
-			const teleportationImage = new MessageAttachment("./Assets/teleportation.gif");
+			const teleportationImage = new MessageAttachment(Config.imageDir + "/teleportation.gif");
 			await selectMenuInteraction.followUp({ content: "Ok c'est parti ! Accroche ta ceinture ça va secouer :rocket:", files: [ teleportationImage ], ephemeral: true, fetchReply: true });
 			await wait(8000);
 			await selectMenuInteraction.editReply({ content: `Te voilà arrivé :partying_face: \nTu appartiens au **serveur ${serverNumber}** :sunglasses: \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:`, attachments: [] });

@@ -4,7 +4,7 @@ import { ColorResolvable } from "discord.js";
 dotenv.config();
 
 export class Config {
-	// ENV
+	// NODE ENV
 	public static readonly nodeEnvValues = {
 		production: "production",
 		development: "dev",
@@ -25,6 +25,8 @@ export class Config {
 	public static readonly color: ColorResolvable = [255, 255, 0];
 	public static readonly devId: string = process.env.DEV_ID;
 	public static readonly outDir: string = "src/";
+	public static readonly imageDir: string = "./Assets/images";
+	public static readonly fontsDir: string = "./Assets/fonts";
 
 	// CHANNELS
 	public static readonly ticketChannel: string = process.env.CHA_TICKET;
@@ -32,7 +34,6 @@ export class Config {
 	public static readonly welcomeChannel: string = process.env.CHA_WELCOME;
 	public static readonly surveyChannelId: string = process.env.CHA_SURVEY;
 	public static readonly voteChannelId: string = process.env.CHA_VOTE;
-	public static readonly borderChannel: string = process.env.CHA_FRONTIERE;
 
 	// CATEGORIES
 	public static readonly categoryTicketChannel: string = process.env.CATEGORY_TICKET;
@@ -47,7 +48,6 @@ export class Config {
 	public static readonly roleFrontiere: string = process.env.ROLE_FRONTIERE;
 
 	// CHOICE SERVER
-	public static readonly serverChoiceMsg: string = process.env.MSG_SERVER;
 	public static readonly serverRoleOne: string = process.env.SERVER_ROLE_1;
 	public static readonly serverRoleTwo: string = process.env.SERVER_ROLE_2;
 }
