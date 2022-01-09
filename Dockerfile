@@ -21,7 +21,10 @@ COPY . .
 
 RUN npm run build
 
-RUN chown -R node:node /usr/app/bot-bannis
+RUN chown -R node:node /usr/app/bot-bannis/Logs \
+    && chown -R node:node /usr/app/bot-bannis/bin \
+    && chown -R node:node /usr/app/bot-bannis/Assets
+
 USER node
 
 EXPOSE 5000

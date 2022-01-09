@@ -35,7 +35,7 @@ bot.start();
 try {
 	bot.client.on("messageCreate", (message: Message) => events.messageCreateEvent().run(message));
 	bot.client.on("guildMemberAdd", (member: GuildMember) => events.guildMemberAdd().run(member));
-	bot.client.on("guildMemberRemove", (member: GuildMember) => events.guildMemberRemove().run(member));
+	// bot.client.on("guildMemberRemove", (member: GuildMember) => events.guildMemberRemove().run(member));
 	bot.client.on("interactionCreate", (interaction: Interaction) => events.interactionCreate().run(interaction));
 }
 catch (error) {

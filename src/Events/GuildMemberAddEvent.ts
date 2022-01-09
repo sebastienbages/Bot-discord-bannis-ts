@@ -86,7 +86,7 @@ export class GuildMemberAddEvent {
 			borderChannel = await member.guild.channels.fetch(Config.borderChannel) as TextChannel;
 		}
 
-		const logo = new MessageAttachment("./Assets/logo-bannis.png");
+		const logo = new MessageAttachment(Config.imageDir + "/logo-bannis.png");
 		const rulesChannel = member.guild.channels.cache.get(Config.rulesChannelId) as TextChannel;
 
 		const actionRow = new MessageActionRow().addComponents(
