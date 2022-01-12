@@ -2,7 +2,7 @@ FROM node:16.10.0-alpine AS base
 
 WORKDIR /usr/app/bot-bannis
 
-COPY package*.json ./
+COPY . .
 
 RUN apk add --update --no-cache \
     make \
@@ -15,15 +15,11 @@ RUN apk add --update --no-cache \
     autoconf \
     automake
 
+RUN chown -R node:node /usr/app/bot-bannis
+
 RUN npm install
 
-COPY . .
-
 RUN npm run build
-
-RUN chown -R node:node /usr/app/bot-bannis/Logs \
-    && chown -R node:node /usr/app/bot-bannis/bin \
-    && chown -R node:node /usr/app/bot-bannis/Assets
 
 USER node
 
