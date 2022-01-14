@@ -3,7 +3,6 @@ import {
 	MessageActionRow,
 	MessageAttachment,
 	MessageButton,
-	MessageEmbed,
 	TextChannel,
 } from "discord.js";
 import { Config } from "../Config/Config";
@@ -78,34 +77,23 @@ export class GuildMemberAddEvent {
 		context.drawImage(avatar, 600, 190, 300, 300);
 
 		const attachment = new MessageAttachment(welcomeBanner.toBuffer(), "welcome-profile-image.png");
-		await welcomeChannel.send({ files: [attachment] });
 
-		let borderChannel = member.guild.channels.cache.get(Config.borderChannel) as TextChannel;
-
-		if (!borderChannel) {
-			borderChannel = await member.guild.channels.fetch(Config.borderChannel) as TextChannel;
-		}
-
-		const logo = new MessageAttachment(Config.imageDir + "/logo-bannis.png");
 		const rulesChannel = member.guild.channels.cache.get(Config.rulesChannelId) as TextChannel;
 
 		const actionRow = new MessageActionRow().addComponents(
 			new MessageButton()
 				.setStyle("LINK")
-				.setLabel("Où ?")
-				.setURL(`https://discord.com/channels/${Config.guildId}/${Config.rulesChannelId}/${rulesChannel.lastMessageId}`)
+				.setLabel("Choix du serveur")
+				.setEmoji("📜")
+				.setURL(`https://discord.com/channels/${Config.guildId}/${Config.rulesChannelId}/${rulesChannel.lastMessageId}`),
+			new MessageButton()
+				.setStyle("LINK")
+				.setLabel("Si tu as des questions")
+				.setEmoji("❔")
+				.setURL(`https://discord.com/channels/${Config.guildId}/${Config.borderChannel}`)
 		);
 
-		const borderMessageEmbed = new MessageEmbed()
-			.setColor(Config.color)
-			.setThumbnail("attachment://logo-bannis.png")
-			.setTitle("BIENVENUE")
-			.setDescription(`Bien le bonjour **${member.displayName}** ! \n
-							Consulte les salons ouverts pour en apprendre d'avantage sur le contenu des Bannis. Tu peux poser tes questions à notre équipe dans ce salon si tu as besoin :wink:. \n
-							Pour accéder à la totalité du discord, nous te remercions de prendre connaissance du <#${Config.rulesChannelId}>. \n
-							Ensuite, il ne te restera plus qu'à choisir ton serveur dans la liste :ok_hand:
-			`);
-
-		await borderChannel.send({ content: `<@${member.user.id}>`, embeds: [ borderMessageEmbed ], files: [ logo ], components: [ actionRow ] });
+		await welcomeChannel.send({ files: [attachment] });
+		await welcomeChannel.send({ content: `<@${member.id}>`, components: [actionRow] });
 	}
 }
