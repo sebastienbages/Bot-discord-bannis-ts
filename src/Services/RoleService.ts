@@ -51,17 +51,8 @@ export class RoleService {
 	 * Assigne le role correspondant au numéro du serveur selon la réaction
 	 * @param selectMenuInteraction
 	 */
-	public async assignServerRole(selectMenuInteraction: SelectMenuInteraction): Promise<void> {
-		await selectMenuInteraction.deferReply({ ephemeral: true, fetchReply: false });
+	public async assignServerRole(selectMenuInteraction: SelectMenuInteraction): Promise<number> {
 		const guildMember = selectMenuInteraction.member as GuildMember;
-
-		for (const role of this._serveurRoles) {
-			if (this.userHasRole(role.discordId, guildMember)) {
-				await selectMenuInteraction.followUp({ content: `Tu appartiens déjà au **${role.name}** :nerd:`, ephemeral: true, fetchReply: false });
-				return;
-			}
-		}
-
 		const guildMemberName = guildMember.displayName;
 		const choice = selectMenuInteraction.values[0] as string;
 		let serverNumber;
@@ -80,16 +71,7 @@ export class RoleService {
 			this._logService.log(`${guildMember.displayName} a choisi le serveur 2`);
 		}
 
-		if (!this.userHasRole(Config.roleStart, guildMember)) {
-			const wait = util.promisify(setTimeout);
-			const teleportationImage = new MessageAttachment(Config.imageDir + "/teleportation.gif");
-			await selectMenuInteraction.followUp({ content: "Ok c'est parti ! Accroche ta ceinture ça va secouer :rocket:", files: [ teleportationImage ], ephemeral: true, fetchReply: true });
-			await wait(8000);
-			await selectMenuInteraction.editReply({ content: `Te voilà arrivé :partying_face: \nTu appartiens au **serveur ${serverNumber}** :sunglasses: \nD'ailleurs, je me suis permis de l'écrire à côté de ton pseudo :relaxed:`, attachments: [] });
-			await this.setRole(Config.roleStart, guildMember);
-			await this.removeRole(Config.roleFrontiere, guildMember);
-			this._logService.log(`${guildMember.displayName} a commencé l'aventure`);
-		}
+		return serverNumber;
 	}
 
 	/**
@@ -127,5 +109,28 @@ export class RoleService {
 	 */
 	public async removeRole(roleId: string, guildMember: GuildMember): Promise<GuildMember> {
 		return await guildMember.roles.remove(roleId);
+	}
+
+	/**
+	 * Assigne le rôle de départ pour accéder à la totalité du discord
+	 * @param selectMenuInteraction
+	 */
+	public async assignStartRole(selectMenuInteraction: SelectMenuInteraction): Promise<void> {
+		const guildMember = selectMenuInteraction.member as GuildMember;
+		if (!this.userHasRole(Config.roleStart, guildMember)) {
+			const wait = util.promisify(setTimeout);
+			const teleportationImage = new MessageAttachment(Config.imageDir + "/teleportation.gif");
+			await selectMenuInteraction.followUp({ content: "Ok c'est parti ! Accroche ta ceinture ça va secouer :rocket:", files: [ teleportationImage ], ephemeral: true, fetchReply: true });
+			await wait(8000);
+			await this.setRole(Config.roleStart, guildMember);
+			await this.removeRole(Config.roleFrontiere, guildMember);
+		}
+	}
+
+	/**
+	 * Retourne la liste des rôles des serveurs de jeux
+	 */
+	public getServerRoles(): RoleModel[] {
+		return this._serveurRoles;
 	}
 }
