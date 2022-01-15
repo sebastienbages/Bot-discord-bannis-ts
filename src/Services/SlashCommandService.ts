@@ -14,6 +14,7 @@ import { SayPrivCommand } from "../Interactions/Commands/SayPrivCommand";
 import { RestartCommand } from "../Interactions/Commands/RestartCommand";
 import { TopServerCommand } from "../Interactions/Commands/TopServerCommand";
 import { ServersCommand } from "../Interactions/Commands/ServersCommand";
+import { GameServersCommand } from "../Interactions/Commands/GameServersCommand";
 
 export class SlashCommandService {
 	/**
@@ -32,6 +33,7 @@ export class SlashCommandService {
 		RestartCommand,
 		TopServerCommand,
 		ServersCommand,
+		GameServersCommand,
 	];
 
 	public readonly _commandsInstances: ISlashCommand[];

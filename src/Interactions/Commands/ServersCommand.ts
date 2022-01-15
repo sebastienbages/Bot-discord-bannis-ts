@@ -5,10 +5,10 @@ import { RuleService } from "../../Services/RuleService";
 import { ApplicationCommandOptionType } from "discord-api-types";
 
 export class ServersCommand implements ISlashCommand {
-	public readonly name: string = "serveurs";
+	public readonly name: string = "choix-serveurs";
 	public readonly description: string = "Je peux envoyer le message qui permet aux utilisateurs de choisir leur serveur";
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
-	readonly commandOptions: CommandOptions[] = [
+	public readonly commandOptions: CommandOptions[] = [
 		{
 			type: ApplicationCommandOptionType.String,
 			name: "option",
@@ -28,7 +28,7 @@ export class ServersCommand implements ISlashCommand {
 			isRequired: true,
 		},
 	];
-	readonly subCommandsOptions: SubCommandOptions[] = [];
+	public readonly subCommandsOptions: SubCommandOptions[] = [];
 
 	private _ruleService: RuleService;
 
