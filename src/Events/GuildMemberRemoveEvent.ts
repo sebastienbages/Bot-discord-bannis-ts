@@ -1,4 +1,4 @@
-import { GuildMember, TextChannel } from "discord.js";
+import { GuildMember, TextChannel, MessageEmbed } from "discord.js";
 import { Config } from "../Config/Config";
 import { LogService } from "../Services/LogService";
 
@@ -11,16 +11,18 @@ export class GuildMemberRemoveEvent {
 	}
 
 	public async run(member: GuildMember): Promise<void> {
-		this._logService.log(`Depart d'un membre : "${member.displayName}"`);
+		let departureChannel = member.guild.channels.cache.get(Config.departureChannel) as TextChannel;
 
-		let welcomeChannel = member.guild.channels.cache.get(Config.welcomeChannel) as TextChannel;
-
-		if (!welcomeChannel) {
-			welcomeChannel = await member.guild.channels.fetch(Config.welcomeChannel) as TextChannel;
+		if (!departureChannel) {
+			departureChannel = await member.guild.channels.fetch(Config.departureChannel) as TextChannel;
 		}
-		await welcomeChannel.send(
-			{
-				content: `_${member.user.username} a quitté notre communauté, au-revoir et à bientôt_ :wave:`,
-			});
+
+		const departureMessage = new MessageEmbed()
+			.setColor(Config.color)
+			.setThumbnail(member.user.displayAvatarURL())
+			.setTitle(`:outbox_tray: **${member.user.username} a quitté notre communauté**`)
+			.setDescription(`Désormais, nous sommes ${member.guild.memberCount} membres`);
+		await departureChannel.send({ embeds: [ departureMessage ] });
+		this._logService.log(`Depart d'un membre : "${member.displayName}"`);
 	}
 }
