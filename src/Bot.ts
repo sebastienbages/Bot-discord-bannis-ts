@@ -33,8 +33,8 @@ export class Bot {
 		this.token = token;
 	}
 
-	start(): void {
+	public async start(): Promise<void> {
 		this.events.ready().run(this.client);
-		this.client.login(this.token).then(() => this._logService.log("Le Bot est en ligne"));
+		await this.client.login(this.token);
 	}
 }

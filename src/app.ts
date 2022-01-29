@@ -20,12 +20,19 @@ const events = new EventsProvider();
 logService.log("Evenements initialises");
 
 const bot: Bot = new Bot(Config.token, events);
-bot.start();
 
 (async () => {
 	try {
-		await ServicesProvider.getSlashCommandService().registerSlashCommand();
+		await bot.start();
+		logService.log("Le Bot est en ligne");
+
+		const slashCommandService = ServicesProvider.getSlashCommandService();
+
+		await slashCommandService.registerSlashCommand();
 		logService.log("Commandes enregistrees");
+
+		await slashCommandService.setCommandsPermission(Config.roleCommandsBot, bot.client);
+		await logService.log("Permissions des commandes mise a jour");
 	}
 	catch (error) {
 		logService.error(error);

@@ -1,6 +1,10 @@
 import { CommandOptions, ISlashCommand, SubCommandOptions } from "../Interfaces/ISlashCommand";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { ApplicationCommandOptionType, RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord-api-types/v9";
+import {
+	ApplicationCommandOptionType,
+	RESTPostAPIApplicationCommandsJSONBody,
+	Routes,
+} from "discord-api-types/v9";
 import { REST } from "@discordjs/rest";
 import { Config } from "../Config/Config";
 import { SurveyCommand } from "../Interactions/Commands/SurveyCommand";
@@ -15,6 +19,7 @@ import { RestartCommand } from "../Interactions/Commands/RestartCommand";
 import { TopServerCommand } from "../Interactions/Commands/TopServerCommand";
 import { ServersCommand } from "../Interactions/Commands/ServersCommand";
 import { GameServersCommand } from "../Interactions/Commands/GameServersCommand";
+import { Client, GuildApplicationCommandPermissionData } from "discord.js";
 
 export class SlashCommandService {
 	/**
@@ -71,7 +76,8 @@ export class SlashCommandService {
 		for (const cmd of this._commandsInstances) {
 			const slashCommand = new SlashCommandBuilder()
 				.setName(cmd.name)
-				.setDescription(cmd.description);
+				.setDescription(cmd.description)
+				.setDefaultPermission(false);
 
 			if (cmd.commandOptions.length > 0) {
 				this.buildCommandOptions(slashCommand, cmd.commandOptions);
@@ -197,5 +203,31 @@ export class SlashCommandService {
 				);
 			}
 		}
+	}
+
+	/**
+	 * Autorise les commandes de l'application au rôle mentionné
+	 * @param roleId
+	 * @param client
+	 */
+	public async setCommandsPermission(roleId: string, client: Client): Promise<void> {
+		const guild = await client.guilds.fetch(Config.guildId);
+		const guildCommands = await guild.commands.fetch();
+		const botCommands = guildCommands.filter((cmd) => cmd.applicationId === Config.applicationId);
+		const permissions = [];
+
+		botCommands.forEach((cmd, key) => {
+			const permission: GuildApplicationCommandPermissionData = {
+				id: key,
+				permissions: [{
+					id: roleId,
+					type: "ROLE",
+					permission: true,
+				}],
+			};
+			permissions.push(permission);
+		});
+
+		await guild.commands.permissions.set({ fullPermissions: permissions });
 	}
 }
