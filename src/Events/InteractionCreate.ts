@@ -5,7 +5,7 @@ import {
 	GuildMember,
 	Interaction,
 	SelectMenuInteraction,
-
+	Snowflake,
 } from "discord.js";
 import { TicketService } from "../Services/TicketService";
 import { ServicesProvider } from "../ServicesProvider";
@@ -23,6 +23,7 @@ export class InteractionCreateEvent {
 	private _buttonService: ButtonService;
 	private _selectMenuService: SelectMenuService;
 	private _commands: Collection<string, ISlashCommand>;
+	private _lockInteraction: Snowflake[];
 
 	constructor() {
 		this._logService = new LogService();
@@ -34,37 +35,74 @@ export class InteractionCreateEvent {
 		this._slashCommandService._commandsInstances.forEach(cmd => {
 			this._commands.set(cmd.name, cmd);
 		});
+		this._lockInteraction = [];
 	}
 
 	public async run(interaction: Interaction): Promise<void> {
 		try {
+			const guildMember = interaction.member as GuildMember;
+
+			if (this.userIsLocked(guildMember.id)) {
+				return;
+			}
+
+			this.lockUser(guildMember.id);
+
 			if (interaction.isCommand()) {
 				const commandInteraction = interaction as CommandInteraction;
 				const slashCommand: ISlashCommand = this._commands.get(commandInteraction.commandName);
 				const member = commandInteraction.member as GuildMember;
 				await slashCommand.executeInteraction(commandInteraction);
-				return this._logService.log(`${member.displayName} a utilise la commande "${commandInteraction.commandName}"`);
+				this._logService.log(`${member.displayName} a utilise la commande "${commandInteraction.commandName}"`);
 			}
 
 			if (interaction.isSelectMenu()) {
 				const selectMenuInteraction = interaction as SelectMenuInteraction;
 				const selectMenuInstance = this._selectMenuService.getInstance(selectMenuInteraction.customId);
-				return await selectMenuInstance.executeInteraction(selectMenuInteraction);
+				await selectMenuInstance.executeInteraction(selectMenuInteraction);
 			}
 
 			if (interaction.isButton()) {
 				const buttonInteraction = interaction as ButtonInteraction;
 				const instanceButton: IButton = this._buttonService.getInstance(buttonInteraction.customId);
-				return await instanceButton.executeInteraction(buttonInteraction);
+				await instanceButton.executeInteraction(buttonInteraction);
 			}
+
+			this.unlockUser(guildMember.id);
 		}
 		catch (error) {
 			const baseInteraction = interaction as BaseCommandInteraction;
 			this._logService.error(error);
-			if (!error.message) {
-				error.message = "Oups ! Une erreur s'est produite :thermometer_face:";
-			}
-			return await baseInteraction.reply({ content: "Oups ! Une erreur s'est produite : " + error.message, ephemeral: true });
+			await baseInteraction.reply({ content: "Oups ! Une erreur s'est produite, veuillez avertir un admin" + error.message ? ` : ${error.message}` : "", ephemeral: true });
+		}
+	}
+
+	/**
+	 * Vérifie si un utilisateur est verrouillé
+	 * @param userSnowflake
+	 */
+	private userIsLocked(userSnowflake: Snowflake): boolean {
+		return this._lockInteraction.includes(userSnowflake);
+	}
+
+	/**
+	 * Verrouille l'utilisateur
+	 * @param userSnowflake
+	 * @private
+	 */
+	private lockUser(userSnowflake: Snowflake): void {
+		this._lockInteraction.push(userSnowflake);
+	}
+
+	/**
+	 * Déverrouille l'utilisateur
+	 * @param userSnowflake
+	 * @private
+	 */
+	private unlockUser(userSnowflake: Snowflake): void {
+		if (this.userIsLocked(userSnowflake)) {
+			const userIndex = this._lockInteraction.indexOf(userSnowflake);
+			this._lockInteraction.splice(userIndex, 1);
 		}
 	}
 }
