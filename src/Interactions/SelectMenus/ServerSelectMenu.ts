@@ -16,12 +16,10 @@ export class ServerSelectMenu implements ISelectMenu {
 		.addOptions([
 			{
 				label: "Serveur 1",
-				description: "Serveur PVE avec cohérence d'univers demandé",
 				value: this.serverOne,
 			},
 			{
 				label: "Serveur 2",
-				description: "Serveur PVE SEMI/RP (encouragé mais pas imposé)",
 				value: this.serverTwo,
 			},
 		]);

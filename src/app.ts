@@ -32,7 +32,7 @@ const bot: Bot = new Bot(Config.token, events);
 		logService.log("Commandes enregistrees");
 
 		await slashCommandService.setCommandsPermission(Config.roleCommandsBot, bot.client);
-		await logService.log("Permissions des commandes mise a jour");
+		await logService.log("Permissions des commandes mises a jour");
 	}
 	catch (error) {
 		logService.error(error);
