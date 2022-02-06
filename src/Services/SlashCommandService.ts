@@ -201,6 +201,21 @@ export class SlashCommandService {
 								.setRequired(sco.option.isRequired)
 						)
 				);
+				continue;
+			}
+
+			if (sco.option.type === ApplicationCommandOptionType.Channel) {
+				slashCommand.addSubcommand(subCommand =>
+					subCommand
+						.setName(sco.name)
+						.setDescription(sco.description)
+						.addChannelOption(option =>
+							option
+								.setName(sco.option.name)
+								.setDescription(sco.option.description)
+								.setRequired(sco.option.isRequired)
+						)
+				);
 			}
 		}
 	}

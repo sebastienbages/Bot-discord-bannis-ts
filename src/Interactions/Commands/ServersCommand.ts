@@ -12,12 +12,20 @@ export class ServersCommand implements ISlashCommand {
 		{
 			type: ApplicationCommandOptionType.String,
 			name: "option",
-			description: "Que veux-tu faire ?",
+			description: "Quel(s) serveurs sont ouverts ?",
 			isRequired: true,
 			choices: [
 				[
-					"Envoyer message",
-					"send",
+					"Uniquement serveur 1",
+					"s1",
+				],
+				[
+					"Uniquement serveur 2",
+					"s2",
+				],
+				[
+					"Les deux serveurs",
+					"all",
 				],
 			],
 		},
@@ -37,10 +45,6 @@ export class ServersCommand implements ISlashCommand {
 	}
 
 	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
-		const option = commandInteraction.options.getString("option") as string;
-
-		if (option === "send") {
-			await this._ruleService.sendServerMessage(commandInteraction);
-		}
+		await this._ruleService.sendServerMessage(commandInteraction);
 	}
 }
