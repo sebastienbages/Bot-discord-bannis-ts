@@ -2,7 +2,9 @@ import { RoleService } from "./RoleService";
 import { LogService } from "./LogService";
 import {
 	CommandInteraction,
-	MessageActionRow, MessageAttachment,
+	MessageActionRow,
+	MessageAttachment,
+	MessageSelectMenu,
 	TextChannel,
 } from "discord.js";
 import { ServerSelectMenu } from "../Interactions/SelectMenus/ServerSelectMenu";
@@ -24,14 +26,29 @@ export class RuleService {
 	public async sendServerMessage(commandInteraction: CommandInteraction): Promise<void> {
 		await commandInteraction.deferReply({ ephemeral: true, fetchReply: false });
 		const channel = commandInteraction.options.getChannel("channel") as TextChannel;
+		const option = commandInteraction.options.getString("option") as string;
+		const selectMenu: MessageSelectMenu = ServerSelectMenu.selectMenu;
+		selectMenu.options = [];
+
+		if (option === "s1") {
+			selectMenu.addOptions([ ServerSelectMenu.serverOneOpen, ServerSelectMenu.serverTwoClose ]);
+		}
+
+		if (option === "s2") {
+			selectMenu.addOptions([ ServerSelectMenu.serverOneClose, ServerSelectMenu.serverTwoOpen ]);
+		}
+
+		if (option === "all") {
+			selectMenu.addOptions([ ServerSelectMenu.serverOneOpen, ServerSelectMenu.serverTwoOpen ]);
+		}
 
 		const image = new MessageAttachment(Config.imageDir + "/banderole.gif");
-		const rowSelectMenu = new MessageActionRow().addComponents(ServerSelectMenu.selectMenu);
+		const rowSelectMenu = new MessageActionRow().addComponents(selectMenu);
 
 		try {
 			await channel.send({ files: [ image ] });
 			await channel.send({ content: "**CHOISI TON SERVEUR POUR VALIDER LE REGLEMENT :rocket:**", components: [ rowSelectMenu ] });
-			await commandInteraction.followUp({ content: "J'ai bien envoyé le message pour le règlement :incoming_envelope:" });
+			await commandInteraction.editReply({ content: "J'ai bien envoyé le message pour le règlement :incoming_envelope:" });
 		}
 		catch (error) {
 			throw Error("On dirait que le format du channel n'est pas correct :thinking:");

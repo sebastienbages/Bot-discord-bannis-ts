@@ -4,7 +4,6 @@ import { AutoMapper } from "./AutoMapper";
 import { GuildMember, MessageAttachment, SelectMenuInteraction } from "discord.js";
 import { LogService } from "./LogService";
 import { Config } from "../Config/Config";
-import { ServerSelectMenu } from "../Interactions/SelectMenus/ServerSelectMenu";
 import util from "util";
 
 export class RoleService {
@@ -48,30 +47,23 @@ export class RoleService {
 	}
 
 	/**
-	 * Assigne le role correspondant au numéro du serveur selon la réaction
-	 * @param selectMenuInteraction
+	 * Assigne le role du serveur 2 au membre
+	 * @param guildMember
 	 */
-	public async assignServerRole(selectMenuInteraction: SelectMenuInteraction): Promise<number> {
-		const guildMember = selectMenuInteraction.member as GuildMember;
-		const guildMemberName = guildMember.displayName;
-		const choice = selectMenuInteraction.values[0] as string;
-		let serverNumber;
+	public async assignServerTwoRole(guildMember: GuildMember): Promise<void> {
+		await guildMember.roles.add(Config.serverRoleTwo);
+		await guildMember.setNickname(guildMember.displayName + " (2)");
+		this._logService.log(`${guildMember.displayName} a choisi le serveur 2`);
+	}
 
-		if (choice === ServerSelectMenu.serverOne) {
-			await guildMember.roles.add(Config.serverRoleOne);
-			await guildMember.setNickname(guildMemberName + " (1)");
-			serverNumber = "1";
-			this._logService.log(`${guildMember.displayName} a choisi le serveur 1`);
-		}
-
-		if (choice === ServerSelectMenu.serverTwo) {
-			await guildMember.roles.add(Config.serverRoleTwo);
-			await guildMember.setNickname(guildMemberName + " (2)");
-			serverNumber = "2";
-			this._logService.log(`${guildMember.displayName} a choisi le serveur 2`);
-		}
-
-		return serverNumber;
+	/**
+	 * Assigne le role du serveur 1 au membre
+	 * @param guildMember
+	 */
+	public async assignServerOneRole(guildMember: GuildMember): Promise<void> {
+		await guildMember.roles.add(Config.serverRoleOne);
+		await guildMember.setNickname(guildMember.displayName + " (1)");
+		this._logService.log(`${guildMember.displayName} a choisi le serveur 1`);
 	}
 
 	/**
