@@ -16,16 +16,8 @@ export class RestartCommand implements ISlashCommand {
 			isRequired: true,
 			choices: [
 				[
-					"Serveur 1",
-					"serveur_1",
-				],
-				[
-					"Serveur 2",
-					"serveur_2",
-				],
-				[
-					"Tous les serveurs",
-					"serveur_tous",
+					"Serveur principal",
+					"main_server",
 				],
 			],
 		},
@@ -35,19 +27,10 @@ export class RestartCommand implements ISlashCommand {
 	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
 		const option = commandInteraction.options.getString("option") as string;
 
-		if (option === "serveur_tous") {
-			await WebhookProvider.getServerKeeperOne().send(`:warning: <@&${Config.serverRoleOne}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
-			await WebhookProvider.getServerKeeperTwo().send(`:warning: <@&${Config.serverRoleTwo}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
+		if (option === "main_server") {
+			await WebhookProvider.getServerKeeperOne().send(`:warning: <@&${Config.roleStart}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
 		}
 
-		if (option === "serveur_1") {
-			await WebhookProvider.getServerKeeperOne().send(`:warning: <@&${Config.serverRoleOne}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
-		}
-
-		if (option === "serveur_2") {
-			await WebhookProvider.getServerKeeperTwo().send(`:warning: <@&${Config.serverRoleTwo}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
-		}
-
-		return await commandInteraction.reply({ content: "C'est bon, les utilisateurs sont avertis :mega:", ephemeral: true, fetchReply: false });
+		return await commandInteraction.reply({ content: "Les utilisateurs sont avertis :mega:", ephemeral: true, fetchReply: false });
 	}
 }
