@@ -13,8 +13,4 @@ export class WebhookProvider {
 	public static getServerKeeperOne(): WebhookClient {
 		return this._serverKeeperOne;
 	}
-
-	public static getServerKeeperTwo(): WebhookClient {
-		return this._serverKeeperTwo;
-	}
 }

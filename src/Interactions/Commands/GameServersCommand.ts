@@ -7,7 +7,7 @@ import { PlayerModel } from "../../Models/PlayerModel";
 
 export class GameServersCommand implements ISlashCommand {
 	public readonly name: string = "joueurs-connectes";
-	public readonly description: string = "Je peux envoyer la liste des joueurs connectés sur les serveurs";
+	public readonly description: string = "Je peux envoyer la liste des joueurs connectés sur les serveurs disponibles";
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
 	public readonly commandOptions: CommandOptions[] = [
 		{
@@ -17,12 +17,8 @@ export class GameServersCommand implements ISlashCommand {
 			isRequired: true,
 			choices: [
 				[
-					"Serveur 1",
-					"server1",
-				],
-				[
-					"Serveur 2",
-					"server2",
+					"Serveur principal",
+					"main_server",
 				],
 			],
 		},
@@ -51,14 +47,9 @@ export class GameServersCommand implements ISlashCommand {
 			await commandInteraction.editReply({ content: "Je t'ai envoyé la liste en privé :wink:" });
 		};
 
-		if (option === "server1") {
-			const playerModels = await this._gameServersService.getPlayers("SERVER1");
-			await sendPrivateMessage(playerModels, "players-server-1.txt", "Joueurs connectes SERVEUR 1");
-		}
-
-		if (option === "server2") {
-			const playerModels = await this._gameServersService.getPlayers("SERVER2");
-			await sendPrivateMessage(playerModels, "players-server-2.txt", "Joueurs connectes SERVEUR 2");
+		if (option === "main_server") {
+			const playerModels = await this._gameServersService.getPlayers();
+			await sendPrivateMessage(playerModels, "players-main-server.txt", "Joueurs connectes SERVEUR PRINCIPAL");
 		}
 	}
 }

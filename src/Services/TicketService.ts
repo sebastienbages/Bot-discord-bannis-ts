@@ -156,25 +156,23 @@ export class TicketService {
 		const guildMember = buttonInteraction.member as GuildMember;
 		const userTicket = await this.getTicketByUserId(guildMember.id);
 
-		if (!guildMember.roles.cache.has(Config.serverRoleOne) && !guildMember.roles.cache.has(Config.serverRoleTwo)) {
+		if (!guildMember.roles.cache.has(Config.roleStart)) {
 			const actionRow = new MessageActionRow().addComponents(
 				new MessageButton()
 					.setStyle("LINK")
-					.setLabel("Choisir son serveur")
+					.setLabel("Valider le règlement")
 					.setURL(`https://discord.com/channels/${Config.guildId}/${Config.rulesChannelId}/`)
 			);
-			await buttonInteraction.followUp({
-				content: "Tu n'appartiens à aucun serveur :scream: \nUtilise ce bouton et choisi ton serveur :wink:",
-				fetchReply: false,
+			await buttonInteraction.editReply({
+				content: "Tu ne possède pas le rôle des Bannis :scream: \nUtilise ce bouton pour consulter le règlement et le valider :wink:",
 				components: [ actionRow ],
 			});
 			return;
 		}
 
 		if (userTicket.userId) {
-			await buttonInteraction.followUp({
+			await buttonInteraction.editReply({
 				content: `<@${guildMember.id}>, tu possèdes déjà un ticket ouvert : numéro ${userTicket.number.toString()}`,
-				fetchReply: false,
 			});
 			return;
 		}

@@ -17,7 +17,7 @@ import { SayCommand } from "../Interactions/Commands/SayCommand";
 import { SayPrivCommand } from "../Interactions/Commands/SayPrivCommand";
 import { RestartCommand } from "../Interactions/Commands/RestartCommand";
 import { TopServerCommand } from "../Interactions/Commands/TopServerCommand";
-import { ServersCommand } from "../Interactions/Commands/ServersCommand";
+import { RuleCommand } from "../Interactions/Commands/RuleCommand";
 import { GameServersCommand } from "../Interactions/Commands/GameServersCommand";
 import { Client, GuildApplicationCommandPermissionData } from "discord.js";
 
@@ -37,7 +37,7 @@ export class SlashCommandService {
 		SayPrivCommand,
 		RestartCommand,
 		TopServerCommand,
-		ServersCommand,
+		RuleCommand,
 		GameServersCommand,
 	];
 
