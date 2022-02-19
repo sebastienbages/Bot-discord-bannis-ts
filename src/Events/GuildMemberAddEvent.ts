@@ -83,7 +83,7 @@ export class GuildMemberAddEvent {
 		const actionRow = new MessageActionRow().addComponents(
 			new MessageButton()
 				.setStyle("LINK")
-				.setLabel("Choix du serveur")
+				.setLabel("Règlement à valider")
 				.setEmoji("📜")
 				.setURL(`https://discord.com/channels/${Config.guildId}/${Config.rulesChannelId}/${rulesChannel.lastMessageId}`),
 			new MessageButton()

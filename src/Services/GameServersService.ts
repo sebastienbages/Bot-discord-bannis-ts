@@ -5,12 +5,9 @@ import { PlayerModel } from "../Models/PlayerModel";
 import fs from "fs/promises";
 import date from "date-and-time";
 
-export declare type Server = "SERVER1" | "SERVER2";
-
 export class GameServersService {
 	private readonly _ip = "213.246.45.68";
-	private readonly _portServer1 = 27015;
-	private readonly _portServer2 = 27016;
+	private readonly _portMainServer = 27015;
 
 	/** https://developer.valvesoftware.com/wiki/Server_queries#A2S_PLAYER */
 
@@ -115,20 +112,9 @@ export class GameServersService {
 
 	/**
 	 * Retourne la liste des joueurs connectés au serveur
-	 * @param server
 	 */
-	public async getPlayers(server: Server): Promise<PlayerModel[]> {
-		let key;
-		let port;
-
-		if (server === "SERVER1") {
-			port = this._portServer1;
-			key = await this.getChallenge("U", port);
-		}
-		else if (server === "SERVER2") {
-			port = this._portServer2;
-			key = await this.getChallenge("U", port);
-		}
+	public async getPlayers(): Promise<PlayerModel[]> {
+		const key = await this.getChallenge("U", this._portMainServer);
 
 		return new Promise((resolve, reject) => {
 			const client = createSocket("udp4");
@@ -146,7 +132,7 @@ export class GameServersService {
 				.writeInt32LE(key)
 				.toBuffer();
 
-			client.send(packet, port, this._ip);
+			client.send(packet, this._portMainServer, this._ip);
 		});
 	}
 
