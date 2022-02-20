@@ -1,5 +1,7 @@
+import { Snowflake } from "discord.js";
+
 export class TicketModel {
-	userId: string;
-	number: number;
-	isClosed: boolean;
+	public userid: Snowflake;
+	public number: number;
+	public isclosed: boolean;
 }

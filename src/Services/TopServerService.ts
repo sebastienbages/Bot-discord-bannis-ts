@@ -1,31 +1,39 @@
 import { TopServerRepository } from "../Dal/TopServerRepository";
-import { Player, TopServerModel } from "../Models/TopServerModel";
-import { AutoMapper } from "./AutoMapper";
-import * as fs from "fs";
+import * as fs from "fs/promises";
+import { LogService } from "./LogService";
+import { ServicesProvider } from "../ServicesProvider";
+import { Player, TopServerPlayerRanking, TopServerInfos } from "../Models/TopServerModel";
+import * as Stream from "stream";
 
 export class TopServerService {
-	private _topServerRepository: TopServerRepository;
-	public readonly fileName: string = "topserveur.txt";
+	private topServerRepository: TopServerRepository;
+	private logService: LogService;
+	public static fileName = "topserveur.txt";
 
 	constructor() {
-		this._topServerRepository = new TopServerRepository();
+		this.topServerRepository = new TopServerRepository();
+		this.logService = ServicesProvider.getLogService();
 	}
 
 	/**
 	 * Retourne le nom du serveur sous Top Serveur
 	 */
-	public async getSlugTopServer(): Promise<TopServerModel> {
-		const result: any = await this._topServerRepository.getDataServer();
-		return AutoMapper.mapTopServerModel(result);
+	public async getSlugTopServer(): Promise<TopServerInfos> {
+		return await this.topServerRepository.getDataServer();
 	}
 
 	/**
-	 * Retourne la liste des votants et le nombre de votes
-	 * @param currentMonth {boolean} - True = mois courant / False = mois N-1
+	 * Retourne la liste des votants du mois courant et le nombre de votes
 	 */
-	public async getPlayersRanking(currentMonth: boolean): Promise<Player[]> {
-		const results: any = await this._topServerRepository.getPlayersRanking(currentMonth);
-		return AutoMapper.mapArrayPlayer(results);
+	public async getPlayersRankingForCurrentMonth(): Promise<TopServerPlayerRanking> {
+		return await this.topServerRepository.getPlayersRankingForCurrentMonth();
+	}
+
+	/**
+	 * Retourne la liste des votants du mois courant et le nombre de votes
+	 */
+	public async getPlayersRankingForLastMonth(): Promise<TopServerPlayerRanking> {
+		return await this.topServerRepository.getPlayersRankingForLastMonth();
 	}
 
 	/**
@@ -33,11 +41,12 @@ export class TopServerService {
 	 * @constructor
 	 */
 	public async getNumberOfVotes(): Promise<number> {
-		const stats: any = await this._topServerRepository.getServerStats();
-		const date: number = new Date().getMonth();
+		const serverStats = await this.topServerRepository.getServerStats();
+		const date = new Date();
+		const stats = serverStats.stats.monthly.find((s) => s.year === date.getFullYear());
 		const months: string[] = [ "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december" ];
-		const currentMonth: string = months[date];
-		return stats.monthly[0][currentMonth + "_votes"];
+		const currentMonth: string = months[date.getMonth()];
+		return stats[currentMonth + "_votes"];
 	}
 
 	/**
@@ -45,11 +54,36 @@ export class TopServerService {
 	 * @param players {Player[]}
 	 */
 	public async createRankingFile(players: Player[]): Promise<void> {
-		let number = 1;
-		for (const player of players) {
-			if (player.name === "") player.name = "Sans pseudo";
-			fs.appendFileSync(this.fileName, `${number.toString()} - ${player.name} - ${player.votes} votes \n`);
-			number++;
-		}
+		return new Promise((resolve, reject) => {
+			let number = 1;
+
+			const reader = Stream.Readable.from(players);
+			const writer = new Stream.Writable(
+				{
+					objectMode: true,
+					async write(player: Player, encoding: BufferEncoding, done: (error?: (Error | null)) => void) {
+						try {
+							if (player.playername === "") {
+								player.playername = "Sans pseudo";
+							}
+							await fs.appendFile(TopServerService.fileName, `${number.toString()} - ${player.playername} - ${player.votes} votes \n`);
+							number += 1;
+							done();
+						}
+						catch (err) {
+							done(err);
+						}
+					},
+				}
+			);
+
+			Stream.pipeline(reader, writer, (err) => {
+				if (err) {
+					return reject(err);
+				}
+
+				return resolve();
+			});
+		});
 	}
 }

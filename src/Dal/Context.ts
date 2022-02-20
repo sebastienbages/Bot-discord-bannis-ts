@@ -1,10 +1,10 @@
-import Mysql, { Pool, PoolConnection } from "mysql";
+import Mysql, { Pool, PoolConnection } from "mysql2/promise";
 
 class Context {
-	private _pool: Pool;
+	private pool: Pool;
 
 	constructor() {
-		this._pool = Mysql.createPool({
+		this.pool = Mysql.createPool({
 			connectionLimit: 10,
 			host: process.env.BDD_HOST,
 			user: process.env.BDD_USERNAME,
@@ -16,24 +16,19 @@ class Context {
 	/**
 	 * Retourne une connexion du Pool
 	 */
-	public getConnection(): Promise<PoolConnection> {
-		return new Promise((resolve, rejects) => {
-			this._pool.getConnection((err, connection) => {
-				if (err) return rejects(err);
-				return resolve(connection);
-			});
-		});
+	public async getConnection(): Promise<PoolConnection> {
+		return await this.pool.getConnection();
 	}
 }
 
 export class SingletonContext {
-	private static _instance: Context;
+	private static context: Context;
 
 	public static getInstance(): Context {
-		if (!SingletonContext._instance) {
-			SingletonContext._instance = new Context();
+		if (!SingletonContext.context) {
+			SingletonContext.context = new Context();
 		}
 
-		return SingletonContext._instance;
+		return SingletonContext.context;
 	}
 }

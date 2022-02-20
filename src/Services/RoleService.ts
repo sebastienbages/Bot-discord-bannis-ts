@@ -7,12 +7,12 @@ import { ServicesProvider } from "../ServicesProvider";
 
 export class RoleService {
 
-	private _roleRepository: RoleRepository;
-	private _logService: LogService;
+	private roleRepository: RoleRepository;
+	private logService: LogService;
 
 	constructor() {
-		this._roleRepository = new RoleRepository();
-		this._logService = ServicesProvider.getLogService();
+		this.roleRepository = new RoleRepository();
+		this.logService = ServicesProvider.getLogService();
 	}
 
 	/**
@@ -53,7 +53,7 @@ export class RoleService {
 		const teleportationImage = new MessageAttachment(Config.imageDir + "/teleportation.gif");
 		await buttonInteraction.editReply({ content: "Ok c'est parti ! Accroche ta ceinture ça va secouer :rocket:", files: [ teleportationImage ] });
 		await wait(8000);
-		await this.setRole(Config.roleStart, guildMember);
-		await this.removeRole(Config.roleFrontiere, guildMember);
+		await this.setRole(Config.roleStartId, guildMember);
+		await this.removeRole(Config.roleFrontiereId, guildMember);
 	}
 }

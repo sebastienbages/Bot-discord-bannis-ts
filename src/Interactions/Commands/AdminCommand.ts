@@ -2,7 +2,9 @@ import { CommandOptions, ISlashCommand, SubCommandOptions } from "../../Interfac
 import { ServicesProvider } from "../../ServicesProvider";
 import { CommandInteraction, GuildMember, PermissionResolvable } from "discord.js";
 import { AdminService } from "../../Services/AdminService";
-import { ApplicationCommandOptionType } from "discord-api-types";
+import { ApplicationCommandOptionType } from "discord-api-types/v9";
+import { InteractionError } from "../../Error/InteractionError";
+import { LogService } from "../../Services/LogService";
 
 export class AdminCommand implements ISlashCommand {
 	public readonly name: string = "admin";
@@ -35,39 +37,51 @@ export class AdminCommand implements ISlashCommand {
 			},
 		},
 	];
-	private _adminService: AdminService;
+
+	private adminService: AdminService;
+	private logService: LogService;
 
 	constructor() {
-		this._adminService = ServicesProvider.getAdminService();
+		this.adminService = ServicesProvider.getAdminService();
+		this.logService = ServicesProvider.getLogService();
 	}
 
 	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
+		await commandInteraction.deferReply({ ephemeral: true, fetchReply: false });
 		const subCommandName = commandInteraction.options.getSubcommand();
 
 		if (subCommandName === "liste") {
-			await this._adminService.sendAdminList(commandInteraction);
+			return await this.adminService.sendAdminList(commandInteraction);
 		}
 
+		const targetMember = commandInteraction.options.getMember("utilisateur") as GuildMember;
+
 		if (subCommandName === "ajouter") {
-			const guildMember = commandInteraction.options.getMember("utilisateur") as GuildMember;
-			if (!this._adminService.adminIsExist(guildMember.id)) {
-				await this._adminService.createAdmin(guildMember.id, guildMember.displayName);
-				return await commandInteraction.reply({ content: "Enregistrement effectué avec succès", ephemeral: true, fetchReply: false });
+			if (this.adminService.adminIsExist(targetMember.id)) {
+				throw new InteractionError(
+					"Cet utilisateur est déjà enregistré",
+					commandInteraction.commandName,
+					`L'admin ${targetMember.displayName} est deja enregistre`
+				);
 			}
-			else {
-				return await commandInteraction.reply({ content: "Cet utilisateur est déjà enregistré", ephemeral: true, fetchReply: false });
-			}
+
+			await this.adminService.createAdmin(targetMember.id, targetMember.displayName);
+			await commandInteraction.editReply({ content: "Enregistrement effectué avec succès" });
+			return this.logService.info(`Nouvel administrateur cree : ${targetMember.displayName} (${targetMember.id})`);
 		}
 
 		if (subCommandName === "supprimer") {
-			const guildMember = commandInteraction.options.getMember("utilisateur") as GuildMember;
-			if (this._adminService.adminIsExist(guildMember.id)) {
-				await this._adminService.removeAdmin(guildMember.id);
-				return await commandInteraction.reply({ content: "Suppression effectuée avec succès", ephemeral: true, fetchReply: false });
+			if (!this.adminService.adminIsExist(targetMember.id)) {
+				throw new InteractionError(
+					"Cet utilisateur n'est pas enregistré",
+					commandInteraction.commandName,
+					`L'admin ${targetMember.displayName} n'est pas enregistre`
+				);
 			}
-			else {
-				return await commandInteraction.reply({ content: "Cet utilisateur n'est pas enregistré", ephemeral: true, fetchReply: false });
-			}
+
+			await this.adminService.removeAdmin(targetMember.id);
+			await commandInteraction.editReply({ content: "Suppression effectuée avec succès" });
+			return this.logService.info(`Administrateur supprime : ${targetMember.displayName} (${targetMember.id})`);
 		}
 	}
 }

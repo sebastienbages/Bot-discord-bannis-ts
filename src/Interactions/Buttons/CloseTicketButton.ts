@@ -9,25 +9,25 @@ import { TicketService } from "../../Services/TicketService";
 import { ServicesProvider } from "../../ServicesProvider";
 
 export class CloseTicketButton implements IButton {
-	static readonly id: string = "closeTicket";
-	static readonly label: string = "Fermer";
-	static readonly style: MessageButtonStyleResolvable = "DANGER";
-	static readonly emoji: EmojiIdentifierResolvable = "🔒";
-	static readonly button: MessageButton = new MessageButton()
+	public static readonly id: string = "closeTicket";
+	public static readonly label: string = "Fermer";
+	public static readonly style: MessageButtonStyleResolvable = "DANGER";
+	public static readonly emoji: EmojiIdentifierResolvable = "🔒";
+	public static readonly button: MessageButton = new MessageButton()
 		.setCustomId(this.id)
 		.setLabel(this.label)
 		.setStyle(this.style)
 		.setEmoji(this.emoji);
 
 	public readonly customId: string;
-	private _ticketService: TicketService;
+	private ticketService: TicketService;
 
 	constructor() {
 		this.customId = CloseTicketButton.id;
-		this._ticketService = ServicesProvider.getTicketService();
+		this.ticketService = ServicesProvider.getTicketService();
 	}
 
 	public async executeInteraction(buttonInteraction: ButtonInteraction): Promise<void> {
-		await this._ticketService.closeTicket(buttonInteraction);
+		await this.ticketService.closeTicket(buttonInteraction);
 	}
 }

@@ -10,14 +10,15 @@ export class VoteCommand implements ISlashCommand {
 	readonly commandOptions: CommandOptions[] = [];
 	readonly subCommandsOptions: SubCommandOptions[] = [];
 
-	private _voteService: VoteService;
+	private voteService: VoteService;
 
 	constructor() {
-		this._voteService = ServicesProvider.getVoteService();
+		this.voteService = ServicesProvider.getVoteService();
 	}
 
 	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
-		await this._voteService.sendMessage(commandInteraction.guild);
-		return await commandInteraction.reply({ content: "J'ai bien envoyé le message :mechanical_arm:", ephemeral: true, fetchReply: false });
+		await commandInteraction.deferReply({ ephemeral: true, fetchReply: false });
+		await this.voteService.sendMessage(commandInteraction.guild, true);
+		await commandInteraction.editReply({ content: "J'ai bien envoyé le message :mechanical_arm:" });
 	}
 }

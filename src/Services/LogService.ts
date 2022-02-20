@@ -1,5 +1,8 @@
 import * as fs from "fs/promises";
 import date from "date-and-time";
+import { Client, User } from "discord.js";
+import { Config } from "../Config/Config";
+import { AppError } from "../Error/AppError";
 
 export class LogService {
 
@@ -10,24 +13,66 @@ export class LogService {
 		this._fileName = "Bot-log-" + this.now() + ".txt";
 	}
 
-	public log(message: string): void {
+	public info(message: string): void {
 		message = this.now() + " - " + message;
 		console.log(message);
-		this.writeLog(message);
+
+		if (Config.nodeEnv === Config.nodeEnvValues.production) {
+			this.writeLog(message);
+		}
 	}
 
 	public error(error: Error): void {
 		const message: string = this.now() + " - ";
 		console.error(message, error);
-		this.writeLog(message + error + "\n");
+
+		if (Config.nodeEnv === Config.nodeEnvValues.production) {
+			this.writeLog(message + error + "\n");
+		}
 	}
 
 	private now(): string {
 		return date.format(new Date(), "DD.MM.YYYY-HH.mm.ss");
 	}
 
-	private writeLog(message: string): void {
-		fs.appendFile(this._logPath + this._fileName, message + "\n")
-			.catch(err => this.error(err));
+	private async writeLog(message: string): Promise<void> {
+		try {
+			await fs.appendFile(this._logPath + this._fileName, message + "\n");
+		}
+		catch (error) {
+			console.error(error);
+		}
+	}
+
+	public async toDeveloper(client: Client, message: string): Promise<void> {
+		try {
+			const dev = client.users.cache.get(Config.devId) as User
+				|| await client.users.fetch(Config.devId) as User;
+
+			await dev.send({ content: message });
+		}
+		catch (error) {
+			this.error(error);
+		}
+	}
+
+	public async handlerError(error: Error, client: Client) {
+		if (error.name === "DiscordAPIError") {
+			await this.toDeveloper(client, `**Une erreur api discord s'est produite :** \n${error.message}`);
+		}
+		else {
+			await this.toDeveloper(client, `**Une erreur inattendue s'est produite :** \n${error.message}`);
+		}
+
+		await this.error(error);
+	}
+
+	public async handlerAppError(error: Error, client: Client) {
+		if (error instanceof AppError) {
+			await this.toDeveloper(client, `**Une erreur d'application s'est produite :**\n${error.name}\n${error.message}`);
+			return this.error(error);
+		}
+
+		await this.handlerError(error, client);
 	}
 }

@@ -2,8 +2,7 @@ import { CommandOptions, ISlashCommand, SubCommandOptions } from "../../Interfac
 import { CommandInteraction, PermissionResolvable } from "discord.js";
 import { ServicesProvider } from "../../ServicesProvider";
 import { RuleService } from "../../Services/RuleService";
-import { ApplicationCommandOptionType } from "discord-api-types";
-
+import { ApplicationCommandOptionType } from "discord-api-types/v9";
 export class RuleCommand implements ISlashCommand {
 	public readonly name: string = "reglement";
 	public readonly description: string = "Je peux envoyer le message qui permet aux utilisateurs de valider le règlement";

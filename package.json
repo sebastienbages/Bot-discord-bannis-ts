@@ -25,25 +25,24 @@
   "homepage": "https://github.com/sebastienbages/Bot-discord-bannis-ts#readme",
   "devDependencies": {
     "@types/date-and-time": "0.13.0",
-    "@types/mysql": "2.15.20",
-    "@types/node": "17.0.8",
-    "@typescript-eslint/eslint-plugin": "5.9.1",
+    "@types/node": "17.0.21",
+    "@typescript-eslint/eslint-plugin": "5.12.1",
     "copyfiles": "2.4.1",
-    "eslint": "8.6.0",
+    "eslint": "8.10.0",
     "nodemon": "2.0.15",
-    "ts-node": "10.4.0",
-    "typescript": "4.5.4"
+    "ts-node": "10.5.0",
+    "typescript": "4.5.5"
   },
   "dependencies": {
-    "@discordjs/builders": "0.11.0",
-    "@discordjs/rest": "0.2.0-canary.0",
-    "axios": "0.24.0",
+    "@discordjs/builders": "0.12.0",
+    "@discordjs/rest": "0.3.0",
+    "axios": "0.26.0",
     "canvas": "2.8.0",
-    "date-and-time": "2.1.0",
+    "date-and-time": "2.2.0",
     "discord-api-types": "0.26.1",
     "discord.js": "13.6.0",
-    "dotenv": "11.0.0",
-    "mysql": "2.18.1",
+    "dotenv": "16.0.0",
+    "mysql2": "2.3.3",
     "smart-buffer": "4.2.0"
   }
 }

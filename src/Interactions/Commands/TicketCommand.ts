@@ -2,13 +2,13 @@ import { CommandOptions, ISlashCommand, SubCommandOptions } from "../../Interfac
 import { ServicesProvider } from "../../ServicesProvider";
 import { CommandInteraction, PermissionResolvable } from "discord.js";
 import { TicketService } from "../../Services/TicketService";
-import { ApplicationCommandOptionType } from "discord-api-types";
+import { ApplicationCommandOptionType } from "discord-api-types/v9";
 
 export class TicketCommand implements ISlashCommand {
 	public readonly name: string = "ticket";
 	public readonly description: string = "Outils de gestion des tickets";
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
-	readonly commandOptions: CommandOptions[] = [
+	public readonly commandOptions: CommandOptions[] = [
 		{
 			type: ApplicationCommandOptionType.String,
 			name: "option",
@@ -28,19 +28,19 @@ export class TicketCommand implements ISlashCommand {
 			isRequired: true,
 		},
 	];
-	readonly subCommandsOptions: SubCommandOptions[] = [];
+	public readonly subCommandsOptions: SubCommandOptions[] = [];
 
-	private _ticketService: TicketService;
+	private ticketService: TicketService;
 
 	constructor() {
-		this._ticketService = ServicesProvider.getTicketService();
+		this.ticketService = ServicesProvider.getTicketService();
 	}
 
 	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
 		const option = commandInteraction.options.getString("option");
 
 		if (option === "msg_pilote") {
-			return await this._ticketService.sendTicketMessage(commandInteraction);
+			await this.ticketService.sendTicketMessage(commandInteraction);
 		}
 	}
 }

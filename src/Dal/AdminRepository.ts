@@ -1,22 +1,18 @@
-import { MysqlError } from "mysql";
 import { SingletonContext } from "./Context";
+import { AdminModel } from "../Models/AdminModel";
 
-// noinspection SpellCheckingInspection
 export class AdminRepository {
 	private readonly table = "admins";
 
 	/**
-	 * Recupère les administrateurs du serveur
+	 * Récupère les administrateurs du serveur
 	 */
-	public async getAdminsData(): Promise<unknown> {
+	public async getAdminsData(): Promise<AdminModel[]> {
 		const connection = await SingletonContext.getInstance().getConnection();
-		return new Promise((resolve, rejects) => {
-			connection.query(`SELECT * FROM f1mtb0ah6rjbwawm.${this.table}`, (error: MysqlError | null, result: unknown) => {
-				connection.release();
-				if (error) return rejects(error);
-				return resolve(result);
-			});
-		});
+		const result = await connection.query(`SELECT * FROM f1mtb0ah6rjbwawm.${this.table}`);
+		connection.release();
+		const admins = JSON.parse(JSON.stringify(result[0])) as object[];
+		return admins.map((admin) => Object.assign(new AdminModel(), admin));
 	}
 
 	/**
@@ -24,29 +20,19 @@ export class AdminRepository {
 	 * @param id {string} - Identifiant discord
 	 * @param name {string} - Nom utilisateur
 	 */
-	public async createAdmin(id: string, name: string): Promise<unknown> {
+	public async createAdmin(id: string, name: string): Promise<void> {
 		const connection = await SingletonContext.getInstance().getConnection();
-		return new Promise((resolve, rejects) => {
-			connection.query(`INSERT INTO f1mtb0ah6rjbwawm.${this.table} (discord_id, name) VALUES (?, ?)`, [ id, name ], (error: MysqlError | null, result: unknown) => {
-				connection.release();
-				if (error) return rejects(error);
-				return resolve(result);
-			});
-		});
+		await connection.query(`INSERT INTO f1mtb0ah6rjbwawm.${this.table} (discord_id, name) VALUES (?, ?)`, [ id, name ]);
+		connection.release();
 	}
 
 	/**
 	 * Supprime un administrateur
 	 * @param id {string} - Identifiant discord
 	 */
-	public async removeAdmin(id: string): Promise<unknown> {
+	public async removeAdmin(id: string): Promise<void> {
 		const connection = await SingletonContext.getInstance().getConnection();
-		return new Promise((resolve, rejects) => {
-			connection.query(`DELETE FROM f1mtb0ah6rjbwawm.${this.table} WHERE (discord_id = ?)`, [ id ], (error: MysqlError | null, result: unknown) => {
-				connection.release();
-				if (error) return rejects(error);
-				return resolve(result);
-			});
-		});
+		await connection.query(`DELETE FROM f1mtb0ah6rjbwawm.${this.table} WHERE (discord_id = ?)`, [ id ]);
+		connection.release();
 	}
 }

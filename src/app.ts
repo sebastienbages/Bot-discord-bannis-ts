@@ -10,40 +10,30 @@ dotenv.config();
 
 ServicesProvider.initializeServices();
 const logService = ServicesProvider.getLogService();
-logService.log("Services initialises");
+logService.info("Services initialises");
 
 WebhookProvider.initializeWebHook();
-logService.log("Webhooks initialises");
+logService.info("Webhooks initialises");
 
-const events = new EventsProvider();
-logService.log("Evenements initialises");
+EventsProvider.initializeEvents();
+logService.info("Evenements initialises");
 
-const bot: Bot = new Bot(Config.token, events);
+const bot: Bot = new Bot(Config.token);
 
 (async () => {
-	try {
-		await bot.start();
-		logService.log("Le Bot est en ligne");
+	await bot.start();
+	logService.info("Le Bot est en ligne");
 
-		const slashCommandService = ServicesProvider.getSlashCommandService();
+	const slashCommandService = ServicesProvider.getSlashCommandService();
 
-		await slashCommandService.registerSlashCommand();
-		logService.log("Commandes enregistrees");
+	await slashCommandService.registerSlashCommand();
+	logService.info("Commandes enregistrees");
 
-		await slashCommandService.setCommandsPermission(Config.roleCommandsBot, bot.client);
-		await logService.log("Permissions des commandes mises a jour");
-	}
-	catch (error) {
-		logService.error(error);
-	}
+	await slashCommandService.setCommandsPermission(Config.roleCommandsBotId, bot);
+	await logService.info("Permissions des commandes mises a jour");
 })();
 
-try {
-	bot.client.on("messageCreate", (message: Message) => events.messageCreateEvent().run(message));
-	bot.client.on("guildMemberAdd", (member: GuildMember) => events.guildMemberAdd().run(member));
-	bot.client.on("guildMemberRemove", (member: GuildMember) => events.guildMemberRemove().run(member));
-	bot.client.on("interactionCreate", (interaction: Interaction) => events.interactionCreate().run(interaction));
-}
-catch (error) {
-	logService.error(error);
-}
+bot.on("messageCreate", (message: Message) => EventsProvider.getMessageCreateEvent().run(message));
+bot.on("guildMemberAdd", (member: GuildMember) => EventsProvider.getGuildMemberAddEvent().run(member));
+bot.on("guildMemberRemove", (member: GuildMember) => EventsProvider.getGuildMemberRemoveEvent().run(member));
+bot.on("interactionCreate", (interaction: Interaction) => EventsProvider.getInteractionCreateEvent().run(interaction));

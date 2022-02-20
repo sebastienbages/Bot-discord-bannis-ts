@@ -11,73 +11,73 @@ import { LogService } from "./Services/LogService";
 import { GameServersService } from "./Services/GameServersService";
 
 export class ServicesProvider {
-	private static _ticketService: TicketService;
-	private static _topServerService: TopServerService;
-	private static _voteService: VoteService;
-	private static _adminService: AdminService;
-	private static _roleService: RoleService;
-	private static _ruleService: RuleService;
-	private static _slashCommandService: SlashCommandService;
-	private static _buttonService: ButtonService;
-	private static _selectMenuService: SelectMenuService;
-	private static _logService: LogService;
-	private static _gameServersService: GameServersService;
+	private static ticketService: TicketService;
+	private static topServerService: TopServerService;
+	private static voteService: VoteService;
+	private static adminService: AdminService;
+	private static roleService: RoleService;
+	private static ruleService: RuleService;
+	private static slashCommandService: SlashCommandService;
+	private static buttonService: ButtonService;
+	private static selectMenuService: SelectMenuService;
+	private static logService: LogService;
+	private static gameServersService: GameServersService;
 
 	public static initializeServices(): void {
-		this._logService = new LogService();
-		this._ticketService = new TicketService();
-		this._topServerService = new TopServerService();
-		this._voteService = new VoteService();
-		this._adminService = new AdminService();
-		this._roleService = new RoleService();
-		this._ruleService = new RuleService();
-		this._buttonService = new ButtonService();
-		this._selectMenuService = new SelectMenuService();
-		this._gameServersService = new GameServersService();
-		this._slashCommandService = new SlashCommandService();
+		this.logService = new LogService();
+		this.ticketService = new TicketService();
+		this.topServerService = new TopServerService();
+		this.voteService = new VoteService();
+		this.adminService = new AdminService();
+		this.roleService = new RoleService();
+		this.ruleService = new RuleService();
+		this.buttonService = new ButtonService();
+		this.selectMenuService = new SelectMenuService();
+		this.gameServersService = new GameServersService();
+		this.slashCommandService = new SlashCommandService();
 	}
 
 	public static getTicketService(): TicketService {
-		return this._ticketService;
+		return this.ticketService;
 	}
 
 	public static getTopServerService(): TopServerService {
-		return this._topServerService;
+		return this.topServerService;
 	}
 
 	public static getVoteService(): VoteService {
-		return this._voteService;
+		return this.voteService;
 	}
 
 	public static getAdminService(): AdminService {
-		return this._adminService;
+		return this.adminService;
 	}
 
 	public static getRoleService(): RoleService {
-		return this._roleService;
+		return this.roleService;
 	}
 
 	public static getRuleService(): RuleService {
-		return this._ruleService;
+		return this.ruleService;
 	}
 
 	public static getSlashCommandService(): SlashCommandService {
-		return this._slashCommandService;
+		return this.slashCommandService;
 	}
 
 	public static getButtonService(): ButtonService {
-		return this._buttonService;
+		return this.buttonService;
 	}
 
 	public static getSelectMenuService(): SelectMenuService {
-		return this._selectMenuService;
+		return this.selectMenuService;
 	}
 
 	public static getLogService(): LogService {
-		return this._logService;
+		return this.logService;
 	}
 
 	public static getGameServersService(): GameServersService {
-		return this._gameServersService;
+		return this.gameServersService;
 	}
 }

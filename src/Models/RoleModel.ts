@@ -1,5 +1,7 @@
+import { Snowflake } from "discord.js";
+
 export class RoleModel {
 	public name: string;
-	public discordId: string;
-	public isForTicket: boolean;
+	public role_id: Snowflake;
+	public ticket: boolean;
 }
