@@ -39,9 +39,9 @@ export class InteractionCreateEvent {
 	}
 
 	public async run(interaction: Interaction): Promise<void> {
-		try {
-			const guildMember = interaction.member as GuildMember;
+		const guildMember = interaction.member as GuildMember;
 
+		try {
 			if (this.userIsLocked(guildMember.id)) {
 				return;
 			}
@@ -67,13 +67,14 @@ export class InteractionCreateEvent {
 				const instanceButton: IButton = this._buttonService.getInstance(buttonInteraction.customId);
 				await instanceButton.executeInteraction(buttonInteraction);
 			}
-
-			this.unlockUser(guildMember.id);
 		}
 		catch (error) {
 			const baseInteraction = interaction as BaseCommandInteraction;
 			this._logService.error(error);
 			await baseInteraction.reply({ content: "Oups ! Une erreur s'est produite, veuillez avertir un admin" + error.message ? ` : ${error.message}` : "", ephemeral: true });
+		}
+		finally {
+			this.unlockUser(guildMember.id);
 		}
 	}
 
