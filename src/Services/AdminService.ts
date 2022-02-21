@@ -4,6 +4,7 @@ import { AdminRepository } from "../Dal/AdminRepository";
 import { AdminModel } from "../Models/AdminModel";
 import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
+import { ServicesProvider } from "../ServicesProvider";
 
 export class AdminService {
 
@@ -13,7 +14,7 @@ export class AdminService {
 
 	constructor() {
 		this._adminRepository = new AdminRepository();
-		this._logService = new LogService();
+		this._logService = ServicesProvider.getLogService();
 		(async () => {
 			await this.updateAdmins();
 		})();

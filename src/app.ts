@@ -5,12 +5,11 @@ import { Bot } from "./Bot";
 import { EventsProvider } from "./EventsProvider";
 import { ServicesProvider } from "./ServicesProvider";
 import { WebhookProvider } from "./WebhookProvider";
-import { LogService } from "./Services/LogService";
 
 dotenv.config();
-const logService = new LogService();
 
 ServicesProvider.initializeServices();
+const logService = ServicesProvider.getLogService();
 logService.log("Services initialises");
 
 WebhookProvider.initializeWebHook();

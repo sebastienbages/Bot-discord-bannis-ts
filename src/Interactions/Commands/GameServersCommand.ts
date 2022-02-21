@@ -4,6 +4,7 @@ import { ApplicationCommandOptionType } from "discord-api-types";
 import { GameServersService } from "../../Services/GameServersService";
 import fs from "fs/promises";
 import { PlayerModel } from "../../Models/PlayerModel";
+import { ServicesProvider } from "../../ServicesProvider";
 
 export class GameServersCommand implements ISlashCommand {
 	public readonly name: string = "joueurs-connectes";
@@ -28,7 +29,7 @@ export class GameServersCommand implements ISlashCommand {
 	private _gameServersService: GameServersService;
 
 	constructor() {
-		this._gameServersService = new GameServersService();
+		this._gameServersService = ServicesProvider.getGameServersService();
 	}
 
 	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {

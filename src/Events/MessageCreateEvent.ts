@@ -6,7 +6,7 @@ export class MessageCreateEvent {
 	private _logService: LogService;
 
 	constructor() {
-		this._logService = new LogService();
+		this._logService = ServicesProvider.getLogService();
 	}
 
 	async run(message: Message): Promise<void> {

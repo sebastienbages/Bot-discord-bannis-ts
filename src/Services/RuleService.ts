@@ -8,14 +8,15 @@ import {
 } from "discord.js";
 import { Config } from "../Config/Config";
 import { ValidationRulesButton } from "../Interactions/Buttons/ValidationRulesButton";
+import { ServicesProvider } from "../ServicesProvider";
 
 export class RuleService {
 	private _roleService: RoleService;
 	private _logService: LogService;
 
 	constructor() {
-		this._roleService = new RoleService();
-		this._logService = new LogService();
+		this._roleService = ServicesProvider.getRoleService();
+		this._logService = ServicesProvider.getLogService();
 	}
 
 	/**

@@ -17,7 +17,7 @@ export class GuildMemberAddEvent {
 	private _logService: LogService;
 
 	constructor() {
-		this._logService = new LogService();
+		this._logService = ServicesProvider.getLogService();
 	}
 
 	public async run(member: GuildMember): Promise<void> {

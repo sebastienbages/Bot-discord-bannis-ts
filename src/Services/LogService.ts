@@ -4,7 +4,11 @@ import date from "date-and-time";
 export class LogService {
 
 	private readonly _logPath = "Logs/";
-	private readonly _fileName = "Bot-log-" + this.now() + ".txt";
+	private _fileName: string;
+
+	constructor() {
+		this._fileName = "Bot-log-" + this.now() + ".txt";
+	}
 
 	public log(message: string): void {
 		message = this.now() + " - " + message;
@@ -12,7 +16,7 @@ export class LogService {
 		this.writeLog(message);
 	}
 
-	public error(error: any): void {
+	public error(error: Error): void {
 		const message: string = this.now() + " - ";
 		console.error(message, error);
 		this.writeLog(message + error + "\n");
