@@ -337,7 +337,7 @@ export class TicketService {
 		const timeLeft: any = this.getTimeLeft();
 		const message: MessageEmbed = new MessageEmbed()
 			.setDescription(":exclamation: Le ticket ne peut pas changer de nom trop souvent")
-			.setFooter(`Cela sera à nouveau possible dans ${timeLeft.minutes} minute(s) et ${timeLeft.seconds} seconde(s)`)
+			.setFooter({ text: `Cela sera à nouveau possible dans ${timeLeft.minutes} minute(s) et ${timeLeft.seconds} seconde(s)` })
 			.setColor(this._warningColor);
 
 		await targetChannel.send({ embeds: [ message ] });
@@ -423,7 +423,7 @@ export class TicketService {
 			.setThumbnail("attachment://logo-bannis.png")
 			.setTitle("BESOIN D'AIDE ?")
 			.setDescription("Rien de plus simple, utilise le bouton ci-dessous pour créer ton ticket. \n \n Un salon sera créé rien que pour toi afin de discuter avec l'équipe des Bannis :wink: \n")
-			.setFooter("Un seul ticket autorisé par utilisateur");
+			.setFooter({ text: "Un seul ticket autorisé par utilisateur" });
 
 		const actionRow = new MessageActionRow().addComponents(CreateTicketButton.button);
 
