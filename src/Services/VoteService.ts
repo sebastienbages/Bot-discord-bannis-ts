@@ -82,7 +82,7 @@ export class VoteService {
 			.setURL(topServeurUrl)
 			.setThumbnail("attachment://logo-topserver.png")
 			.setDescription("N'hésitez pas à donner un coup de pouce au serveur en votant sur Top Serveurs. Merci pour votre soutien :thumbsup:")
-			.setFooter(`Pour l'instant, nous avons ${numberOfVotes.toString()} votes ce mois-ci`);
+			.setFooter({ text: `Pour l'instant, nous avons ${numberOfVotes.toString()} votes ce mois-ci` });
 
 		const components = new MessageActionRow()
 			.addComponents(
