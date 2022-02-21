@@ -1,13 +1,14 @@
 import { GuildMember, TextChannel, MessageEmbed } from "discord.js";
 import { Config } from "../Config/Config";
 import { LogService } from "../Services/LogService";
+import { ServicesProvider } from "../ServicesProvider";
 
 export class GuildMemberRemoveEvent {
 
 	private _logService: LogService;
 
 	constructor() {
-		this._logService = new LogService();
+		this._logService = ServicesProvider.getLogService();
 	}
 
 	public async run(member: GuildMember): Promise<void> {
@@ -22,6 +23,7 @@ export class GuildMemberRemoveEvent {
 			.setThumbnail(member.user.displayAvatarURL())
 			.setTitle(`:outbox_tray: **${member.user.username} a quitté notre communauté**`)
 			.setDescription(`Désormais, nous sommes ${member.guild.memberCount} membres`);
+
 		await departureChannel.send({ embeds: [ departureMessage ] });
 		this._logService.log(`Depart d'un membre : "${member.displayName}"`);
 	}

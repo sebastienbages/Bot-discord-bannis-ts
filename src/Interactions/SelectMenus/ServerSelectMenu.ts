@@ -22,7 +22,7 @@ export class ServerSelectMenu implements ISelectMenu {
 	constructor() {
 		this.customId = ServerSelectMenu.id;
 		this._roleService = ServicesProvider.getRoleService();
-		this._logService = new LogService();
+		this._logService = ServicesProvider.getLogService();
 	}
 
 	public async executeInteraction(selectMenuInteraction: SelectMenuInteraction): Promise<void> {

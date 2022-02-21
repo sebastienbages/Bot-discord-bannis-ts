@@ -28,7 +28,7 @@ export class ValidationRulesButton implements IButton {
 	constructor() {
 		this.customId = ValidationRulesButton.id;
 		this._ruleService = ServicesProvider.getRuleService();
-		this._logService = new LogService();
+		this._logService = ServicesProvider.getLogService();
 		this._roleService = ServicesProvider.getRoleService();
 	}
 

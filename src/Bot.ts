@@ -1,12 +1,10 @@
 import { Client, Intents } from "discord.js";
 import { EventsProvider } from "./EventsProvider";
-import { LogService } from "./Services/LogService";
 
 export class Bot {
 	public client: Client;
 	private readonly token: string;
 	private events: EventsProvider;
-	private _logService: LogService;
 
 	constructor(token: string, events: EventsProvider) {
 		this.client = new Client({
@@ -29,7 +27,6 @@ export class Bot {
 			partials: [ "MESSAGE", "CHANNEL", "REACTION" ],
 		});
 		this.events = events;
-		this._logService = new LogService();
 		this.token = token;
 	}
 

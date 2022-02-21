@@ -14,6 +14,7 @@ import { MessageModel } from "../Models/MessageModel";
 import { TopServerService } from "./TopServerService";
 import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
+import { ServicesProvider } from "../ServicesProvider";
 
 export class VoteService {
 
@@ -24,8 +25,8 @@ export class VoteService {
 
 	constructor() {
 		this._voteRepository = new VoteRepository();
-		this._topServerService = new TopServerService();
-		this._logService = new LogService();
+		this._topServerService = ServicesProvider.getTopServerService();
+		this._logService = ServicesProvider.getLogService();
 		(async () => {
 			await this.updateMessageId();
 		})();

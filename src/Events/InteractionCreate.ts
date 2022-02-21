@@ -26,7 +26,7 @@ export class InteractionCreateEvent {
 	private _lockInteraction: Snowflake[];
 
 	constructor() {
-		this._logService = new LogService();
+		this._logService = ServicesProvider.getLogService();
 		this._ticketService = ServicesProvider.getTicketService();
 		this._slashCommandService = ServicesProvider.getSlashCommandService();
 		this._buttonService = ServicesProvider.getButtonService();

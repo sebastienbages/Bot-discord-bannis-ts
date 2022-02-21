@@ -3,6 +3,7 @@ import { ButtonInteraction, GuildMember, MessageAttachment } from "discord.js";
 import { LogService } from "./LogService";
 import { Config } from "../Config/Config";
 import util from "util";
+import { ServicesProvider } from "../ServicesProvider";
 
 export class RoleService {
 
@@ -11,7 +12,7 @@ export class RoleService {
 
 	constructor() {
 		this._roleRepository = new RoleRepository();
-		this._logService = new LogService();
+		this._logService = ServicesProvider.getLogService();
 	}
 
 	/**

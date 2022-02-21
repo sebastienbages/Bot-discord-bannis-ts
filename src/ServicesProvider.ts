@@ -7,6 +7,8 @@ import { RuleService } from "./Services/RuleService";
 import { SlashCommandService } from "./Services/SlashCommandService";
 import { ButtonService } from "./Services/ButtonService";
 import { SelectMenuService } from "./Services/SelectMenuService";
+import { LogService } from "./Services/LogService";
+import { GameServersService } from "./Services/GameServersService";
 
 export class ServicesProvider {
 	private static _ticketService: TicketService;
@@ -18,17 +20,21 @@ export class ServicesProvider {
 	private static _slashCommandService: SlashCommandService;
 	private static _buttonService: ButtonService;
 	private static _selectMenuService: SelectMenuService;
+	private static _logService: LogService;
+	private static _gameServersService: GameServersService;
 
 	public static initializeServices(): void {
+		this._logService = new LogService();
 		this._ticketService = new TicketService();
 		this._topServerService = new TopServerService();
 		this._voteService = new VoteService();
 		this._adminService = new AdminService();
 		this._roleService = new RoleService();
 		this._ruleService = new RuleService();
-		this._slashCommandService = new SlashCommandService();
 		this._buttonService = new ButtonService();
 		this._selectMenuService = new SelectMenuService();
+		this._gameServersService = new GameServersService();
+		this._slashCommandService = new SlashCommandService();
 	}
 
 	public static getTicketService(): TicketService {
@@ -65,5 +71,13 @@ export class ServicesProvider {
 
 	public static getSelectMenuService(): SelectMenuService {
 		return this._selectMenuService;
+	}
+
+	public static getLogService(): LogService {
+		return this._logService;
+	}
+
+	public static getGameServersService(): GameServersService {
+		return this._gameServersService;
 	}
 }

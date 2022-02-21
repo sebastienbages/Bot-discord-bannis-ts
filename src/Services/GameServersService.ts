@@ -7,7 +7,7 @@ import date from "date-and-time";
 
 export class GameServersService {
 	private readonly _ip = "213.246.45.68";
-	private readonly _portMainServer = 27015;
+	private readonly _portMainServer = 27016;
 
 	/** https://developer.valvesoftware.com/wiki/Server_queries#A2S_PLAYER */
 
