@@ -20,6 +20,7 @@ import { TopServerCommand } from "../Interactions/Commands/TopServerCommand";
 import { RuleCommand } from "../Interactions/Commands/RuleCommand";
 import { GameServersCommand } from "../Interactions/Commands/GameServersCommand";
 import { Client, Collection, GuildApplicationCommandPermissionData } from "discord.js";
+import { LogCommand } from "../Interactions/Commands/LogCommand";
 
 export class SlashCommandService {
 	/**
@@ -39,6 +40,7 @@ export class SlashCommandService {
 		TopServerCommand,
 		RuleCommand,
 		GameServersCommand,
+		LogCommand,
 	];
 
 	private commandsInstances: Collection<string, ISlashCommand>;
