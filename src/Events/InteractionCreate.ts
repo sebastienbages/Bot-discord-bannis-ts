@@ -67,6 +67,8 @@ export class InteractionCreateEvent {
 			return this.unlockUser(guildMember.id);
 		}
 		catch (error) {
+			this.unlockUser(guildMember.id);
+
 			if (error instanceof InteractionError) {
 				const interactionError = error as InteractionError;
 				await interactionObject.editReply({ content: interactionError.discordMessage });
@@ -81,8 +83,6 @@ export class InteractionCreateEvent {
 			}
 
 			await this.logService.handlerAppError(error, interaction.client);
-
-			return this.unlockUser(guildMember.id);
 		}
 	}
 
