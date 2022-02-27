@@ -9,13 +9,13 @@ import { RuleService } from "../../Services/RuleService";
 
 export class ValidationRulesButton implements IButton {
 	public static readonly id: string = "validation_rules";
-	public static readonly label: string = "Valider le règlement";
+	public static readonly label: string = "Valider le règlement et commencer l'aventure";
 	public static readonly style: MessageButtonStyleResolvable = "SUCCESS";
 	public static readonly button: MessageButton = new MessageButton()
 		.setCustomId(this.id)
 		.setLabel(this.label)
 		.setStyle(this.style)
-		.setEmoji("🖱");
+		.setEmoji("🚀");
 
 	public readonly customId: string;
 	private ruleService: RuleService;
