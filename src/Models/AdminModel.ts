@@ -1,4 +1,5 @@
 export class AdminModel {
+	public id: number;
 	public name: string;
-	public discordId: string;
+	public discord_id: string;
 }

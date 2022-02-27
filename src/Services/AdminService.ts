@@ -2,19 +2,18 @@ import { CommandInteraction, Message, MessageEmbed, User } from "discord.js";
 import { Config } from "../Config/Config";
 import { AdminRepository } from "../Dal/AdminRepository";
 import { AdminModel } from "../Models/AdminModel";
-import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
 import { ServicesProvider } from "../ServicesProvider";
 
 export class AdminService {
 
-	private _adminRepository: AdminRepository;
-	private _admins: AdminModel[];
-	private _logService: LogService;
+	private adminRepository: AdminRepository;
+	private adminModels: AdminModel[];
+	private logService: LogService;
 
 	constructor() {
-		this._adminRepository = new AdminRepository();
-		this._logService = ServicesProvider.getLogService();
+		this.adminRepository = new AdminRepository();
+		this.logService = ServicesProvider.getLogService();
 		(async () => {
 			await this.updateAdmins();
 		})();
@@ -24,15 +23,14 @@ export class AdminService {
 	 * Récupère la liste des administrateurs du serveur en BDD
 	 */
 	private async getAdminsData(): Promise<AdminModel[]> {
-		const results: unknown = await this._adminRepository.getAdminsData();
-		return AutoMapper.mapArrayAdminModel(results);
+		return await this.adminRepository.getAdminsData();
 	}
 
 	/**
 	 * Retourne la liste des administrateurs du serveur
 	 */
 	public getAdmins(): AdminModel[] {
-		return this._admins;
+		return this.adminModels;
 	}
 
 	/**
@@ -40,7 +38,7 @@ export class AdminService {
 	 * @param id {string} - Identifiant discord de l'utilisateur
 	 */
 	public adminIsExist(id: string): boolean {
-		return this._admins.some(admin => admin.discordId === id);
+		return this.adminModels.some(admin => admin.discord_id === id);
 	}
 
 	/**
@@ -57,8 +55,8 @@ export class AdminService {
 			.setTimestamp();
 
 		if (Config.nodeEnv === Config.nodeEnvValues.production) {
-			for (const admin of this._admins) {
-				const user: User = message.client.users.cache.get(admin.discordId);
+			for (const admin of this.adminModels) {
+				const user: User = message.client.users.cache.get(admin.discord_id);
 				if (user) {
 					await user.send({ embeds: [ messageEmbed ] });
 				}
@@ -71,7 +69,7 @@ export class AdminService {
 			}
 		}
 
-		this._logService.log(`Message prive reçu de la part de ${message.author.username} : ${message.content}`);
+		this.logService.info(`Message prive reçu de la part de ${message.author.username} : ${message.content}`);
 	}
 
 	/**
@@ -80,9 +78,8 @@ export class AdminService {
 	 * @param name {string} - Nom de l'utilisateur
 	 */
 	public async createAdmin(id: string, name: string): Promise<void> {
-		await this._adminRepository.createAdmin(id, name);
+		await this.adminRepository.createAdmin(id, name);
 		await this.updateAdmins();
-		this._logService.log(`Nouvel administrateur cree : ${name} (${id})`);
 	}
 
 	/**
@@ -90,10 +87,8 @@ export class AdminService {
 	 * @param id {string} - Identifiant discord de l'utilisateur
 	 */
 	public async removeAdmin(id: string): Promise<void> {
-		const admin: AdminModel = this._admins.find(a => a.discordId === id);
-		await this._adminRepository.removeAdmin(id);
+		await this.adminRepository.removeAdmin(id);
 		await this.updateAdmins();
-		this._logService.log(`Administrateur supprime : ${admin.name} (${admin.discordId})`);
 	}
 
 	/**
@@ -101,7 +96,7 @@ export class AdminService {
 	 * @private
 	 */
 	private async updateAdmins(): Promise<void> {
-		this._admins = await this.getAdminsData();
+		this.adminModels = await this.getAdminsData();
 	}
 
 	/**
@@ -111,6 +106,6 @@ export class AdminService {
 	public async sendAdminList(commandInteraction: CommandInteraction): Promise<void> {
 		const admins: AdminModel[] = this.getAdmins();
 		const adminsNames: string[] = admins.map(a => a.name);
-		return await commandInteraction.reply({ content: `LISTE DES ADMINISTRATEURS : \n \`\`${adminsNames.join(", ")}\`\``, ephemeral: true, fetchReply: false });
+		await commandInteraction.editReply({ content: `LISTE DES ADMINISTRATEURS : \n \`\`${adminsNames.join(", ")}\`\`` });
 	}
 }

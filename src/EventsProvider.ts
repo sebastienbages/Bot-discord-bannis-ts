@@ -5,37 +5,37 @@ import { InteractionCreateEvent } from "./Events/InteractionCreate";
 import { MessageCreateEvent } from "./Events/MessageCreateEvent";
 
 export class EventsProvider {
-	private readonly _readyEvent: ReadyEvent;
-	private readonly _guildMemberAdd: GuildMemberAddEvent;
-	private readonly _guildMemberRemove: GuildMemberRemoveEvent;
-	private readonly _interactionCreate: InteractionCreateEvent;
-	private readonly _messageCreate: MessageCreateEvent;
+	private static readyEvent: ReadyEvent;
+	private static guildMemberAddEvent: GuildMemberAddEvent;
+	private static guildMemberRemoveEvent: GuildMemberRemoveEvent;
+	private static interactionCreateEvent: InteractionCreateEvent;
+	private static messageCreateEvent: MessageCreateEvent;
 
-	constructor() {
-		this._readyEvent = new ReadyEvent();
-		this._guildMemberAdd = new GuildMemberAddEvent();
-		this._guildMemberRemove = new GuildMemberRemoveEvent();
-		this._interactionCreate = new InteractionCreateEvent();
-		this._messageCreate = new MessageCreateEvent();
+	public static initializeEvents(): void {
+		this.readyEvent = new ReadyEvent();
+		this.guildMemberAddEvent = new GuildMemberAddEvent();
+		this.guildMemberRemoveEvent = new GuildMemberRemoveEvent();
+		this.interactionCreateEvent = new InteractionCreateEvent();
+		this.messageCreateEvent = new MessageCreateEvent();
 	}
 
-	public ready(): ReadyEvent {
-		return this._readyEvent;
+	public static getReadyEvent(): ReadyEvent {
+		return this.readyEvent;
 	}
 
-	public guildMemberAdd(): GuildMemberAddEvent {
-		return this._guildMemberAdd;
+	public static getGuildMemberAddEvent(): GuildMemberAddEvent {
+		return this.guildMemberAddEvent;
 	}
 
-	public guildMemberRemove(): GuildMemberRemoveEvent {
-		return this._guildMemberRemove;
+	public static getGuildMemberRemoveEvent(): GuildMemberRemoveEvent {
+		return this.guildMemberRemoveEvent;
 	}
 
-	public interactionCreate(): InteractionCreateEvent {
-		return this._interactionCreate;
+	public static getInteractionCreateEvent(): InteractionCreateEvent {
+		return this.interactionCreateEvent;
 	}
 
-	public messageCreateEvent(): MessageCreateEvent {
-		return this._messageCreate;
+	public static getMessageCreateEvent(): MessageCreateEvent {
+		return this.messageCreateEvent;
 	}
 }

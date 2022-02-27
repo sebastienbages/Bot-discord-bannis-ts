@@ -1,7 +1,7 @@
 import { LogService } from "../Services/LogService";
 import {
-	BaseCommandInteraction,
-	ButtonInteraction, Collection, CommandInteraction,
+	ButtonInteraction,
+	CommandInteraction,
 	GuildMember,
 	Interaction,
 	SelectMenuInteraction,
@@ -14,67 +14,75 @@ import { ISlashCommand } from "../Interfaces/ISlashCommand";
 import { ButtonService } from "../Services/ButtonService";
 import { IButton } from "../Interfaces/IButton";
 import { SelectMenuService } from "../Services/SelectMenuService";
+import { InteractionError } from "../Error/InteractionError";
 
 export class InteractionCreateEvent {
 
-	private _logService: LogService;
-	private _ticketService: TicketService;
-	private _slashCommandService: SlashCommandService;
-	private _buttonService: ButtonService;
-	private _selectMenuService: SelectMenuService;
-	private _commands: Collection<string, ISlashCommand>;
-	private _lockInteraction: Snowflake[];
+	private logService: LogService;
+	private ticketService: TicketService;
+	private slashCommandService: SlashCommandService;
+	private buttonService: ButtonService;
+	private selectMenuService: SelectMenuService;
+	private lockInteraction: Snowflake[];
 
 	constructor() {
-		this._logService = ServicesProvider.getLogService();
-		this._ticketService = ServicesProvider.getTicketService();
-		this._slashCommandService = ServicesProvider.getSlashCommandService();
-		this._buttonService = ServicesProvider.getButtonService();
-		this._selectMenuService = ServicesProvider.getSelectMenuService();
-		this._commands = new Collection<string, ISlashCommand>();
-		this._slashCommandService._commandsInstances.forEach(cmd => {
-			this._commands.set(cmd.name, cmd);
-		});
-		this._lockInteraction = [];
+		this.logService = ServicesProvider.getLogService();
+		this.ticketService = ServicesProvider.getTicketService();
+		this.slashCommandService = ServicesProvider.getSlashCommandService();
+		this.buttonService = ServicesProvider.getButtonService();
+		this.selectMenuService = ServicesProvider.getSelectMenuService();
+		this.lockInteraction = [];
 	}
 
 	public async run(interaction: Interaction): Promise<void> {
+		const interactionObject = interaction as CommandInteraction | SelectMenuInteraction | ButtonInteraction;
 		const guildMember = interaction.member as GuildMember;
 
 		try {
 			if (this.userIsLocked(guildMember.id)) {
-				return;
+				await interactionObject.reply({ content: "Flooder ne sert à rien ! :triumph:", ephemeral: true, fetchReply: false });
+				return this.logService.info(`Le membre ${guildMember.displayName} flood les interactions`);
 			}
 
 			this.lockUser(guildMember.id);
 
 			if (interaction.isCommand()) {
-				const commandInteraction = interaction as CommandInteraction;
-				const slashCommand: ISlashCommand = this._commands.get(commandInteraction.commandName);
-				const member = commandInteraction.member as GuildMember;
-				await slashCommand.executeInteraction(commandInteraction);
-				this._logService.log(`${member.displayName} a utilise la commande "${commandInteraction.commandName}"`);
+				this.logService.info(`${guildMember.displayName} a lance la commande "${interaction.commandName}"`);
+				const slashCommand: ISlashCommand = this.slashCommandService.getInstance(interaction.commandName);
+				await slashCommand.executeInteraction(interaction);
 			}
 
 			if (interaction.isSelectMenu()) {
-				const selectMenuInteraction = interaction as SelectMenuInteraction;
-				const selectMenuInstance = this._selectMenuService.getInstance(selectMenuInteraction.customId);
-				await selectMenuInstance.executeInteraction(selectMenuInteraction);
+				this.logService.info(`${guildMember.displayName} a utilise le select menu "${interaction.customId}"`);
+				const selectMenuInstance = this.selectMenuService.getInstance(interaction.customId);
+				await selectMenuInstance.executeInteraction(interaction);
 			}
 
 			if (interaction.isButton()) {
-				const buttonInteraction = interaction as ButtonInteraction;
-				const instanceButton: IButton = this._buttonService.getInstance(buttonInteraction.customId);
-				await instanceButton.executeInteraction(buttonInteraction);
+				this.logService.info(`${guildMember.displayName} a appuye sur le bouton "${interaction.customId}"`);
+				const instanceButton: IButton = this.buttonService.getInstance(interaction.customId);
+				await instanceButton.executeInteraction(interaction);
 			}
+
+			return this.unlockUser(guildMember.id);
 		}
 		catch (error) {
-			const baseInteraction = interaction as BaseCommandInteraction;
-			this._logService.error(error);
-			await baseInteraction.reply({ content: "Oups ! Une erreur s'est produite, veuillez avertir un admin" + error.message ? ` : ${error.message}` : "", ephemeral: true });
-		}
-		finally {
-			this.unlockUser(guildMember.id);
+			if (error instanceof InteractionError) {
+				const interactionError = error as InteractionError;
+				await interactionObject.editReply({ content: interactionError.discordMessage });
+				return this.logService.info(`Erreur de "${interactionError.name}" : ${interactionError.message}`);
+			}
+
+			if (error.name === "DiscordAPIError") {
+				await interactionObject.followUp({ content: "Oups ! Une erreur s'est produite :thermometer_face: \nSi le problème persiste, merci de contacter un admin." });
+			}
+			else {
+				await interactionObject.followUp({ content: "Oups ! Une erreur s'est produite :thermometer_face: \nSi le problème persiste, merci de contacter un admin." });
+			}
+
+			await this.logService.handlerAppError(error, interaction.client);
+
+			return this.unlockUser(guildMember.id);
 		}
 	}
 
@@ -83,7 +91,7 @@ export class InteractionCreateEvent {
 	 * @param userSnowflake
 	 */
 	private userIsLocked(userSnowflake: Snowflake): boolean {
-		return this._lockInteraction.includes(userSnowflake);
+		return this.lockInteraction.includes(userSnowflake);
 	}
 
 	/**
@@ -92,7 +100,7 @@ export class InteractionCreateEvent {
 	 * @private
 	 */
 	private lockUser(userSnowflake: Snowflake): void {
-		this._lockInteraction.push(userSnowflake);
+		this.lockInteraction.push(userSnowflake);
 	}
 
 	/**
@@ -102,8 +110,8 @@ export class InteractionCreateEvent {
 	 */
 	private unlockUser(userSnowflake: Snowflake): void {
 		if (this.userIsLocked(userSnowflake)) {
-			const userIndex = this._lockInteraction.indexOf(userSnowflake);
-			this._lockInteraction.splice(userIndex, 1);
+			const userIndex = this.lockInteraction.indexOf(userSnowflake);
+			this.lockInteraction.splice(userIndex, 1);
 		}
 	}
 }

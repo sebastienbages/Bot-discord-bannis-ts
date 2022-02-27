@@ -1,8 +1,15 @@
 import {
 	ButtonInteraction,
-	CategoryChannel, CommandInteraction, Guild, GuildMember,
+	CategoryChannel,
+	CommandInteraction,
+	Guild,
+	GuildMember,
 	HexColorString,
-	Message, MessageActionRow, MessageAttachment, MessageButton, MessageEmbed,
+	Message,
+	MessageActionRow,
+	MessageAttachment,
+	MessageButton,
+	MessageEmbed,
 	Permissions,
 	Role,
 	TextChannel,
@@ -11,38 +18,44 @@ import { Config } from "../Config/Config";
 import { TicketConfigRepository } from "../Dal/TicketConfigRepository";
 import { TicketRepository } from "../Dal/TicketRepository";
 import { RoleModel } from "../Models/RoleModel";
-import { TicketConfigModel } from "../Models/TicketConfigModel";
+import { TicketConfig } from "../Models/TicketConfigModel";
 import { TicketModel } from "../Models/TicketModel";
 import { RoleRepository } from "../Dal/RoleRepository";
-import { AutoMapper } from "./AutoMapper";
 import { LogService } from "./LogService";
 import { ReOpenTicketButton } from "../Interactions/Buttons/ReOpenTicketButton";
 import { DeleteTicketButton } from "../Interactions/Buttons/DeleteTicketButton";
 import { CloseTicketButton } from "../Interactions/Buttons/CloseTicketButton";
 import { CreateTicketButton } from "../Interactions/Buttons/CreateTicketButton";
+import { InteractionError } from "../Error/InteractionError";
+
+declare type TimeLeftType = {
+	minutes: string;
+	seconds: string;
+}
 
 export class TicketService {
-	private _ticketConfigRepository: TicketConfigRepository;
-	private _roleRepository: RoleRepository;
-	private _ticketRepository: TicketRepository;
-	private _ticketConfig: TicketConfigModel;
-	private _ticketRoles: Array<RoleModel>;
-	private _logService: LogService;
+	private ticketConfigRepository: TicketConfigRepository;
+	private roleRepository: RoleRepository;
+	private ticketRepository: TicketRepository;
+	private ticketConfigModel: TicketConfig;
+	private roleModels: RoleModel[];
+	private logService: LogService;
 
-	private _delayIsActive: boolean;
-	private readonly _cooldown: number = 10 * 60 * 1000;
-	private readonly _datesCooldown: number[];
-	private _requests: number;
-	private readonly _warningColor = "FF0000" as HexColorString;
+	private delayIsActive: boolean;
+	private cooldown: number = 10 * 60 * 1000;
+	private datesCooldown: number[];
+	private requests: number;
+	private warningColor = "FF0000" as HexColorString;
 
 	constructor() {
-		this._ticketConfigRepository = new TicketConfigRepository();
-		this._ticketRepository = new TicketRepository();
-		this._roleRepository = new RoleRepository();
-		this._logService = new LogService();
-		this._delayIsActive = false;
-		this._requests = 0;
-		this._datesCooldown = new Array<number>();
+		this.ticketConfigRepository = new TicketConfigRepository();
+		this.ticketRepository = new TicketRepository();
+		this.roleRepository = new RoleRepository();
+		this.logService = new LogService();
+		this.delayIsActive = false;
+		this.requests = 0;
+		this.datesCooldown = [];
+		this.roleModels = [];
 		(async () => {
 			await this.updateTicketRoles();
 			await this.updateTicketConfig();
@@ -53,9 +66,8 @@ export class TicketService {
 	 * Retourne la configuration du système des tickets
 	 * @private
 	 */
-	private async getConfig(): Promise<TicketConfigModel> {
-		const results: unknown = await this._ticketConfigRepository.getConfigData();
-		return AutoMapper.mapTicketConfigModel(results);
+	private async getConfig(): Promise<TicketConfig> {
+		return await this.ticketConfigRepository.getConfigData();
 	}
 
 	/**
@@ -63,7 +75,7 @@ export class TicketService {
 	 * @param number {number} - Numéro du ticket
 	 */
 	private async saveTicketConfigNumber(number: string): Promise<void> {
-		await this._ticketConfigRepository.saveTicketConfigNumber(number);
+		await this.ticketConfigRepository.saveTicketConfigNumber(number);
 	}
 
 	/**
@@ -73,7 +85,7 @@ export class TicketService {
 	private getChannelName(lastNumber: number): string {
 		if (lastNumber === 1000) {
 			lastNumber = 0;
-			this._logService.log("Nombre de ticket max atteint (1000), remise à zéro du nombre effectué");
+			this.logService.info("Nombre de ticket max atteint (1000), remise à zéro du nombre effectué");
 		}
 
 		const channelName: string[] = [];
@@ -91,14 +103,15 @@ export class TicketService {
 	 */
 	private async updateTicketConfig(): Promise<void> {
 		if (Config.nodeEnv != Config.nodeEnvValues.production) {
-			this._ticketConfig = new TicketConfigModel();
-			this._ticketConfig.ChannelId = Config.ticketChannel;
-			this._ticketConfig.CategoryId = Config.categoryTicketChannel;
-			this._ticketConfig.LastNumber = 100;
-			this._ticketConfig.MessageId = Config.ticketMessage;
+			this.ticketConfigModel = {
+				channel_id: Config.ticketChannelId,
+				category_id: Config.categoryTicketChannelId,
+				last_number: 100,
+				message_id: Config.ticketMessageId,
+			};
 		}
 		else {
-			this._ticketConfig = await this.getConfig();
+			this.ticketConfigModel = await this.getConfig();
 		}
 	}
 
@@ -106,8 +119,7 @@ export class TicketService {
 	 * Mise à jour des Roles autorisé pour l'administration des tickets en cache
 	 */
 	private async updateTicketRoles(): Promise<void> {
-		const results = await this._roleRepository.getTicketRoles();
-		this._ticketRoles = AutoMapper.mapArrayRoleModel(results);
+		this.roleModels = await this.roleRepository.getTicketRoles();
 	}
 
 	/**
@@ -116,7 +128,7 @@ export class TicketService {
 	 * @param number {number} - Numéro du ticket
 	 */
 	private async saveTicket(guildMember: GuildMember, number: number): Promise<void> {
-		await this._ticketRepository.saveTicket(guildMember.id, number);
+		await this.ticketRepository.saveTicket(guildMember.id, number);
 	}
 
 	/**
@@ -126,8 +138,7 @@ export class TicketService {
 	private async getTicketByNumber(targetChannel: TextChannel): Promise<TicketModel> {
 		const nameArray: string[] = targetChannel.name.split("-");
 		const number: number = parseInt(nameArray[1]);
-		const result: unknown = await this._ticketRepository.getTicketByNumber(number);
-		return AutoMapper.mapTicketModel(result);
+		return await this.ticketRepository.getTicketByNumber(number);
 	}
 
 	/**
@@ -135,8 +146,7 @@ export class TicketService {
 	 * @param userId {string} - Utilisateur discord
 	 */
 	public async getTicketByUserId(userId: string): Promise<TicketModel> {
-		const result: unknown = await this._ticketRepository.getTicketByUserId(userId);
-		return AutoMapper.mapTicketModel(result);
+		return await this.ticketRepository.getTicketByUserId(userId);
 	}
 
 	/**
@@ -144,7 +154,7 @@ export class TicketService {
 	 * @param user {User} - Utilisateur discord
 	 */
 	private async openTicket(user: TicketModel): Promise<void> {
-		await this._ticketRepository.openTicket(user.userId);
+		await this.ticketRepository.openTicket(user.userid);
 	}
 
 	/**
@@ -152,40 +162,43 @@ export class TicketService {
 	 * @param buttonInteraction
 	 */
 	public async createTicket(buttonInteraction: ButtonInteraction): Promise<void> {
-		await buttonInteraction.deferReply({ ephemeral: true });
+		await buttonInteraction.deferReply({ ephemeral: true, fetchReply: false });
+
 		const guildMember = buttonInteraction.member as GuildMember;
 		const userTicket = await this.getTicketByUserId(guildMember.id);
 
-		if (!guildMember.roles.cache.has(Config.roleStart)) {
+		if (!guildMember.roles.cache.has(Config.roleStartId)) {
 			const actionRow = new MessageActionRow().addComponents(
 				new MessageButton()
 					.setStyle("LINK")
 					.setLabel("Valider le règlement")
 					.setURL(`https://discord.com/channels/${Config.guildId}/${Config.rulesChannelId}/`)
 			);
+			const roleStart = buttonInteraction.guild.roles.cache.get(Config.roleStartId);
 			await buttonInteraction.editReply({
-				content: "Tu ne possède pas le rôle des Bannis :scream: \nUtilise ce bouton pour consulter le règlement et le valider :wink:",
+				content: `Tu ne possède pas le rôle ${roleStart.toString()} :scream: \nUtilise ce bouton pour consulter le règlement et le valider :wink:`,
 				components: [ actionRow ],
 			});
 			return;
 		}
 
-		if (userTicket.userId) {
-			await buttonInteraction.editReply({
-				content: `<@${guildMember.id}>, tu possèdes déjà un ticket ouvert : numéro ${userTicket.number.toString()}`,
-			});
-			return;
+		if (userTicket.userid) {
+			throw new InteractionError(
+				`<@${guildMember.id}>, tu possèdes déjà un ticket ouvert : numéro ${userTicket.number.toString()}`,
+				"createTicket",
+				"Ticket déjà ouvert"
+			);
 		}
 
 		const guild = buttonInteraction.guild as Guild;
-		const category = guild.channels.cache.get(this._ticketConfig.CategoryId) as CategoryChannel;
+		const category = guild.channels.cache.get(this.ticketConfigModel.category_id) as CategoryChannel;
 		const everyoneRole: Role = guild.roles.cache.find(r => r.name === "@everyone");
 
 		if (!category || !everyoneRole) {
 			throw Error("Il semble que la création des tickets soit indisponible :weary:");
 		}
 
-		const channelName: string = this.getChannelName(this._ticketConfig.LastNumber);
+		const channelName: string = this.getChannelName(this.ticketConfigModel.last_number);
 		const ticketChannel: TextChannel = await guild.channels.create(channelName, {
 			type: "GUILD_TEXT",
 			parent: category,
@@ -205,8 +218,8 @@ export class TicketService {
 
 		const rolesMentions: string[] = [];
 
-		for (const role of this._ticketRoles) {
-			const ticketRole: Role = guild.roles.cache.get(role.discordId);
+		for (const role of this.roleModels) {
+			const ticketRole: Role = guild.roles.cache.get(role.role_id);
 			if (ticketRole) {
 				rolesMentions.push(`<@&${ticketRole.id}>`);
 				await ticketChannel.permissionOverwrites.create(ticketRole, {
@@ -219,13 +232,13 @@ export class TicketService {
 		rolesMentions.push(`<@${guildMember.id}>`);
 		await ticketChannel.send(rolesMentions.join(" "));
 
-		const newTicketNumber: number = this._ticketConfig.LastNumber + 1;
+		const newTicketNumber: number = this.ticketConfigModel.last_number + 1;
 
 		if (Config.nodeEnv === Config.nodeEnvValues.production) {
 			await this.saveTicketConfigNumber(newTicketNumber.toString());
 		}
 
-		this._ticketConfig.LastNumber++;
+		this.ticketConfigModel.last_number += 1;
 		const row = new MessageActionRow().addComponents(CloseTicketButton.button);
 		const messageWelcomeTicket: MessageEmbed = new MessageEmbed()
 			.setColor(Config.color)
@@ -242,14 +255,12 @@ export class TicketService {
 				.setLabel("Vers mon Ticket")
 				.setURL(`https://discord.com/channels/${Config.guildId}/${ticketChannel.id}/${welcomeMessage.id}`)
 		);
-		await buttonInteraction.followUp({
+		await buttonInteraction.editReply({
 			content: "Ton ticket est prêt et il n'attend plus que toi :ok_hand:",
-			ephemeral: true,
-			fetchReply: false,
 			components: [ actionRow ],
 		});
 
-		return this._logService.log(`Création du ticket N°${newTicketNumber.toString()} pour ${guildMember.displayName}`);
+		return this.logService.info(`Création du ticket N°${newTicketNumber.toString()} pour ${guildMember.displayName}`);
 	}
 
 	/**
@@ -257,7 +268,7 @@ export class TicketService {
 	 * @param buttonInteraction
 	 */
 	public async closeTicket(buttonInteraction: ButtonInteraction): Promise<void> {
-		await buttonInteraction.deferReply();
+		await buttonInteraction.deferReply({ fetchReply: false });
 
 		const message = buttonInteraction.message as Message;
 		const components = message.components as MessageActionRow[];
@@ -267,7 +278,7 @@ export class TicketService {
 		const targetChannel = buttonInteraction.channel as TextChannel;
 		const userTicket = await this.getTicketByNumber(targetChannel);
 		const guildMember = buttonInteraction.member as GuildMember;
-		await targetChannel.permissionOverwrites.edit(userTicket.userId, {
+		await targetChannel.permissionOverwrites.edit(userTicket.userid, {
 			VIEW_CHANNEL: false,
 			SEND_MESSAGES: false,
 		});
@@ -282,9 +293,9 @@ export class TicketService {
 				DeleteTicketButton.button
 			);
 
-		await buttonInteraction.followUp({ embeds: [ closeMessage ], components: [ row ] });
+		await buttonInteraction.editReply({ embeds: [ closeMessage ], components: [ row ] });
 
-		if (!this._delayIsActive) {
+		if (!this.delayIsActive) {
 			this.addRequest();
 			const newName: string = targetChannel.name.replace("ticket", "fermé");
 			await targetChannel.setName(newName);
@@ -293,8 +304,8 @@ export class TicketService {
 			await this.sendCooldownMessage(targetChannel);
 		}
 
-		await this._ticketRepository.closeTicket(guildMember.id);
-		this._logService.log(`Fermeture d'un ticket : N°${userTicket.number} par le membre ${guildMember.displayName} (${guildMember.id})`);
+		await this.ticketRepository.closeTicket(guildMember.id);
+		this.logService.info(`Fermeture d'un ticket : N°${userTicket.number} par le membre ${guildMember.displayName} (${guildMember.id})`);
 	}
 
 	/**
@@ -302,11 +313,11 @@ export class TicketService {
 	 * @private
 	 */
 	private addRequest(): void {
-		if (this._requests < 2) {
-			this._datesCooldown.push(Date.now());
-			setTimeout(() => this.substractRequest(), this._cooldown);
-			this._requests++;
-			if (this._requests === 2) this.startDelay();
+		if (this.requests < 2) {
+			this.datesCooldown.push(Date.now());
+			setTimeout(() => this.substractRequest(), this.cooldown);
+			this.requests++;
+			if (this.requests === 2) this.startDelay();
 		}
 	}
 
@@ -315,7 +326,7 @@ export class TicketService {
 	 * @private
 	 */
 	private startDelay(): void {
-		this._delayIsActive = true;
+		this.delayIsActive = true;
 	}
 
 	/**
@@ -323,9 +334,9 @@ export class TicketService {
 	 * @private
 	 */
 	private substractRequest(): void {
-		this._requests--;
-		this._datesCooldown.shift();
-		if (this._requests < 2) this._delayIsActive = false;
+		this.requests--;
+		this.datesCooldown.shift();
+		if (this.requests < 2) this.delayIsActive = false;
 	}
 
 	/**
@@ -334,11 +345,11 @@ export class TicketService {
 	 * @private
 	 */
 	private async sendCooldownMessage(targetChannel: TextChannel): Promise<void> {
-		const timeLeft: any = this.getTimeLeft();
+		const timeLeft = this.getTimeLeft();
 		const message: MessageEmbed = new MessageEmbed()
 			.setDescription(":exclamation: Le ticket ne peut pas changer de nom trop souvent")
 			.setFooter({ text: `Cela sera à nouveau possible dans ${timeLeft.minutes} minute(s) et ${timeLeft.seconds} seconde(s)` })
-			.setColor(this._warningColor);
+			.setColor(this.warningColor);
 
 		await targetChannel.send({ embeds: [ message ] });
 	}
@@ -347,9 +358,9 @@ export class TicketService {
 	 * Retourne le temps restant de la requête la plus ancienne
 	 * @private
 	 */
-	private getTimeLeft(): any {
+	private getTimeLeft(): TimeLeftType {
 		const now: number = Date.now();
-		const cooldown: number = this._datesCooldown[0];
+		const cooldown: number = this.datesCooldown[0];
 		const minutes: number = ((now - cooldown) / 60) / 1000;
 		const seconds: number = (now - cooldown) / 1000;
 		return { minutes: minutes.toFixed(0), seconds: seconds.toFixed(0) };
@@ -360,19 +371,19 @@ export class TicketService {
 	 * @param buttonInteraction
 	 */
 	public async reOpenTicket(buttonInteraction: ButtonInteraction): Promise<void> {
-		await buttonInteraction.deferReply();
+		await buttonInteraction.deferReply({ fetchReply: false });
 
 		const targetChannel = buttonInteraction.channel as TextChannel;
 		const userTicket = await this.getTicketByNumber(targetChannel);
 		const message = buttonInteraction.message as Message;
 		await message.delete();
 
-		await targetChannel.permissionOverwrites.edit(userTicket.userId, {
+		await targetChannel.permissionOverwrites.edit(userTicket.userid, {
 			VIEW_CHANNEL: true,
 			SEND_MESSAGES: true,
 		});
 
-		if (!this._delayIsActive) {
+		if (!this.delayIsActive) {
 			this.addRequest();
 			const newName: string = targetChannel.name.replace("fermé", "ticket");
 			await targetChannel.setName(newName);
@@ -382,9 +393,9 @@ export class TicketService {
 		}
 
 		const row = new MessageActionRow().addComponents(CloseTicketButton.button);
-		await buttonInteraction.followUp({ content: `Hey <@${userTicket.userId}>, ton ticket a été ré-ouvert :face_with_monocle:`, components: [ row ] });
+		await buttonInteraction.editReply({ content: `Hey <@${userTicket.userid}>, ton ticket a été ré-ouvert :face_with_monocle:`, components: [ row ] });
 		await this.openTicket(userTicket);
-		this._logService.log(`Ré-ouverture d'un ticket : N°${userTicket.number}`);
+		this.logService.info(`Ré-ouverture d'un ticket : N°${userTicket.number}`);
 	}
 
 	/**
@@ -392,12 +403,12 @@ export class TicketService {
 	 * @param buttonInteraction
 	 */
 	public async deleteTicket(buttonInteraction: ButtonInteraction): Promise<void> {
-		await buttonInteraction.deferReply();
+		await buttonInteraction.deferReply({ fetchReply: false });
 
 		const deleteMessage: MessageEmbed = new MessageEmbed()
-			.setColor(this._warningColor)
+			.setColor(this.warningColor)
 			.setDescription("Suppression du ticket dans quelques secondes");
-		await buttonInteraction.followUp({ embeds: [ deleteMessage ] });
+		await buttonInteraction.editReply({ embeds: [ deleteMessage ] });
 
 		const targetChannel = buttonInteraction.channel as TextChannel;
 		setTimeout(async () => {
@@ -405,8 +416,8 @@ export class TicketService {
 		}, 5000);
 		const nameArray: string[] = targetChannel.name.split("-");
 		const number: number = parseInt(nameArray[1]);
-		await this._ticketRepository.deleteTicket(number);
-		this._logService.log(`Suppression d'un ticket : ${targetChannel.name}`);
+		await this.ticketRepository.deleteTicket(number);
+		this.logService.info(`Suppression d'un ticket : ${targetChannel.name}`);
 	}
 
 	/**
@@ -416,7 +427,14 @@ export class TicketService {
 	public async sendTicketMessage(commandInteraction: CommandInteraction): Promise<void> {
 		await commandInteraction.deferReply({ ephemeral: true });
 		const channel = commandInteraction.options.getChannel("channel") as TextChannel;
-		const logo = new MessageAttachment(Config.imageDir + "/logo-bannis.png");
+
+		if (channel.type !== "GUILD_TEXT") {
+			throw new InteractionError(
+				"Choisi un channel textuel voyons :grin:",
+				commandInteraction.commandName,
+				`Le channel ${channel.name} ne possede pas le bon type`
+			);
+		}
 
 		const messageEmbed = new MessageEmbed()
 			.setColor(Config.color)
@@ -425,14 +443,10 @@ export class TicketService {
 			.setDescription("Rien de plus simple, utilise le bouton ci-dessous pour créer ton ticket. \n \n Un salon sera créé rien que pour toi afin de discuter avec l'équipe des Bannis :wink: \n")
 			.setFooter({ text: "Un seul ticket autorisé par utilisateur" });
 
+		const logo = new MessageAttachment(Config.imageDir + "/logo-bannis.png");
 		const actionRow = new MessageActionRow().addComponents(CreateTicketButton.button);
-
-		try {
-			await channel.send({ embeds: [ messageEmbed ], components: [ actionRow ], files: [ logo ] });
-			await commandInteraction.followUp({ content: "J'ai bien envoyé le message :ticket:", ephemeral: true, fetchReply: false });
-		}
-		catch (error) {
-			throw Error("On dirait que le format du channel n'est pas correct :thinking:");
-		}
+		await channel.send({ embeds: [ messageEmbed ], components: [ actionRow ], files: [ logo ] });
+		await commandInteraction.editReply({ content: "J'ai bien envoyé le message :ticket:" });
+		return this.logService.info(`Message ticket pilote envoye dans le salon ${channel.name}`);
 	}
 }

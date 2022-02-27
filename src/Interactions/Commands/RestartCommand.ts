@@ -2,13 +2,13 @@ import { CommandOptions, ISlashCommand, SubCommandOptions } from "../../Interfac
 import { CommandInteraction, PermissionResolvable } from "discord.js";
 import { WebhookProvider } from "../../WebhookProvider";
 import { Config } from "../../Config/Config";
-import { ApplicationCommandOptionType } from "discord-api-types";
+import { ApplicationCommandOptionType } from "discord-api-types/v9";
 
 export class RestartCommand implements ISlashCommand {
 	public readonly name: string = "restart";
 	public readonly description: string = "Envoi un message d'alerte de restart du serveur";
 	public readonly permission: PermissionResolvable = "ADMINISTRATOR";
-	readonly commandOptions: CommandOptions[] = [
+	public readonly commandOptions: CommandOptions[] = [
 		{
 			type: ApplicationCommandOptionType.String,
 			name: "option",
@@ -22,15 +22,16 @@ export class RestartCommand implements ISlashCommand {
 			],
 		},
 	];
-	readonly subCommandsOptions: SubCommandOptions[] = [];
+	public readonly subCommandsOptions: SubCommandOptions[] = [];
 
 	public async executeInteraction(commandInteraction: CommandInteraction): Promise<void> {
+		await commandInteraction.deferReply({ ephemeral: true, fetchReply: false });
 		const option = commandInteraction.options.getString("option") as string;
 
 		if (option === "main_server") {
-			await WebhookProvider.getServerKeeperOne().send(`:warning: <@&${Config.roleStart}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
+			await WebhookProvider.getServerKeeperOne().send(`:warning: <@&${Config.roleStartId}> Nous allons redémarrer le serveur, veuillez vous déconnecter :warning:`);
 		}
 
-		return await commandInteraction.reply({ content: "Les utilisateurs sont avertis :mega:", ephemeral: true, fetchReply: false });
+		await commandInteraction.editReply({ content: "Les utilisateurs sont avertis :mega:" });
 	}
 }

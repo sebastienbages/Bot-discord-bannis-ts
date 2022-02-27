@@ -19,14 +19,14 @@ import { RestartCommand } from "../Interactions/Commands/RestartCommand";
 import { TopServerCommand } from "../Interactions/Commands/TopServerCommand";
 import { RuleCommand } from "../Interactions/Commands/RuleCommand";
 import { GameServersCommand } from "../Interactions/Commands/GameServersCommand";
-import { Client, GuildApplicationCommandPermissionData } from "discord.js";
+import { Client, Collection, GuildApplicationCommandPermissionData } from "discord.js";
 
 export class SlashCommandService {
 	/**
 	 * Liste des commandes à enregistrer
 	 * @private
 	 */
-	private readonly _commands = [
+	private readonly commands = [
 		SurveyCommand,
 		AdminCommand,
 		TicketCommand,
@@ -41,10 +41,14 @@ export class SlashCommandService {
 		GameServersCommand,
 	];
 
-	public readonly _commandsInstances: ISlashCommand[];
+	private commandsInstances: Collection<string, ISlashCommand>;
 
 	constructor() {
-		this._commandsInstances = this._commands.map(commandClass => new commandClass());
+		this.commandsInstances = new Collection<string, ISlashCommand>();
+		this.commands.map(commandClass => {
+			const instance = new commandClass();
+			this.commandsInstances.set(instance.name, instance);
+		});
 	}
 
 	/**
@@ -73,7 +77,7 @@ export class SlashCommandService {
 	 */
 	private buildSlashCommands(): SlashCommandBuilder[] {
 		const commands = [];
-		for (const cmd of this._commandsInstances) {
+		this.commandsInstances.forEach((cmd) => {
 			const slashCommand = new SlashCommandBuilder()
 				.setName(cmd.name)
 				.setDescription(cmd.description)
@@ -88,7 +92,7 @@ export class SlashCommandService {
 			}
 
 			commands.push(slashCommand);
-		}
+		});
 
 		return commands;
 	}
@@ -244,5 +248,13 @@ export class SlashCommandService {
 		});
 
 		await guild.commands.permissions.set({ fullPermissions: permissions });
+	}
+
+	/**
+	 * Retourne la commande
+	 * @param name
+	 */
+	public getInstance(name: string): ISlashCommand {
+		return this.commandsInstances.get(name);
 	}
 }

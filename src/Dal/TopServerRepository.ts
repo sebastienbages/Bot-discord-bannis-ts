@@ -1,42 +1,95 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Config } from "../Config/Config";
+import { TopServerError, TopServerPlayerRanking, TopServerInfos, TopServerStats } from "../Models/TopServerModel";
+import { InteractionError } from "../Error/InteractionError";
+import { URL } from "url";
 
 export class TopServerRepository {
-	private readonly _token: string = Config.tokenTopServer;
-	private readonly _url: string = "https://api.top-serveurs.net/v1/servers/" + this._token;
+	private token: string;
+	private baseUrl: string;
+	private playerRankingUrl: string;
+	private serverStatsUrl: string;
+
+	public constructor() {
+		this.token = Config.tokenTopServer;
+		this.baseUrl = `https://api.top-serveurs.net/v1/servers/${this.token}`;
+		this.playerRankingUrl = this.baseUrl + "/players-ranking";
+		this.serverStatsUrl = this.baseUrl + "/stats";
+	}
 
 	/**
 	 * Récupère les informations Top Serveur
 	 */
-	public async getDataServer(): Promise<unknown> {
-		const { data } = await axios.get(this._url);
-		return data;
+	public async getDataServer(): Promise<TopServerInfos> {
+		try {
+			const response = await axios.get<TopServerInfos>(this.baseUrl.toString());
+			return response.data;
+		}
+		catch (error) {
+			const axiosError = error as AxiosError<TopServerError>;
+			throw new InteractionError(
+				`L'API de Top Serveur m'a retournée une erreur :weary:\nVoici son message : **${axiosError.response.data.message}**`,
+				"getDataServer",
+				axiosError.response.data.message
+			);
+		}
 	}
 
 	/**
-	 * Récupère la liste des votants et leur nombre de votes
-	 * @param currentMonth
+	 * Récupère la liste des votants du mois courant et leur nombre de votes
 	 */
-	public async getPlayersRanking(currentMonth = true): Promise<any> {
-		let url: string;
-
-		if (currentMonth) {
-			url = this._url + "/players-ranking";
+	public async getPlayersRankingForCurrentMonth(): Promise<TopServerPlayerRanking> {
+		try {
+			const url = new URL(this.playerRankingUrl);
+			url.searchParams.set("type", "current");
+			const { data } = await axios.get<TopServerPlayerRanking>(url.toString());
+			return data;
 		}
-		else {
-			url = this._url + "/players-ranking?type=lastMonth";
+		catch (error) {
+			const axiosError = error as AxiosError<TopServerError>;
+			throw new InteractionError(
+				`L'API de Top Serveur m'a retournée une erreur :weary:\nVoici son message : **${axiosError.response.data.message}**`,
+				"getPlayersRankingForCurrentMonth",
+				axiosError.response.data.message
+			);
 		}
+	}
 
-		const { data } = await axios.get(url);
-		return data;
+	/**
+	 * Récupère la liste des votants du mois dernier et leur nombre de votes
+	 */
+	public async getPlayersRankingForLastMonth(): Promise<TopServerPlayerRanking> {
+		try {
+			const url = new URL(this.playerRankingUrl);
+			url.searchParams.set("type", "lastMonth");
+			const { data } = await axios.get<TopServerPlayerRanking>(url.toString());
+			return data;
+		}
+		catch (error) {
+			const axiosError = error as AxiosError<TopServerError>;
+			throw new InteractionError(
+				`L'API de Top Serveur m'a retournée une erreur :weary:\nVoici son message : **${axiosError.response.data.message}**`,
+				"getPlayersRankingForLastMonth",
+				axiosError.response.data.message
+			);
+		}
 	}
 
 	/**
 	 * Récupère les statistiques du serveur
 	 */
-	public async getServerStats(): Promise<any> {
-		const { data } = await axios.get(this._url + "/stats");
-		return data.stats;
+	public async getServerStats(): Promise<TopServerStats> {
+		try {
+			const { data } = await axios.get<TopServerStats>(this.serverStatsUrl);
+			return data;
+		}
+		catch (error) {
+			const axiosError = error as AxiosError<TopServerError>;
+			throw new InteractionError(
+				`L'API de Top Serveur m'a retournée une erreur :weary:\nVoici son message : **${axiosError.response.data.message}**`,
+				"getServerStats",
+				axiosError.response.data.message
+			);
+		}
 	}
 }

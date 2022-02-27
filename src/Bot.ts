@@ -1,13 +1,9 @@
 import { Client, Intents } from "discord.js";
 import { EventsProvider } from "./EventsProvider";
 
-export class Bot {
-	public client: Client;
-	private readonly token: string;
-	private events: EventsProvider;
-
-	constructor(token: string, events: EventsProvider) {
-		this.client = new Client({
+export class Bot extends Client {
+	constructor(token: string) {
+		super({
 			intents: [
 				Intents.FLAGS.GUILDS,
 				Intents.FLAGS.GUILD_MEMBERS,
@@ -26,12 +22,11 @@ export class Bot {
 			],
 			partials: [ "MESSAGE", "CHANNEL", "REACTION" ],
 		});
-		this.events = events;
 		this.token = token;
 	}
 
 	public async start(): Promise<void> {
-		this.events.ready().run(this.client);
-		await this.client.login(this.token);
+		this.once("ready", async (client: Client) => await EventsProvider.getReadyEvent().run(client));
+		await this.login(this.token);
 	}
 }
