@@ -86,7 +86,12 @@ export class VoteService {
 						.setStyle("LINK")
 						.setLabel("LIEN TOP SERVEURS")
 						.setEmoji("🔗")
-						.setURL(topServeurUrl)
+						.setURL(topServeurUrl),
+					new MessageButton()
+						.setStyle("LINK")
+						.setLabel("LISTE DES VOTES")
+						.setEmoji("🙏")
+						.setURL("https://www.lesbannis.fr/index.php?page=topserver")
 				);
 
 			const voteChannel = guild.channels.cache.get(Config.voteChannelId) as TextChannel
@@ -101,8 +106,6 @@ export class VoteService {
 			if (Config.nodeEnv === Config.nodeEnvValues.production) {
 				await this.saveMessage(voteMessage);
 			}
-
-			return this.logService.info("Message des votes envoye");
 		}
 		catch (error) {
 			if (interaction) {
