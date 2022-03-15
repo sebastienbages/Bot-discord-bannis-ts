@@ -49,4 +49,9 @@ export class Config {
 	public static readonly roleStartId: Snowflake = process.env.ROLE_START;
 	public static readonly roleFrontiereId: Snowflake = process.env.ROLE_FRONTIERE;
 	public static readonly roleCommandsBotId: Snowflake = process.env.ROLE_COMMANDS;
+
+	// GAME SERVER
+	public static readonly SERVER_IP: string = process.env.SERVER_IP;
+	public static readonly PORT_SERVER_1: string = process.env.PORT_SERVER_1;
+	public static readonly PORT_SERVER_2: string = process.env.PORT_SERVER_2;
 }

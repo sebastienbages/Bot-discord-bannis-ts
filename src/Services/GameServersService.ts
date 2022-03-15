@@ -4,11 +4,9 @@ import * as Buffer from "buffer";
 import { PlayerModel } from "../Models/PlayerModel";
 import fs from "fs/promises";
 import date from "date-and-time";
+import { Config } from "../Config/Config";
 
 export class GameServersService {
-	private readonly _ip = "213.246.45.68";
-	private readonly _portMainServer = 27016;
-
 	/** https://developer.valvesoftware.com/wiki/Server_queries#A2S_PLAYER */
 
 	/**
@@ -106,15 +104,16 @@ export class GameServersService {
 				return resolve(this.buildKey(msg));
 			});
 
-			client.send(this.buildCode(code), port, this._ip);
+			client.send(this.buildCode(code), port, Config.SERVER_IP);
 		});
 	}
 
 	/**
 	 * Retourne la liste des joueurs connectés au serveur
 	 */
-	public async getPlayers(): Promise<PlayerModel[]> {
-		const key = await this.getChallenge("U", this._portMainServer);
+	public async getPlayers(port: string): Promise<PlayerModel[]> {
+		const serverPort = Number.parseInt(port);
+		const key = await this.getChallenge("U", serverPort);
 
 		return new Promise((resolve, reject) => {
 			const client = createSocket("udp4");
@@ -132,7 +131,7 @@ export class GameServersService {
 				.writeInt32LE(key)
 				.toBuffer();
 
-			client.send(packet, this._portMainServer, this._ip);
+			client.send(packet, serverPort, Config.SERVER_IP);
 		});
 	}
 

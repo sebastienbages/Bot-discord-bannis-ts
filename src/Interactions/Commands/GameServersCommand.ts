@@ -5,6 +5,7 @@ import { GameServersService } from "../../Services/GameServersService";
 import fs from "fs/promises";
 import { PlayerModel } from "../../Models/PlayerModel";
 import { ServicesProvider } from "../../ServicesProvider";
+import { Config } from "../../Config/Config";
 
 export class GameServersCommand implements ISlashCommand {
 	public readonly name: string = "joueurs-connectes";
@@ -20,6 +21,10 @@ export class GameServersCommand implements ISlashCommand {
 				[
 					"Serveur principal",
 					"main_server",
+				],
+				[
+					"Serveur end game",
+					"end_game_server",
 				],
 			],
 		},
@@ -49,8 +54,13 @@ export class GameServersCommand implements ISlashCommand {
 		};
 
 		if (option === "main_server") {
-			const playerModels = await this.gameServersService.getPlayers();
+			const playerModels = await this.gameServersService.getPlayers(Config.PORT_SERVER_1);
 			await sendPrivateMessage(playerModels, "players-main-server.txt", "Joueurs connectes SERVEUR PRINCIPAL");
+		}
+
+		if (option === "end_game_server") {
+			const playerModels = await this.gameServersService.getPlayers(Config.PORT_SERVER_2);
+			await sendPrivateMessage(playerModels, "players-end-game-server.txt", "Joueurs connectes SERVEUR END GAME");
 		}
 	}
 }
