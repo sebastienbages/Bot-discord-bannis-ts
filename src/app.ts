@@ -29,8 +29,8 @@ const bot: Bot = new Bot(Config.token);
 	await slashCommandService.registerSlashCommand();
 	logService.info("Commandes enregistrees");
 
-	await slashCommandService.setCommandsPermission(Config.roleCommandsBotId, bot);
-	await logService.info("Permissions des commandes mises a jour");
+	// await slashCommandService.setCommandsPermission(Config.roleCommandsBotId, bot);
+	// await logService.info("Permissions des commandes mises a jour");
 })();
 
 bot.on("messageCreate", (message: Message) => EventsProvider.getMessageCreateEvent().run(message));

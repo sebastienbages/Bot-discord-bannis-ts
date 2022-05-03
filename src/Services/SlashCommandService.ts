@@ -47,7 +47,7 @@ export class SlashCommandService {
 
 	constructor() {
 		this.commandsInstances = new Collection<string, ISlashCommand>();
-		this.commands.map(commandClass => {
+		this.commands.forEach(commandClass => {
 			const instance = new commandClass();
 			this.commandsInstances.set(instance.name, instance);
 		});
