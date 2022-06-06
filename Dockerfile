@@ -2,7 +2,7 @@ FROM node:16.10.0-alpine AS base
 
 WORKDIR /usr/app/bot-bannis
 
-COPY . .
+COPY --chown=node:node . .
 
 RUN apk add --update --no-cache \
     make \
@@ -14,8 +14,6 @@ RUN apk add --update --no-cache \
     libtool \
     autoconf \
     automake
-
-RUN chown -R node:node /usr/app/bot-bannis
 
 RUN npm install
 
@@ -31,7 +29,7 @@ ENV NODE_ENV=production
 
 CMD ["npm", "start"]
 
-FROM base as dev
+FROM base as development
 
 ENV NODE_ENV=dev
 

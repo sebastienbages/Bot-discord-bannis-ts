@@ -1,7 +1,10 @@
-version: "3.3"
+version: "3.8"
 
 services:
   bot-bannis:
+    build:
+      context: .
+      target: development
     image: bot/bannis
     volumes:
       - ./src:/usr/app/bot-bannis/src
